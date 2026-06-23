@@ -1,8 +1,12 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
+import 'landing_screen.dart';
+import 'provider_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   static const routeName = '/';
@@ -16,9 +20,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    _init();
+  }
+
+  Future<void> _init() async {
+    final authProvider = context.read<AuthProvider>();
+    await Future.wait([
+      authProvider.tryAutoLogin(),
+      Future.delayed(const Duration(seconds: 2)),
+    ]);
+
+    if (!mounted) return;
+
+    if (!authProvider.isLoggedIn) {
+      Navigator.of(context).pushReplacementNamed(LandingScreen.routeName);
+    } else if (authProvider.role == 'Provider') {
+      Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
+    } else {
       Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-    });
+    }
   }
 
   @override
