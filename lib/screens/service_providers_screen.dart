@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/category.dart';
-import '../models/service_provider_model.dart';
-import '../services/service_provider_api_service.dart';
+import '../models/provider_profile_model.dart';
+import '../services/provider_profile_api_service.dart';
 
 class ServiceProvidersScreen extends StatefulWidget {
   static const routeName = '/service-providers';
@@ -13,8 +13,8 @@ class ServiceProvidersScreen extends StatefulWidget {
 }
 
 class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
-  final _apiService = ServiceProviderApiService();
-  late Future<List<ServiceProviderModel>> _providersFuture;
+  final _apiService = ProviderProfileApiService();
+  late Future<List<ProviderProfileModel>> _providersFuture;
   Category? _category;
 
   @override
@@ -30,7 +30,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_category?.name ?? 'Service Providers'), backgroundColor: const Color(0xFF0078D4)),
-      body: FutureBuilder<List<ServiceProviderModel>>(
+      body: FutureBuilder<List<ProviderProfileModel>>(
         future: _providersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -56,7 +56,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
 }
 
 class _ProviderCard extends StatelessWidget {
-  final ServiceProviderModel provider;
+  final ProviderProfileModel provider;
   const _ProviderCard({required this.provider});
 
   @override
@@ -70,8 +70,7 @@ class _ProviderCard extends StatelessWidget {
             CircleAvatar(
               radius: 28,
               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-              backgroundImage: provider.profileImageUrl != null ? NetworkImage(provider.profileImageUrl!) : null,
-              child: provider.profileImageUrl == null ? Icon(Icons.person, size: 30, color: Theme.of(context).primaryColor) : null,
+              child: Icon(Icons.person, size: 30, color: Theme.of(context).primaryColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -92,14 +91,6 @@ class _ProviderCard extends StatelessWidget {
                       Text(provider.rating.toStringAsFixed(1)),
                       const SizedBox(width: 12),
                       Text('${provider.experienceYears} yrs experience'),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.phone, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(provider.mobileNo),
                     ],
                   ),
                 ],

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../models/auth_data.dart';
 import '../services/auth_api_service.dart';
+import '../services/provider_profile_api_service.dart';
 import '../services/session_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthApiService _apiService = AuthApiService();
+  final ProviderProfileApiService _providerProfileApiService = ProviderProfileApiService();
   final SessionService _sessionService = SessionService();
 
   AuthData? _currentUser;
@@ -33,6 +35,16 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       _currentUser = await _apiService.login(emailOrPhone, password);
+
+      if (_currentUser!.role == 'Provider') {
+        try {
+          final providerProfile = await _providerProfileApiService.fetchById(_currentUser!.userId);
+          _currentUser = _currentUser!.copyWith(categoryId: providerProfile.categoryUid);
+        } catch (_) {
+          // Category lookup is non-critical to login; proceed without it if it fails.
+        }
+      }
+
       await _sessionService.saveSession(_currentUser!);
       return true;
     } catch (e) {
