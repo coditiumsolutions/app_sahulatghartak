@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../utils/constants.dart';
+import 'customer_registration_screen.dart';
 import 'login_screen.dart';
-import 'role_selection_screen.dart';
 
 class LandingScreen extends StatelessWidget {
   static const routeName = '/landing';
@@ -23,22 +23,24 @@ class LandingScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text('Quality Services Delivered to Your Doorstep', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
             const SizedBox(height: 48),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: kPrimaryColor, padding: const EdgeInsets.symmetric(vertical: 14)),
-              onPressed: () => Navigator.of(context).pushNamed(RoleSelectionScreen.routeName),
-              child: const SizedBox(width: double.infinity, child: Text('Register', textAlign: TextAlign.center)),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white), padding: const EdgeInsets.symmetric(vertical: 14)),
-              onPressed: () => Navigator.of(context).pushNamed(LoginScreen.routeName, arguments: 'Customer'),
-              child: const SizedBox(width: double.infinity, child: Text('Customer Login', textAlign: TextAlign.center)),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white), padding: const EdgeInsets.symmetric(vertical: 14)),
-              onPressed: () => Navigator.of(context).pushNamed(LoginScreen.routeName, arguments: 'Provider'),
-              child: const SizedBox(width: double.infinity, child: Text('Provider Login', textAlign: TextAlign.center)),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: kPrimaryColor, padding: const EdgeInsets.symmetric(vertical: 14)),
+                    onPressed: () => Navigator.of(context).pushNamed(CustomerRegistrationScreen.routeName),
+                    child: const Text('Register', textAlign: TextAlign.center),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white), padding: const EdgeInsets.symmetric(vertical: 14)),
+                    onPressed: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
+                    child: const Text('Login', textAlign: TextAlign.center),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

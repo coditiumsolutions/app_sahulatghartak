@@ -1,7 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 const kPrimaryColor = Color(0xFF6366F1); // Indigo
 const kSecondaryColor = Color(0xFFEC4899); // Pink
 const kAccentColor = Color(0xFF14B8A6); // Teal
 
-const String kApiBaseUrl = 'http://sahulatghartak.com/api';
+// Local dev server (debug builds) vs. deployed server (release/profile builds).
+// The Android emulator can't reach the host machine via "localhost" - it
+// needs the special 10.0.2.2 alias instead. Every other target (iOS
+// simulator, Windows/macOS/Linux desktop, web) reaches the host via localhost.
+final String _devHost =
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost';
+
+final String kApiBaseUrl = kDebugMode
+    ? 'https://$_devHost:7265/api'
+    : 'https://sahulatghartak.com/api';

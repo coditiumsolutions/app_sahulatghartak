@@ -37,11 +37,13 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final providerId = context.read<AuthProvider>().currentUser?.userId;
-      if (providerId != null) {
-        final dashboard = context.read<ProviderDashboardProvider>();
-        dashboard.loadIncomingRequests(providerId);
-        dashboard.loadProfile(providerId);
+      final currentUser = context.read<AuthProvider>().currentUser;
+      if (currentUser == null) return;
+      final dashboard = context.read<ProviderDashboardProvider>();
+      if (currentUser.providerUid != null) {
+        dashboard.loadProviderDetail(currentUser.providerUid!);
+        dashboard.loadIncomingRequests(currentUser.providerUid!);
+        dashboard.loadAvailabilityStatus(currentUser.providerUid!);
       }
     });
   }

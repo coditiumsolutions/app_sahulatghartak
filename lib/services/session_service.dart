@@ -5,7 +5,7 @@ import '../models/auth_data.dart';
 class SessionService {
   final _storage = const FlutterSecureStorage();
 
-  static const _keys = ['userId', 'username', 'role', 'token', 'expiresAt', 'categoryId', 'categoryName'];
+  static const _keys = ['userId', 'username', 'mobileNo', 'role', 'token', 'expiresAt', 'categoryId', 'categoryName', 'providerUid'];
 
   Future<void> saveSession(AuthData authData) async {
     final map = authData.toStorageMap();
@@ -22,12 +22,7 @@ class SessionService {
       map[key] = value;
     }
 
-    final authData = AuthData.fromStorageMap(map);
-    if (authData.expiresAt.isBefore(DateTime.now())) {
-      await clearSession();
-      return null;
-    }
-    return authData;
+    return AuthData.fromStorageMap(map);
   }
 
   Future<void> clearSession() async {

@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
-import '../screens/home_screen.dart';
 import '../screens/categories_screen.dart';
 import '../screens/bookings_list_screen.dart';
-import '../screens/service_detail_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/profile_screen.dart';
 
-class AppBottomNavigation extends StatefulWidget implements PreferredSizeWidget {
-  const AppBottomNavigation({Key? key}) : super(key: key);
+class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget {
+  final int currentIndex;
+  const AppBottomNavigation({Key? key, this.currentIndex = 0}) : super(key: key);
 
-  @override
-  State<AppBottomNavigation> createState() => _AppBottomNavigationState();
+  static const _routeNames = [
+    HomeScreen.routeName,
+    CategoriesScreen.routeName,
+    BookingsListScreen.routeName,
+    null,
+    ProfileScreen.routeName,
+  ];
 
   @override
   Size get preferredSize => const Size.fromHeight(56);
-}
-
-class _AppBottomNavigationState extends State<AppBottomNavigation> {
-  int _index = 0;
-
-  final _pages = [
-    const HomeScreen(),
-    const CategoriesScreen(),
-    const BookingsListScreen(),
-    const Scaffold(body: Center(child: Text('Offers'))),
-    const Scaffold(body: Center(child: Text('Profile'))),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: _index,
-      onTap: (i) => setState(() => _index = i),
+      currentIndex: currentIndex,
+      onTap: (i) {
+        if (i == currentIndex) return;
+        final routeName = _routeNames[i];
+        if (routeName != null) {
+          Navigator.of(context).pushNamed(routeName);
+        }
+      },
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Categories'),

@@ -28,18 +28,18 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String emailOrPhone, String password) async {
+  Future<bool> login(String mobileNo, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _currentUser = await _apiService.login(emailOrPhone, password);
+      _currentUser = (await _apiService.login(mobileNo, password)).copyWith(mobileNo: mobileNo);
 
       if (_currentUser!.role == 'Provider') {
         try {
           final providerProfile = await _providerProfileApiService.fetchById(_currentUser!.userId);
-          _currentUser = _currentUser!.copyWith(categoryId: providerProfile.categoryUid);
+          _currentUser = _currentUser!.copyWith(categoryId: providerProfile.categoryUid, providerUid: providerProfile.uid);
         } catch (_) {
           // Category lookup is non-critical to login; proceed without it if it fails.
         }
@@ -58,10 +58,11 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> registerCustomer({
     required String fullName,
-    required String email,
-    required String phone,
+    required String mobileNo,
     required String password,
-    required String defaultAddress,
+    required String confirmPassword,
+    required String cnic,
+    required String gender,
   }) async {
     _isLoading = true;
     _error = null;
@@ -70,12 +71,13 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _apiService.registerCustomer(
         fullName: fullName,
-        email: email,
-        phone: phone,
+        mobileNo: mobileNo,
         password: password,
-        defaultAddress: defaultAddress,
+        confirmPassword: confirmPassword,
+        cnic: cnic,
+        gender: gender,
       );
-      return true;
+      return await login(mobileNo, password);
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       return false;
@@ -87,13 +89,15 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> registerProvider({
     required String fullName,
-    required String email,
-    required String phone,
+    required String mobileNo,
     required String password,
-    required int categoryId,
-    required String serviceType,
+    required String confirmPassword,
     required String cnic,
+    required String gender,
     required int experienceYears,
+    required String description,
+    required int categoryId,
+    required String categoryName,
   }) async {
     _isLoading = true;
     _error = null;
@@ -102,15 +106,17 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _apiService.registerProvider(
         fullName: fullName,
-        email: email,
-        phone: phone,
+        mobileNo: mobileNo,
         password: password,
-        categoryId: categoryId,
-        serviceType: serviceType,
+        confirmPassword: confirmPassword,
         cnic: cnic,
+        gender: gender,
         experienceYears: experienceYears,
+        description: description,
+        categoryId: categoryId,
+        categoryName: categoryName,
       );
-      return true;
+      return await login(mobileNo, password);
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       return false;

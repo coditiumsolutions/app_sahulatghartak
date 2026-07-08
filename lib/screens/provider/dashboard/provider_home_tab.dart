@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
+import '../../../utils/provider_availability_helper.dart';
 import '../../../widgets/provider/dashboard_stat_card.dart';
 
 class ProviderHomeTab extends StatelessWidget {
@@ -39,7 +40,7 @@ class ProviderHomeTab extends StatelessWidget {
                     Switch(
                       value: dashboard.isOnline,
                       activeColor: Colors.green,
-                      onChanged: (v) => dashboard.setOnline(v),
+                      onChanged: (v) => toggleProviderOnlineStatus(context, v),
                     ),
                   ],
                 ),

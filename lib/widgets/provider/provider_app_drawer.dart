@@ -23,7 +23,7 @@ class ProviderAppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = context.watch<ProviderDashboardProvider>().profile;
+    final profile = context.watch<ProviderDashboardProvider>().providerDetail;
     final username = context.watch<AuthProvider>().currentUser?.username ?? '';
 
     final items = <_DrawerItem>[

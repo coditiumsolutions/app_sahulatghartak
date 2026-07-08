@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/category.dart';
-import '../screens/service_providers_screen.dart';
+import '../screens/service_request_form_screen.dart';
 import '../utils/category_icons.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -13,7 +13,7 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(ServiceProvidersScreen.routeName, arguments: category),
+      onTap: () => Navigator.of(context).pushNamed(ServiceRequestFormScreen.routeName, arguments: category),
       child: Animate(
         effects: const [ScaleEffect(duration: Duration(milliseconds: 300)), FadeEffect()],
         child: Container(

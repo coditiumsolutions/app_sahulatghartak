@@ -3,9 +3,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/provider_profile_model.dart';
+import '../models/provider/provider_detail.dart';
 import '../utils/constants.dart';
 
 class ProviderProfileApiService {
+  Future<ProviderDetailModel> fetchDetail(int providerUid) async {
+    final response = await http.get(Uri.parse('$kApiBaseUrl/providers-detail/$providerUid'));
+
+    final json = _decode(response, 'Failed to load provider detail');
+    return ProviderDetailModel.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
   Future<List<ProviderProfileModel>> fetchByCategory(int categoryId) async {
     final response = await http.get(Uri.parse('$kApiBaseUrl/provider-profiles?categoryId=$categoryId'));
 

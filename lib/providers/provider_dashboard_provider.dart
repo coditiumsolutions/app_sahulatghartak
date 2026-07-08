@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../models/provider_profile_model.dart';
+import '../services/provider_availability_api_service.dart';
 import '../services/provider_profile_api_service.dart';
 import '../services/provider_service_request_api_service.dart';
 import '../models/provider/availability_slot.dart';
+import '../models/provider/availability_status.dart';
+import '../models/provider/provider_detail.dart';
 import '../models/provider/chat_message.dart';
 import '../models/provider/document_item.dart';
 import '../models/provider/earnings_summary.dart';
@@ -21,6 +23,7 @@ class ProviderDashboardProvider extends ChangeNotifier {
   final ProviderDashboardRepository _repo = ProviderDashboardRepository();
   final ProviderServiceRequestApiService _serviceRequestApiService = ProviderServiceRequestApiService();
   final ProviderProfileApiService _profileApiService = ProviderProfileApiService();
+  final ProviderAvailabilityApiService _availabilityApiService = ProviderAvailabilityApiService();
 
   ProviderDashboardProvider() {
     _quotes = _repo.getQuotes();
@@ -38,12 +41,66 @@ class ProviderDashboardProvider extends ChangeNotifier {
     _supportTickets = _repo.getSupportTickets();
   }
 
-  bool _isOnline = true;
-  bool get isOnline => _isOnline;
+  ProviderAvailabilityStatus? _availabilityStatus;
+  bool get hasAvailabilityRecord => _availabilityStatus != null;
+  bool get isOnline => _availabilityStatus?.isOnline ?? false;
+  String? get availableFrom => _availabilityStatus?.availableFrom;
+  String? get availableTo => _availabilityStatus?.availableTo;
+  String? get availableTiming => _availabilityStatus?.availableTiming;
 
-  void setOnline(bool value) {
-    _isOnline = value;
+  bool _availabilityLoading = false;
+  bool get availabilityLoading => _availabilityLoading;
+
+  String? _availabilityError;
+  String? get availabilityError => _availabilityError;
+
+  Future<void> loadAvailabilityStatus(int providerUid) async {
+    _availabilityLoading = true;
+    _availabilityError = null;
     notifyListeners();
+
+    try {
+      _availabilityStatus = await _availabilityApiService.fetchStatus(providerUid);
+    } catch (e) {
+      _availabilityError = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      _availabilityLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Sets the provider's Online/Offline status. When going online, [availableFrom]
+  /// and [availableTo] (format "HH:mm") are required by the API; when going
+  /// offline, any existing timing is cleared server-side. Returns whether the
+  /// call succeeded; on failure [availabilityError] carries the message.
+  Future<bool> setOnline(int providerUid, bool value, {String? availableFrom, String? availableTo}) async {
+    _availabilityLoading = true;
+    _availabilityError = null;
+    notifyListeners();
+
+    try {
+      final existing = _availabilityStatus;
+      _availabilityStatus = existing == null
+          ? await _availabilityApiService.createStatus(
+              providerUid: providerUid,
+              isOnline: value,
+              availableFrom: availableFrom,
+              availableTo: availableTo,
+            )
+          : await _availabilityApiService.updateStatus(
+              providerUid: providerUid,
+              isOnline: value,
+              availableFrom: availableFrom,
+              availableTo: availableTo,
+            );
+      return true;
+    } catch (e) {
+      _availabilityError = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _availabilityLoading = false;
+      notifyListeners();
+    }
   }
 
   List<ServiceRequest> _incomingRequests = [];
@@ -220,8 +277,8 @@ class ProviderDashboardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  ProviderProfileModel? _profile;
-  ProviderProfileModel? get profile => _profile;
+  ProviderDetailModel? _providerDetail;
+  ProviderDetailModel? get providerDetail => _providerDetail;
 
   bool _profileLoading = false;
   bool get profileLoading => _profileLoading;
@@ -229,13 +286,13 @@ class ProviderDashboardProvider extends ChangeNotifier {
   String? _profileError;
   String? get profileError => _profileError;
 
-  Future<void> loadProfile(int userId) async {
+  Future<void> loadProviderDetail(int providerUid) async {
     _profileLoading = true;
     _profileError = null;
     notifyListeners();
 
     try {
-      _profile = await _profileApiService.fetchById(userId);
+      _providerDetail = await _profileApiService.fetchDetail(providerUid);
     } catch (e) {
       _profileError = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -244,8 +301,8 @@ class ProviderDashboardProvider extends ChangeNotifier {
     }
   }
 
-  void updateProfile(ProviderProfileModel updated) {
-    _profile = updated;
+  void updateProviderDetail(ProviderDetailModel updated) {
+    _providerDetail = updated;
     notifyListeners();
   }
 

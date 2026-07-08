@@ -22,9 +22,9 @@ class _RequestsTabState extends State<RequestsTab> {
   }
 
   void _loadRequests() {
-    final providerId = context.read<AuthProvider>().currentUser?.userId;
-    if (providerId != null) {
-      context.read<ProviderDashboardProvider>().loadIncomingRequests(providerId);
+    final providerUid = context.read<AuthProvider>().currentUser?.providerUid;
+    if (providerUid != null) {
+      context.read<ProviderDashboardProvider>().loadIncomingRequests(providerUid);
     }
   }
 

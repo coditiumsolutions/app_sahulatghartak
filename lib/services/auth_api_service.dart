@@ -6,9 +6,9 @@ import '../models/auth_data.dart';
 import '../utils/constants.dart';
 
 class AuthApiService {
-  Future<AuthData> login(String emailOrPhone, String password) async {
+  Future<AuthData> login(String mobileNo, String password) async {
     final json = await _post('login', {
-      'emailOrPhone': emailOrPhone,
+      'mobileNo': mobileNo,
       'password': password,
     });
     return AuthData.fromJson(json['data'] as Map<String, dynamic>);
@@ -16,40 +16,46 @@ class AuthApiService {
 
   Future<String> registerCustomer({
     required String fullName,
-    required String email,
-    required String phone,
+    required String mobileNo,
     required String password,
-    required String defaultAddress,
+    required String confirmPassword,
+    required String cnic,
+    required String gender,
   }) async {
-    final json = await _post('register-customer', {
-      'fullName': fullName,
-      'email': email,
-      'phone': phone,
+    final json = await _post('register-client', {
+      'mobileNo': mobileNo,
       'password': password,
-      'defaultAddress': defaultAddress,
+      'confirmPassword': confirmPassword,
+      'fullName': fullName,
+      'cnic': cnic,
+      'gender': gender,
     });
     return json['message'] as String? ?? 'Registration successful.';
   }
 
   Future<String> registerProvider({
     required String fullName,
-    required String email,
-    required String phone,
+    required String mobileNo,
     required String password,
-    required int categoryId,
-    required String serviceType,
+    required String confirmPassword,
     required String cnic,
+    required String gender,
     required int experienceYears,
+    required String description,
+    required int categoryId,
+    required String categoryName,
   }) async {
     final json = await _post('register-provider', {
-      'fullName': fullName,
-      'email': email,
-      'phone': phone,
+      'mobileNo': mobileNo,
       'password': password,
-      'categoryId': categoryId,
-      'serviceType': serviceType,
+      'confirmPassword': confirmPassword,
+      'fullName': fullName,
       'cnic': cnic,
+      'gender': gender,
       'experienceYears': experienceYears,
+      'description': description,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
     });
     return json['message'] as String? ?? 'Registration successful.';
   }
@@ -70,8 +76,24 @@ class AuthApiService {
 
     final success = json['success'] as bool? ?? (response.statusCode >= 200 && response.statusCode < 300);
     if (!success) {
-      throw Exception(json['message'] as String? ?? 'Request failed (status ${response.statusCode})');
+      throw Exception(_extractErrorMessage(json, response.statusCode));
     }
     return json;
+  }
+
+  String _extractErrorMessage(Map<String, dynamic> json, int statusCode) {
+    if (json['message'] is String) return json['message'] as String;
+
+    final errors = json['errors'];
+    if (errors is Map) {
+      final messages = errors.values
+          .expand((v) => v is List ? v.map((e) => e.toString()) : [v.toString()])
+          .toList();
+      if (messages.isNotEmpty) return messages.join('\n');
+    }
+
+    if (json['title'] is String) return json['title'] as String;
+
+    return 'Request failed (status $statusCode)';
   }
 }

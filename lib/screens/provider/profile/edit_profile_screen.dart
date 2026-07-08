@@ -21,7 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final profile = context.read<ProviderDashboardProvider>().profile;
+    final profile = context.read<ProviderDashboardProvider>().providerDetail;
     _nameController = TextEditingController(text: profile?.fullName ?? '');
     _cnicController = TextEditingController(text: profile?.cnic ?? '');
     _experienceController = TextEditingController(text: (profile?.experienceYears ?? 0).toString());
@@ -38,7 +38,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
     final dashboard = context.read<ProviderDashboardProvider>();
-    final profile = dashboard.profile;
+    final profile = dashboard.providerDetail;
     if (profile == null) return;
 
     final updated = profile.copyWith(
@@ -46,7 +46,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       cnic: _cnicController.text.trim(),
       experienceYears: int.tryParse(_experienceController.text.trim()) ?? profile.experienceYears,
     );
-    dashboard.updateProfile(updated);
+    dashboard.updateProviderDetail(updated);
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
   }

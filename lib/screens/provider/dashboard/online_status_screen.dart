@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
+import '../../../utils/provider_availability_helper.dart';
 
 class OnlineStatusScreen extends StatelessWidget {
   static const routeName = '/provider/online-status';
@@ -12,6 +13,7 @@ class OnlineStatusScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dashboard = context.watch<ProviderDashboardProvider>();
     final isOnline = dashboard.isOnline;
+    final isBusy = dashboard.availabilityLoading;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Online / Offline Status'), backgroundColor: kPrimaryColor),
@@ -34,8 +36,14 @@ class OnlineStatusScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
+                    if (isOnline && dashboard.availableFrom != null && dashboard.availableTo != null) ...[
+                      const SizedBox(height: 8),
+                      Text('Available: ${dashboard.availableFrom} - ${dashboard.availableTo}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ],
                     const SizedBox(height: 20),
-                    Switch(value: isOnline, activeColor: Colors.green, onChanged: (v) => dashboard.setOnline(v)),
+                    isBusy
+                        ? const CircularProgressIndicator()
+                        : Switch(value: isOnline, activeColor: Colors.green, onChanged: (v) => toggleProviderOnlineStatus(context, v)),
                   ],
                 ),
               ),
