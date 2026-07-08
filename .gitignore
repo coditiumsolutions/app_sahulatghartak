@@ -1,5 +1,4 @@
 # Miscellaneous
-.claude/
 *.class
 *.log
 *.pyc
@@ -44,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude Code local-only settings (machine-specific permissions)
+.claude/settings.local.json
