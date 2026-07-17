@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/category_provider.dart';
 import '../utils/constants.dart';
+import '../widgets/auth_card_scaffold.dart';
+import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
 
 class ProviderRegistrationScreen extends StatefulWidget {
@@ -25,6 +27,8 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   final _descriptionController = TextEditingController();
   String? _selectedGender;
   int? _selectedCategoryId;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
@@ -90,96 +94,117 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
     final categoryProvider = context.watch<CategoryProvider>();
     final categories = categoryProvider.categories;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Provider Registration'), backgroundColor: const Color(0xFF0078D4)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _fullNameController,
-                decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+    return AuthCardScaffold(
+      title: 'Create Account',
+      subtitle: 'Register as a service provider',
+      avatarIcon: Icons.engineering,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            authFieldLabel('Full Name'),
+            TextFormField(
+              controller: _fullNameController,
+              decoration: authFieldDecoration(hint: 'Enter your full name'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Mobile Number'),
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: authFieldDecoration(hint: 'Enter your mobile number'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('CNIC'),
+            TextFormField(
+              controller: _cnicController,
+              decoration: authFieldDecoration(hint: 'Enter your CNIC'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Gender'),
+            GenderSelector(
+              initialValue: _selectedGender,
+              onChanged: (value) => setState(() => _selectedGender = value),
+              validator: (v) => v == null ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Password'),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              decoration: authFieldDecoration(
+                hint: 'Enter your password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Mobile Number', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Confirm Password'),
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: _obscureConfirmPassword,
+              decoration: authFieldDecoration(
+                hint: 'Re-enter your password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
+                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                ),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _cnicController,
-                decoration: const InputDecoration(labelText: 'CNIC', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedGender,
-                decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
-                items: const [
-                  DropdownMenuItem(value: 'Male', child: Text('Male')),
-                  DropdownMenuItem(value: 'Female', child: Text('Female')),
-                  DropdownMenuItem(value: 'Other', child: Text('Other')),
-                ],
-                onChanged: (value) => setState(() => _selectedGender = value),
+              validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Category'),
+            if (categoryProvider.isLoading)
+              const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator()))
+            else
+              DropdownButtonFormField<int>(
+                initialValue: _selectedCategoryId,
+                decoration: authFieldDecoration(hint: 'Select your category'),
+                items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                onChanged: (value) => setState(() => _selectedCategoryId = value),
                 validator: (v) => v == null ? 'Required' : null,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
-                validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
-              ),
-              const SizedBox(height: 16),
-              if (categoryProvider.isLoading)
-                const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator()))
-              else
-                DropdownButtonFormField<int>(
-                  initialValue: _selectedCategoryId,
-                  decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
-                  items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                  onChanged: (value) => setState(() => _selectedCategoryId = value),
-                  validator: (v) => v == null ? 'Required' : null,
+            const SizedBox(height: 20),
+            authFieldLabel('Experience (years)'),
+            TextFormField(
+              controller: _experienceController,
+              keyboardType: TextInputType.number,
+              decoration: authFieldDecoration(hint: 'Enter years of experience'),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required';
+                if (int.tryParse(v.trim()) == null) return 'Enter a valid number';
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Description'),
+            TextFormField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: authFieldDecoration(hint: 'Briefly describe your services'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 28),
+            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _submit),
+            const SizedBox(height: 28),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Already have an account? ', style: TextStyle(color: Colors.black54)),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName, arguments: 'Provider'),
+                  child: const Text('Login', style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
                 ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _experienceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Experience (years)', border: OutlineInputBorder()),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (int.tryParse(v.trim()) == null) return 'Enter a valid number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: kPrimaryColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
-                onPressed: isLoading ? null : _submit,
-                child: isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Register'),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

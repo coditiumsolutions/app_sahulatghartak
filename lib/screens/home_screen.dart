@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
 import '../providers/service_provider.dart';
-import '../providers/category_provider.dart';
-import '../widgets/category_card.dart';
+import '../utils/main_categories.dart';
 import '../widgets/featured_services_carousel.dart';
+import '../widgets/main_category_card.dart';
+import 'subcategories_screen.dart';
 
 import '../widgets/bottom_nav.dart';
-import 'landing_screen.dart';
 
 const List<Color> _cardColors = [
   Color(0xFFFF6B6B),
@@ -37,28 +36,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final services = context.watch<ServiceProvider>().services;
     final filteredServices = services.where((s) => s.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
-    final categoryProvider = context.watch<CategoryProvider>();
-    final categories = categoryProvider.categories;
-    final filteredCategories = categories.where((c) => c.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    final pages = (filteredCategories.length / 6).ceil();
+    final query = _searchQuery.toLowerCase();
+    final filteredMainCategories = mainCategories.where((c) {
+      if (query.isEmpty) return true;
+      if (c.title.toLowerCase().contains(query)) return true;
+      return c.subCategories.any((s) => s.label.toLowerCase().contains(query));
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0078D4),
         iconTheme: const IconThemeData(color: Colors.black),
+        automaticallyImplyLeading: false,
         toolbarHeight: 160,
         titleSpacing: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await context.read<AuthProvider>().logout();
-              if (!context.mounted) return;
-              Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
-            },
-          ),
-        ],
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -102,37 +93,23 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Text('Services', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 300,
-              child: categoryProvider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : categoryProvider.error != null
-                      ? Center(child: Text('Failed to load categories: ${categoryProvider.error}'))
-                      : pages == 0
-                          ? const SizedBox.shrink()
-                          : PageView.builder(
-                controller: PageController(initialPage: pages * 1000),
-                itemBuilder: (context, pageIndex) {
-                  final actualPage = pageIndex % pages;
-                  final start = actualPage * 6;
-                  final end = (start + 6).clamp(0, filteredCategories.length);
-                  final slice = filteredCategories.sublist(start, end);
-                  return GridView.count(
-                    crossAxisCount: 3,
-                    padding: const EdgeInsets.all(8),
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.8,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: slice.map((category) {
-                      final index = categories.indexOf(category);
-                      final color = _cardColors[index % _cardColors.length];
-                      return CategoryCard(category: category, backgroundColor: color);
-                    }).toList(),
-                  );
-                },
+            if (filteredMainCategories.isEmpty)
+              const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: Text('No matching services')))
+            else
+              Row(
+                children: [
+                  for (final category in filteredMainCategories) ...[
+                    if (category != filteredMainCategories.first) const SizedBox(width: 12),
+                    Expanded(
+                      child: MainCategoryCard(
+                        category: category,
+                        onTap: () => Navigator.of(context).pushNamed(SubCategoriesScreen.routeName, arguments: category),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ),
+            const SizedBox(height: 16),
             const Divider(thickness: 1),
             const SizedBox(height: 12),
             Text('Featured Services', style: Theme.of(context).textTheme.titleMedium),

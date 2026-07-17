@@ -1,7 +1,7 @@
 class Category {
   final int id;
   final String name;
-  final String description;
+  final String? description;
   final DateTime createdOn;
 
   const Category({
@@ -15,7 +15,7 @@ class Category {
     return Category(
       id: json['id'] as int,
       name: json['name'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       createdOn: DateTime.parse(json['createdOn'] as String),
     );
   }

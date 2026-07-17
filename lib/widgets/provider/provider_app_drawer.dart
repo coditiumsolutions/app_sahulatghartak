@@ -3,18 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/provider_dashboard_provider.dart';
-import '../../screens/landing_screen.dart';
 import '../../utils/constants.dart';
 import '../../utils/provider_routes.dart';
 
 class ProviderAppDrawer extends StatelessWidget {
   const ProviderAppDrawer({Key? key}) : super(key: key);
-
-  Future<void> _logout(BuildContext context) async {
-    await context.read<AuthProvider>().logout();
-    if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
-  }
 
   void _goTo(BuildContext context, String routeName) {
     Navigator.of(context).pop();
@@ -71,8 +64,6 @@ class ProviderAppDrawer extends StatelessWidget {
               ),
             ),
             ...items.map((item) => ListTile(leading: Icon(item.icon, color: kPrimaryColor), title: Text(item.label), onTap: item.onTap)),
-            const Divider(),
-            ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('Logout', style: TextStyle(color: Colors.red)), onTap: () => _logout(context)),
           ],
         ),
       ),

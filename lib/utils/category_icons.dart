@@ -39,6 +39,14 @@ const Map<String, IconData> _keywordIcons = {
   'cook': Icons.restaurant,
   'laundry': Icons.local_laundry_service,
   'fumigation': Icons.bug_report,
+  'termite': Icons.pest_control,
+  'tanker': Icons.local_shipping,
+  'rent': Icons.key,
+  'sale': Icons.sell,
+  'purchase': Icons.shopping_cart,
+  'renovat': Icons.construction,
+  'lawyer': Icons.gavel,
+  'legal': Icons.gavel,
 };
 
 IconData getCategoryIcon(String categoryName) {

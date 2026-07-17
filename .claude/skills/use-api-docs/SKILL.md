@@ -10,6 +10,8 @@ description: >-
   a new screen/feature that hits the backend, fix an API-related bug, or
   update request/response models. Also triggers when new endpoints are added
   or changed, in which case api.txt/api.md must be updated to stay in sync.
+author: Rayder
+version: 1.0.0
 ---
 
 # Use API Docs

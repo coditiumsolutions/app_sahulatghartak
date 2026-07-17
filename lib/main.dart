@@ -25,6 +25,7 @@ import 'screens/service_detail_screen.dart';
 import 'screens/service_providers_screen.dart';
 import 'screens/service_request_form_screen.dart';
 import 'screens/service_requests_screen.dart';
+import 'screens/subcategories_screen.dart';
 import 'screens/booking_screen.dart';
 import 'screens/bookings_list_screen.dart';
 import 'screens/provider/chat/chat_list_screen.dart';
@@ -86,6 +87,7 @@ class SahulatApp extends StatelessWidget {
           CategoriesScreen.routeName: (_) => const CategoriesScreen(),
           ServiceDetailScreen.routeName: (_) => const ServiceDetailScreen(),
           ServiceProvidersScreen.routeName: (_) => const ServiceProvidersScreen(),
+          SubCategoriesScreen.routeName: (_) => const SubCategoriesScreen(),
           ServiceRequestFormScreen.routeName: (_) => const ServiceRequestFormScreen(),
           ServiceRequestsScreen.routeName: (_) => const ServiceRequestsScreen(),
           BookingScreen.routeName: (_) => const BookingScreen(),

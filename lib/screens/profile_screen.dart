@@ -7,6 +7,8 @@ import '../providers/client_address_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
 import 'add_address_screen.dart';
+import 'landing_screen.dart';
+import 'provider_dashboard_screen.dart';
 import 'provider_registration_screen.dart';
 import 'service_requests_screen.dart';
 
@@ -58,6 +60,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _logout(BuildContext context) async {
+    await context.read<AuthProvider>().logout();
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
@@ -68,7 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile'), backgroundColor: const Color(0xFF0078D4)),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: const Color(0xFF0078D4),
+        actions: [IconButton(icon: const Icon(Icons.logout), tooltip: 'Logout', onPressed: () => _logout(context))],
+      ),
       bottomNavigationBar: const AppBottomNavigation(currentIndex: 4),
       body: RefreshIndicator(
         onRefresh: () async => _loadAddresses(),
@@ -160,7 +172,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               const SizedBox(height: 32),
-              if (user.role != 'Provider')
+              if (user.role == 'Provider')
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: kSecondaryColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  icon: const Icon(Icons.swap_horiz),
+                  onPressed: () => Navigator.of(context).pushNamed(ProviderDashboardScreen.routeName),
+                  label: const Text('Switch to Provider'),
+                )
+              else
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(backgroundColor: kSecondaryColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
                   icon: const Icon(Icons.engineering),

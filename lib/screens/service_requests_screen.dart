@@ -6,6 +6,7 @@ import '../models/customer_service_request.dart';
 import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
+import '../widgets/bottom_nav.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
   static const routeName = '/service-requests';
@@ -99,6 +100,7 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Service Requests'), backgroundColor: kPrimaryColor),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 2),
       body: RefreshIndicator(
         onRefresh: () async => _loadRequests(),
         child: requestState.loading

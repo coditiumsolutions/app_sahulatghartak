@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/categories_screen.dart';
-import '../screens/bookings_list_screen.dart';
+import '../screens/service_requests_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
 
@@ -11,7 +11,7 @@ class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget
   static const _routeNames = [
     HomeScreen.routeName,
     CategoriesScreen.routeName,
-    BookingsListScreen.routeName,
+    ServiceRequestsScreen.routeName,
     null,
     ProfileScreen.routeName,
   ];
@@ -33,7 +33,7 @@ class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Categories'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Bookings'),
+        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Requests'),
         BottomNavigationBarItem(icon: Icon(Icons.local_offer), label: 'Offers'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],

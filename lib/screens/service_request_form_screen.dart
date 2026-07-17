@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
+import '../utils/service_title_suggestions.dart';
 import 'add_address_screen.dart';
 import 'service_requests_screen.dart';
 
@@ -21,7 +22,6 @@ class ServiceRequestFormScreen extends StatefulWidget {
 
 class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _contactPersonController = TextEditingController();
   final _contactNoController = TextEditingController();
@@ -29,6 +29,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   final _remarksController = TextEditingController();
 
   Category? _category;
+  String? _selectedServiceTitle;
   ClientAddress? _selectedAddress;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -61,7 +62,6 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
     _descriptionController.dispose();
     _contactPersonController.dispose();
     _contactNoController.dispose();
@@ -90,11 +90,6 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an address')));
       return;
     }
-    if (_selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select preferred date and time')));
-      return;
-    }
-
     final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
     if (clientUid == null) return;
 
@@ -103,10 +98,10 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       clientUid: clientUid,
       categoryUid: _category!.id,
       clientAddressUid: _selectedAddress!.uid,
-      serviceTitle: _titleController.text.trim(),
+      serviceTitle: _selectedServiceTitle!,
       serviceDescription: _descriptionController.text.trim(),
-      preferredServiceDate: DateFormat('yyyy-MM-dd').format(_selectedDate!),
-      preferredServiceTime: _formatTime(_selectedTime!),
+      preferredServiceDate: _selectedDate == null ? '' : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+      preferredServiceTime: _selectedTime == null ? '' : _formatTime(_selectedTime!),
       isUrgent: _isUrgent,
       contactPerson: _contactPersonController.text.trim(),
       contactNo: _contactNoController.text.trim(),
@@ -165,26 +160,23 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
                   validator: (v) => v == null ? 'Required' : null,
                 ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _titleController,
+              DropdownButtonFormField<String>(
+                value: _selectedServiceTitle,
                 decoration: const InputDecoration(labelText: 'Service Title', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                items: getServiceTitleSuggestions(_category?.name ?? '')
+                    .map((title) => DropdownMenuItem(value: title, child: Text(title, overflow: TextOverflow.ellipsis)))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedServiceTitle = v),
+                validator: (v) => v == null ? 'Required' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Service Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Service Description (optional)', border: OutlineInputBorder()),
                 minLines: 2,
                 maxLines: 4,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
-              Row(children: [
-                Expanded(child: OutlinedButton(onPressed: _pickDate, child: Text(_selectedDate == null ? 'Preferred Date' : DateFormat.yMMMd().format(_selectedDate!)))),
-                const SizedBox(width: 12),
-                Expanded(child: OutlinedButton(onPressed: _pickTime, child: Text(_selectedTime == null ? 'Preferred Time' : _selectedTime!.format(context)))),
-              ]),
-              const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Mark as Urgent'),
@@ -217,6 +209,14 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
                 minLines: 1,
                 maxLines: 3,
               ),
+              const SizedBox(height: 20),
+              Text('Preferred Date & Time (optional)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(child: OutlinedButton.icon(onPressed: _pickDate, icon: const Icon(Icons.calendar_today, size: 18), label: Text(_selectedDate == null ? 'Preferred Date' : DateFormat.yMMMd().format(_selectedDate!)))),
+                const SizedBox(width: 12),
+                Expanded(child: OutlinedButton.icon(onPressed: _pickTime, icon: const Icon(Icons.access_time, size: 18), label: Text(_selectedTime == null ? 'Preferred Time' : _selectedTime!.format(context)))),
+              ]),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: saving ? null : _submit,
