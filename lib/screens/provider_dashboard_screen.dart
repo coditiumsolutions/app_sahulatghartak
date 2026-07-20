@@ -24,12 +24,12 @@ class ProviderDashboardScreen extends StatefulWidget {
 class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   int _index = 0;
 
-  static const _titles = ['Provider Dashboard', 'Requests', 'Active Jobs', 'Earnings', 'Profile'];
+  static const _titles = ['Provider Dashboard', 'Requests', 'Bookings', 'Earnings', 'Provider Profile'];
 
   static const _tabs = [
     ProviderHomeTab(),
     RequestsTab(),
-    JobsTab(),
+    BookingsTab(),
     EarningsTab(),
     ProfileTab(),
   ];
@@ -75,7 +75,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'Requests'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Jobs'),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Bookings'),
           BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: 'Earnings'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],

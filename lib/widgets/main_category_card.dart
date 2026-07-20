@@ -24,18 +24,18 @@ class MainCategoryCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: category.color.withOpacity(0.3)),
             ),
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(category.icon, size: 34, color: category.color),
-                const SizedBox(height: 10),
+                Icon(category.icon, size: 42, color: category.color),
+                const SizedBox(height: 8),
                 Text(
                   category.title,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ],
             ),

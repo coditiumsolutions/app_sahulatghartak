@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
+import '../widgets/bottom_nav.dart';
 
 class BookingsListScreen extends StatelessWidget {
   static const routeName = '/bookings';
@@ -11,6 +12,7 @@ class BookingsListScreen extends StatelessWidget {
     final bookings = context.watch<BookingProvider>().bookings;
     return Scaffold(
       appBar: AppBar(title: const Text('My Bookings'), backgroundColor: Colors.yellow),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 2),
       body: bookings.isEmpty
           ? const Center(child: Text('No bookings yet'))
           : ListView.builder(

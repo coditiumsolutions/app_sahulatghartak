@@ -29,7 +29,7 @@ class ProviderHomeTab extends StatelessWidget {
 
     final cards = [
       DashboardStatCard(label: 'Available Requests', value: '${dashboard.incomingRequests.length}', icon: Icons.inbox, color: kPrimaryColor),
-      DashboardStatCard(label: 'Active Jobs', value: '${dashboard.activeJobs.length}', icon: Icons.work, color: kAccentColor),
+      DashboardStatCard(label: 'Active Bookings', value: '${dashboard.activeJobs.length}', icon: Icons.work, color: kAccentColor),
       DashboardStatCard(label: 'Completed Today', value: '${dashboard.completedJobsToday}', icon: Icons.task_alt, color: Colors.green),
       DashboardStatCard(label: "Today's Earnings", value: 'Rs ${dashboard.earningsSummary.today.toStringAsFixed(0)}', icon: Icons.attach_money, color: Colors.orange),
       DashboardStatCard(label: 'Average Rating', value: dashboard.averageRating.toStringAsFixed(1), icon: Icons.star, color: Colors.amber),

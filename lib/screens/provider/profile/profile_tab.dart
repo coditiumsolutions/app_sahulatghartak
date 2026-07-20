@@ -6,6 +6,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/provider_routes.dart';
+import '../../../widgets/curved_profile_header.dart';
 import '../../home_screen.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -16,6 +17,9 @@ class ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<ProfileTab> {
+  static const double _avatarRadius = 46;
+  static const double _headerHeight = 75;
+
   @override
   void initState() {
     super.initState();
@@ -56,23 +60,33 @@ class _ProfileTabState extends State<ProfileTab> {
       return const Center(child: Text('No profile data found.'));
     }
 
-    return RefreshIndicator(
+    return CurvedProfileHeader(
+      color: kPrimaryColor,
+      headerHeight: _headerHeight,
+      avatarRadius: _avatarRadius,
       onRefresh: () async => _loadProfile(),
+      avatar: const CircleAvatar(backgroundColor: kPrimaryColor, child: Icon(Icons.person, color: Colors.white, size: 42)),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(20, _avatarRadius + 20, 20, 24),
         child: Column(
           children: [
-            const CircleAvatar(radius: 48, backgroundColor: kPrimaryColor, child: Icon(Icons.person, color: Colors.white, size: 48)),
-            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(detail.fullName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Flexible(
+                  child: Text(
+                    detail.fullName,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                ),
                 if (detail.isVerified) const Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.verified, color: Colors.blue, size: 20)),
               ],
             ),
-            Text(detail.categoryName, style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Text(detail.categoryName, style: TextStyle(color: Colors.black.withOpacity(0.5))),
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -81,21 +95,31 @@ class _ProfileTabState extends State<ProfileTab> {
                 Text('${detail.averageRating.toStringAsFixed(1)} (${detail.totalReviews} reviews)'),
               ],
             ),
-            const SizedBox(height: 16),
             if (currentUser != null) ...[
-              const _SectionHeader('Account Details'),
-              Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  children: [
-                    ListTile(leading: const Icon(Icons.account_circle, color: kPrimaryColor), title: const Text('Account Type'), subtitle: Text(currentUser.role)),
-                    const Divider(height: 1),
-                    ListTile(leading: const Icon(Icons.tag, color: kPrimaryColor), title: const Text('User ID'), subtitle: Text('${currentUser.userId}')),
-                  ],
-                ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ProfileStatBadge(
+                      icon: Icons.account_circle,
+                      label: 'ACCOUNT TYPE',
+                      value: currentUser.role,
+                      color: kPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ProfileStatBadge(
+                      icon: Icons.tag,
+                      label: 'USER ID',
+                      value: '${currentUser.userId}',
+                      color: kSecondaryColor,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
             ],
+            const SizedBox(height: 20),
             const _SectionHeader('Provider Details'),
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -153,6 +177,7 @@ class _ProfileTabState extends State<ProfileTab> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
+                style: kProminentFilledButtonStyle(kPrimaryColor),
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Profile'),
                 onPressed: () => Navigator.of(context).pushNamed(ProviderRoutes.editProfile),
@@ -162,8 +187,9 @@ class _ProfileTabState extends State<ProfileTab> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(kPrimaryColor),
                 icon: const Icon(Icons.swap_horiz),
-                label: const Text('Switch to Customer'),
+                label: const Text('Customers Dashboard'),
                 onPressed: () => Navigator.of(context).pushNamed(HomeScreen.routeName),
               ),
             ),

@@ -24,7 +24,7 @@ class ProviderAppDrawer extends StatelessWidget {
       _DrawerItem(Icons.toggle_on, 'Online / Offline Status', () => _goTo(context, ProviderRoutes.onlineStatus)),
       _DrawerItem(Icons.inbox, 'Incoming Requests', () => Navigator.of(context).pop()),
       _DrawerItem(Icons.request_quote, 'My Quotes', () => _goTo(context, ProviderRoutes.myQuotes)),
-      _DrawerItem(Icons.work, 'Active Jobs', () => Navigator.of(context).pop()),
+      _DrawerItem(Icons.work, 'Active Bookings', () => Navigator.of(context).pop()),
       _DrawerItem(Icons.history, 'Job History', () => _goTo(context, ProviderRoutes.jobHistory)),
       _DrawerItem(Icons.attach_money, 'Earnings', () => Navigator.of(context).pop()),
       _DrawerItem(Icons.account_balance_wallet, 'Wallet', () => _goTo(context, ProviderRoutes.wallet)),

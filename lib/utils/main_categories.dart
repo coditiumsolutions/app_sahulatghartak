@@ -44,4 +44,15 @@ const List<MainCategory> mainCategories = [
       SubCategoryItem('Lawyer services for legal cases', ['lawyer', 'legal']),
     ],
   ),
+  MainCategory(
+    title: 'Sahulat Ride',
+    icon: Icons.local_taxi,
+    color: Color(0xFFFF9F43),
+    subCategories: [
+      SubCategoryItem('Bike Ride', ['bike ride']),
+      SubCategoryItem('Car Ride', ['car ride']),
+      SubCategoryItem('Rickshaw Ride', ['rickshaw']),
+      SubCategoryItem('Parcel Delivery', ['parcel']),
+    ],
+  ),
 ];

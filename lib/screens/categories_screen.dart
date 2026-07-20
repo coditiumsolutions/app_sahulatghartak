@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/service_provider.dart';
+import '../widgets/bottom_nav.dart';
 import '../widgets/service_card.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Categories'), backgroundColor: Colors.yellow),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(children: [

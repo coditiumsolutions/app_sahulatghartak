@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/curved_profile_header.dart';
 import 'add_address_screen.dart';
 import 'landing_screen.dart';
 import 'provider_dashboard_screen.dart';
@@ -21,6 +22,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const double _avatarRadius = 46;
+  static const double _headerHeight = 75;
+
   @override
   void initState() {
     super.initState();
@@ -77,40 +81,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Customer Profile'),
         backgroundColor: const Color(0xFF0078D4),
         actions: [IconButton(icon: const Icon(Icons.logout), tooltip: 'Logout', onPressed: () => _logout(context))],
       ),
       bottomNavigationBar: const AppBottomNavigation(currentIndex: 4),
-      body: RefreshIndicator(
+      body: CurvedProfileHeader(
+        color: kPrimaryColor,
+        headerHeight: _headerHeight,
+        avatarRadius: _avatarRadius,
         onRefresh: () async => _loadAddresses(),
+        avatar: CircleAvatar(
+          backgroundColor: kPrimaryColor,
+          child: Text(
+            user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+            style: const TextStyle(fontSize: 32, color: Colors.white),
+          ),
+        ),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(24, _avatarRadius + 20, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 48,
-                  backgroundColor: kPrimaryColor,
-                  child: Text(
-                    user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 36, color: Colors.white),
-                  ),
-                ),
+              Text(
+                user.username,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 4),
+              Text(
+                user.mobileNo,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black.withOpacity(0.5)),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ProfileStatBadge(
+                      icon: Icons.account_circle,
+                      label: 'ACCOUNT TYPE',
+                      value: user.role,
+                      color: kPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ProfileStatBadge(
+                      icon: Icons.tag,
+                      label: 'USER ID',
+                      value: '${user.userId}',
+                      color: kSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Column(
                     children: [
-                      _InfoTile(label: 'Full Name', value: user.username),
-                      const Divider(height: 1),
                       _InfoTile(label: 'Mobile Number', value: user.mobileNo),
-                      const Divider(height: 1),
-                      _InfoTile(label: 'Role', value: user.role),
                       if (user.categoryName != null) ...[
                         const Divider(height: 1),
                         _InfoTile(label: 'Category', value: user.categoryName!),
@@ -121,6 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 32),
               OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(kPrimaryColor),
                 onPressed: () => Navigator.of(context).pushNamed(ServiceRequestsScreen.routeName),
                 icon: const Icon(Icons.assignment),
                 label: const Text('My Service Requests'),
@@ -174,14 +208,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 32),
               if (user.role == 'Provider')
                 ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: kSecondaryColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: kProminentFilledButtonStyle(kSecondaryColor),
                   icon: const Icon(Icons.swap_horiz),
                   onPressed: () => Navigator.of(context).pushNamed(ProviderDashboardScreen.routeName),
                   label: const Text('Switch to Provider'),
                 )
               else
                 ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: kSecondaryColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: kProminentFilledButtonStyle(kSecondaryColor),
                   icon: const Icon(Icons.engineering),
                   onPressed: () => Navigator.of(context).pushNamed(ProviderRegistrationScreen.routeName),
                   label: const Text('Become a Provider'),

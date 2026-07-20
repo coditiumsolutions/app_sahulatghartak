@@ -6,6 +6,7 @@ import '../models/main_category.dart';
 import '../providers/category_provider.dart';
 import '../utils/category_icons.dart';
 import '../utils/constants.dart';
+import '../widgets/bottom_nav.dart';
 import '../widgets/subcategory_card.dart';
 import 'service_request_form_screen.dart';
 
@@ -32,6 +33,7 @@ class SubCategoriesScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: kPrimaryColor,
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
       body: Stack(
         children: [
           Positioned(

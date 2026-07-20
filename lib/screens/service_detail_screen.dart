@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/service.dart';
 import '../providers/service_provider.dart';
+import '../widgets/bottom_nav.dart';
 import 'booking_screen.dart';
 
 class ServiceDetailScreen extends StatelessWidget {
@@ -16,6 +17,7 @@ class ServiceDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(service.name), backgroundColor: Colors.yellow),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

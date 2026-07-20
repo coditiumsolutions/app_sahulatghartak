@@ -96,18 +96,23 @@ class _HomeScreenState extends State<HomeScreen> {
             if (filteredMainCategories.isEmpty)
               const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: Text('No matching services')))
             else
-              Row(
-                children: [
-                  for (final category in filteredMainCategories) ...[
-                    if (category != filteredMainCategories.first) const SizedBox(width: 12),
-                    Expanded(
-                      child: MainCategoryCard(
-                        category: category,
-                        onTap: () => Navigator.of(context).pushNamed(SubCategoriesScreen.routeName, arguments: category),
-                      ),
-                    ),
-                  ],
-                ],
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.3,
+                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20,
+                ),
+                itemCount: filteredMainCategories.length,
+                itemBuilder: (context, index) {
+                  final category = filteredMainCategories[index];
+                  return MainCategoryCard(
+                    category: category,
+                    onTap: () => Navigator.of(context).pushNamed(SubCategoriesScreen.routeName, arguments: category),
+                  );
+                },
               ),
             const SizedBox(height: 16),
             const Divider(thickness: 1),

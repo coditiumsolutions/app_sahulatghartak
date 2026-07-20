@@ -20,7 +20,7 @@ class AuthCardScaffold extends StatelessWidget {
   }) : super(key: key);
 
   static const double avatarRadius = 46;
-  static const double headerHeight = 170;
+  static const double headerHeight = 85;
 
   @override
   Widget build(BuildContext context) {

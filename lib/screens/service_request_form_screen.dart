@@ -9,6 +9,7 @@ import '../providers/client_address_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../utils/service_title_suggestions.dart';
+import '../widgets/auth_card_scaffold.dart';
 import 'add_address_screen.dart';
 import 'service_requests_screen.dart';
 
@@ -124,109 +125,164 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     final addressState = context.watch<ClientAddressProvider>();
     final saving = context.watch<CustomerServiceRequestProvider>().saving;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(_category?.name ?? 'Service Request'), backgroundColor: kPrimaryColor),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Text('Requesting: ${_category?.name ?? ''}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              if (addressState.loading)
-                const Center(child: CircularProgressIndicator())
-              else if (addressState.addresses.isEmpty)
-                Card(
-                  color: Colors.amber[50],
-                  child: ListTile(
-                    leading: const Icon(Icons.location_off, color: Colors.orange),
-                    title: const Text('No saved addresses'),
-                    subtitle: const Text('Add an address to continue'),
-                    trailing: TextButton(
+    return AuthCardScaffold(
+      title: _category?.name ?? 'Service Request',
+      subtitle: 'Fill in the details to request this service',
+      avatarIcon: Icons.assignment_outlined,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (addressState.loading)
+              const Center(child: CircularProgressIndicator())
+            else if (addressState.addresses.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_off, color: Colors.orange),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('No saved addresses', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Add an address to continue', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                        ],
+                      ),
+                    ),
+                    TextButton(
                       onPressed: () => Navigator.of(context).pushNamed(AddAddressScreen.routeName),
                       child: const Text('Add'),
                     ),
-                  ),
-                )
-              else
-                DropdownButtonFormField<ClientAddress>(
-                  value: _selectedAddress,
-                  decoration: const InputDecoration(labelText: 'Service Address', border: OutlineInputBorder()),
-                  items: addressState.addresses
-                      .map((a) => DropdownMenuItem(value: a, child: Text('${a.addressTitle} - ${a.area}, ${a.city}', overflow: TextOverflow.ellipsis)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _selectedAddress = v),
-                  validator: (v) => v == null ? 'Required' : null,
+                  ],
                 ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _selectedServiceTitle,
-                decoration: const InputDecoration(labelText: 'Service Title', border: OutlineInputBorder()),
-                items: getServiceTitleSuggestions(_category?.name ?? '')
-                    .map((title) => DropdownMenuItem(value: title, child: Text(title, overflow: TextOverflow.ellipsis)))
+              )
+            else ...[
+              authFieldLabel('Service Address'),
+              DropdownButtonFormField<ClientAddress>(
+                value: _selectedAddress,
+                decoration: authFieldDecoration(hint: 'Select an address'),
+                items: addressState.addresses
+                    .map((a) => DropdownMenuItem(value: a, child: Text('${a.addressTitle} - ${a.area}, ${a.city}', overflow: TextOverflow.ellipsis)))
                     .toList(),
-                onChanged: (v) => setState(() => _selectedServiceTitle = v),
+                onChanged: (v) => setState(() => _selectedAddress = v),
                 validator: (v) => v == null ? 'Required' : null,
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Service Description (optional)', border: OutlineInputBorder()),
-                minLines: 2,
-                maxLines: 4,
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Mark as Urgent'),
+            ],
+            const SizedBox(height: 20),
+            authFieldLabel('Service Title'),
+            DropdownButtonFormField<String>(
+              value: _selectedServiceTitle,
+              decoration: authFieldDecoration(hint: 'Select a service title'),
+              items: getServiceTitleSuggestions(_category?.name ?? '')
+                  .map((title) => DropdownMenuItem(value: title, child: Text(title, overflow: TextOverflow.ellipsis)))
+                  .toList(),
+              onChanged: (v) => setState(() => _selectedServiceTitle = v),
+              validator: (v) => v == null ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Service Description (optional)'),
+            TextFormField(
+              controller: _descriptionController,
+              decoration: authFieldDecoration(hint: 'Describe what you need'),
+              minLines: 2,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 20),
+            Container(
+              decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(14)),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: const Text('Mark as Urgent', style: TextStyle(fontWeight: FontWeight.w600)),
                 value: _isUrgent,
+                activeColor: kPrimaryColor,
                 onChanged: (v) => setState(() => _isUrgent = v),
               ),
-              const SizedBox(height: 4),
-              TextFormField(
-                controller: _contactPersonController,
-                decoration: const InputDecoration(labelText: 'Contact Person', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _contactNoController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Contact Number', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _budgetController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Estimated Budget (optional)', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _remarksController,
-                decoration: const InputDecoration(labelText: 'Remarks (optional)', border: OutlineInputBorder()),
-                minLines: 1,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 20),
-              Text('Preferred Date & Time (optional)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
-              const SizedBox(height: 8),
-              Row(children: [
-                Expanded(child: OutlinedButton.icon(onPressed: _pickDate, icon: const Icon(Icons.calendar_today, size: 18), label: Text(_selectedDate == null ? 'Preferred Date' : DateFormat.yMMMd().format(_selectedDate!)))),
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Contact Person'),
+            TextFormField(
+              controller: _contactPersonController,
+              decoration: authFieldDecoration(hint: 'Enter contact person name'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Contact Number'),
+            TextFormField(
+              controller: _contactNoController,
+              keyboardType: TextInputType.phone,
+              decoration: authFieldDecoration(hint: 'Enter contact number'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Estimated Budget (optional)'),
+            TextFormField(
+              controller: _budgetController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: authFieldDecoration(hint: 'Enter estimated budget'),
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Remarks (optional)'),
+            TextFormField(
+              controller: _remarksController,
+              decoration: authFieldDecoration(hint: 'Any additional remarks'),
+              minLines: 1,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Preferred Date & Time (optional)'),
+            Row(
+              children: [
+                Expanded(
+                  child: _PickerField(
+                    icon: Icons.calendar_today,
+                    label: _selectedDate == null ? 'Preferred Date' : DateFormat.yMMMd().format(_selectedDate!),
+                    onTap: _pickDate,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: OutlinedButton.icon(onPressed: _pickTime, icon: const Icon(Icons.access_time, size: 18), label: Text(_selectedTime == null ? 'Preferred Time' : _selectedTime!.format(context)))),
-              ]),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: saving ? null : _submit,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                child: saving
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Submit Request'),
-              ),
-            ],
-          ),
+                Expanded(
+                  child: _PickerField(
+                    icon: Icons.access_time,
+                    label: _selectedTime == null ? 'Preferred Time' : _selectedTime!.format(context),
+                    onTap: _pickTime,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            AuthPrimaryButton(label: 'Submit Request', isLoading: saving, onPressed: _submit),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PickerField extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _PickerField({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(14)),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: Colors.black54),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label, style: const TextStyle(color: Colors.black87), overflow: TextOverflow.ellipsis)),
+          ],
         ),
       ),
     );
