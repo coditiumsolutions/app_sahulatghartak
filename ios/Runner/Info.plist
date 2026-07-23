@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Sahulat Ghar Tak uses your camera to capture your profile photo and CNIC images during provider registration.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sahulat Ghar Tak needs access to your photo library to select your profile photo and CNIC images during provider registration.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

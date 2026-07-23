@@ -22,7 +22,12 @@ const List<Color> _cardColors = [
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
-  const HomeScreen({Key? key}) : super(key: key);
+
+  /// True when hosted inside [MainNavigationShell], which already provides
+  /// the bottom navigation bar.
+  final bool embedded;
+
+  const HomeScreen({Key? key, this.embedded = false}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -84,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNavigation(),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -7,7 +7,12 @@ import '../widgets/service_card.dart';
 
 class CategoriesScreen extends StatefulWidget {
   static const routeName = '/categories';
-  const CategoriesScreen({Key? key}) : super(key: key);
+
+  /// True when hosted inside [MainNavigationShell], which already provides
+  /// the bottom navigation bar.
+  final bool embedded;
+
+  const CategoriesScreen({Key? key, this.embedded = false}) : super(key: key);
 
   @override
   State<CategoriesScreen> createState() => _CategoriesScreenState();
@@ -22,7 +27,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Categories'), backgroundColor: Colors.yellow),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(children: [

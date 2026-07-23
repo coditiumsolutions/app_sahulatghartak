@@ -7,6 +7,7 @@ import '../utils/constants.dart';
 import '../widgets/auth_card_scaffold.dart';
 import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
+import 'provider_document_upload_screen.dart';
 
 class ProviderRegistrationScreen extends StatefulWidget {
   static const routeName = '/register-provider';
@@ -21,14 +22,12 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   final _cnicController = TextEditingController();
   final _experienceController = TextEditingController();
   final _descriptionController = TextEditingController();
   String? _selectedGender;
   int? _selectedCategoryId;
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
@@ -43,7 +42,6 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
     _fullNameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _cnicController.dispose();
     _experienceController.dispose();
     _descriptionController.dispose();
@@ -69,7 +67,6 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       fullName: _fullNameController.text.trim(),
       mobileNo: _phoneController.text.trim(),
       password: _passwordController.text,
-      confirmPassword: _confirmPasswordController.text,
       cnic: _cnicController.text.trim(),
       gender: _selectedGender!,
       experienceYears: int.parse(_experienceController.text.trim()),
@@ -82,7 +79,17 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful.')));
-      Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
+      final providerUid = authProvider.currentUser?.providerUid;
+      if (providerUid != null) {
+        Navigator.of(context).pushReplacementNamed(
+          ProviderDocumentUploadScreen.routeName,
+          arguments: ProviderDocumentUploadArgs(providerUid: providerUid),
+        );
+      } else {
+        // Fallback: providerUid should always be present after a successful registration,
+        // but don't strand the user on this screen if it's ever missing.
+        Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Registration failed')));
     }
@@ -113,9 +120,13 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             authFieldLabel('Mobile Number'),
             TextFormField(
               controller: _phoneController,
+              readOnly: true,
+              enabled: false,
               keyboardType: TextInputType.phone,
-              decoration: authFieldDecoration(hint: 'Enter your mobile number'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              decoration: authFieldDecoration(hint: 'Enter your mobile number').copyWith(
+                suffixIcon: const Icon(Icons.lock_outline, color: Colors.black38, size: 18),
+                fillColor: const Color(0xFFEDEDEF),
+              ),
             ),
             const SizedBox(height: 20),
             authFieldLabel('CNIC'),
@@ -132,32 +143,18 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
               validator: (v) => v == null ? 'Required' : null,
             ),
             const SizedBox(height: 20),
-            authFieldLabel('Password'),
+            authFieldLabel('Confirm Your Account Password'),
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
               decoration: authFieldDecoration(
-                hint: 'Enter your password',
+                hint: 'Enter your existing account password',
                 suffixIcon: IconButton(
                   icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
-            ),
-            const SizedBox(height: 20),
-            authFieldLabel('Confirm Password'),
-            TextFormField(
-              controller: _confirmPasswordController,
-              obscureText: _obscureConfirmPassword,
-              decoration: authFieldDecoration(
-                hint: 'Re-enter your password',
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
-                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                ),
-              ),
-              validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Category'),

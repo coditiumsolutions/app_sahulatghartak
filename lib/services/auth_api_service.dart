@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/auth_data.dart';
+import '../models/otp_data.dart';
 import '../utils/constants.dart';
 
 class AuthApiService {
@@ -33,11 +34,10 @@ class AuthApiService {
     return json['message'] as String? ?? 'Registration successful.';
   }
 
-  Future<String> registerProvider({
+  Future<int> registerProvider({
     required String fullName,
     required String mobileNo,
     required String password,
-    required String confirmPassword,
     required String cnic,
     required String gender,
     required int experienceYears,
@@ -48,7 +48,6 @@ class AuthApiService {
     final json = await _post('register-provider', {
       'mobileNo': mobileNo,
       'password': password,
-      'confirmPassword': confirmPassword,
       'fullName': fullName,
       'cnic': cnic,
       'gender': gender,
@@ -57,7 +56,22 @@ class AuthApiService {
       'categoryId': categoryId,
       'categoryName': categoryName,
     });
-    return json['message'] as String? ?? 'Registration successful.';
+    final data = json['data'] as Map<String, dynamic>?;
+    return (data?['providerUid'] as int?) ?? (data?['profileId'] as int?) ?? 0;
+  }
+
+  Future<OtpData> sendOtp(String mobileNo, {String otpType = 'Registration'}) async {
+    final json = await _post('send-otp', {'mobileNo': mobileNo, 'otpType': otpType});
+    return OtpData.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<OtpData> resendOtp(String mobileNo, {String otpType = 'Registration'}) async {
+    final json = await _post('resend-otp', {'mobileNo': mobileNo, 'otpType': otpType});
+    return OtpData.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> verifyOtp(String mobileNo, String otp) async {
+    await _post('verify-otp', {'mobileNo': mobileNo, 'otp': otp});
   }
 
   Future<Map<String, dynamic>> _post(String endpoint, Map<String, dynamic> body) async {

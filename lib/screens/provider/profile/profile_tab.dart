@@ -188,6 +188,16 @@ class _ProfileTabState extends State<ProfileTab> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 style: kProminentOutlinedButtonStyle(kPrimaryColor),
+                icon: const Icon(Icons.badge_outlined),
+                label: const Text('My Documents'),
+                onPressed: () => Navigator.of(context).pushNamed(ProviderRoutes.verificationDocuments),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(kPrimaryColor),
                 icon: const Icon(Icons.swap_horiz),
                 label: const Text('Customers Dashboard'),
                 onPressed: () => Navigator.of(context).pushNamed(HomeScreen.routeName),

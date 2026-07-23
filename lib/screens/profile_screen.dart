@@ -15,7 +15,12 @@ import 'service_requests_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
-  const ProfileScreen({Key? key}) : super(key: key);
+
+  /// True when hosted inside [MainNavigationShell], which already provides
+  /// the bottom navigation bar.
+  final bool embedded;
+
+  const ProfileScreen({Key? key, this.embedded = false}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -85,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: const Color(0xFF0078D4),
         actions: [IconButton(icon: const Icon(Icons.logout), tooltip: 'Logout', onPressed: () => _logout(context))],
       ),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 4),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 4),
       body: CurvedProfileHeader(
         color: kPrimaryColor,
         headerHeight: _headerHeight,

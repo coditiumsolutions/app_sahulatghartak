@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/auth_data.dart';
+import '../models/otp_data.dart';
 import '../services/auth_api_service.dart';
 import '../services/provider_profile_api_service.dart';
 import '../services/session_service.dart';
@@ -14,6 +15,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _error;
+  OtpData? _otpData;
 
   AuthData? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
@@ -21,6 +23,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
+  OtpData? get otpData => _otpData;
 
   Future<void> tryAutoLogin() async {
     _currentUser = await _sessionService.getSession();
@@ -77,7 +80,58 @@ class AuthProvider extends ChangeNotifier {
         cnic: cnic,
         gender: gender,
       );
-      return await login(mobileNo, password);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendOtp(String mobileNo, {String otpType = 'Registration'}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _otpData = await _apiService.sendOtp(mobileNo, otpType: otpType);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> resendOtp(String mobileNo, {String otpType = 'Registration'}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _otpData = await _apiService.resendOtp(mobileNo, otpType: otpType);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> verifyOtp(String mobileNo, String otp) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _apiService.verifyOtp(mobileNo, otp);
+      return true;
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       return false;
@@ -91,7 +145,6 @@ class AuthProvider extends ChangeNotifier {
     required String fullName,
     required String mobileNo,
     required String password,
-    required String confirmPassword,
     required String cnic,
     required String gender,
     required int experienceYears,
@@ -104,11 +157,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _apiService.registerProvider(
+      final providerUid = await _apiService.registerProvider(
         fullName: fullName,
         mobileNo: mobileNo,
         password: password,
-        confirmPassword: confirmPassword,
         cnic: cnic,
         gender: gender,
         experienceYears: experienceYears,
@@ -116,7 +168,15 @@ class AuthProvider extends ChangeNotifier {
         categoryId: categoryId,
         categoryName: categoryName,
       );
-      return await login(mobileNo, password);
+      final loggedIn = await login(mobileNo, password);
+      if (loggedIn && providerUid > 0) {
+        // register-provider's response is the authoritative source for providerUid;
+        // the provider-profile lookup inside login() is best-effort and may fail silently.
+        _currentUser = _currentUser?.copyWith(providerUid: providerUid);
+        await _sessionService.saveSession(_currentUser!);
+        notifyListeners();
+      }
+      return loggedIn;
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       return false;

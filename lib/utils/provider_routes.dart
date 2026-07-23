@@ -12,6 +12,7 @@ class ProviderRoutes {
   static const schedule = '/provider/schedule';
   static const servicesOffered = '/provider/services-offered';
   static const documents = '/provider/documents';
+  static const verificationDocuments = '/provider/profile/verification-documents';
   static const support = '/provider/support';
   static const settings = '/provider/settings';
   static const editProfile = '/provider/profile/edit';

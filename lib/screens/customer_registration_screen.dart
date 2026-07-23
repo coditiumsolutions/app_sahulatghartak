@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/auth_card_scaffold.dart';
-import 'home_screen.dart';
 import 'login_screen.dart';
+import 'otp_verification_screen.dart';
 
 class CustomerRegistrationScreen extends StatefulWidget {
   static const routeName = '/register-customer';
@@ -44,10 +44,12 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
     }
 
     final authProvider = context.read<AuthProvider>();
+    final mobileNo = _phoneController.text.trim();
+    final password = _passwordController.text;
     final success = await authProvider.registerCustomer(
       fullName: _fullNameController.text.trim(),
-      mobileNo: _phoneController.text.trim(),
-      password: _passwordController.text,
+      mobileNo: mobileNo,
+      password: password,
       confirmPassword: _confirmPasswordController.text,
       cnic: _cnicController.text.trim(),
       gender: _selectedGender!,
@@ -56,8 +58,10 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful.')));
-      Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      Navigator.of(context).pushReplacementNamed(
+        OtpVerificationScreen.routeName,
+        arguments: OtpVerificationArgs(mobileNo: mobileNo, password: password, otpType: 'Registration'),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Registration failed')));
     }

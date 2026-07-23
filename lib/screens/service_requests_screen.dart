@@ -10,7 +10,12 @@ import '../widgets/bottom_nav.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
   static const routeName = '/service-requests';
-  const ServiceRequestsScreen({Key? key}) : super(key: key);
+
+  /// True when hosted inside [MainNavigationShell], which already provides
+  /// the bottom navigation bar.
+  final bool embedded;
+
+  const ServiceRequestsScreen({Key? key, this.embedded = false}) : super(key: key);
 
   @override
   State<ServiceRequestsScreen> createState() => _ServiceRequestsScreenState();
@@ -100,7 +105,7 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Service Requests'), backgroundColor: kPrimaryColor),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 2),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 2),
       body: RefreshIndicator(
         onRefresh: () async => _loadRequests(),
         child: requestState.loading
