@@ -36,14 +36,17 @@ This app uses **Provider** (`provider` package) for state management, with `Chan
 These are fully wired to the live backend documented in `api.txt`:
 
 - **Auth** — `AuthProvider` / `AuthApiService` (`lib/services/auth_api_service.dart`): register client, register/upgrade provider, login, session persistence via `flutter_secure_storage` (`lib/services/session_service.dart`)
+- **OTP verification** — `AuthProvider.sendOtp` / `resendOtp` / `verifyOtp`, `lib/models/otp_data.dart`. New client and provider registrations are created with `IsVerified=false`; `OtpVerificationScreen` (`lib/screens/otp_verification_screen.dart`) collects the 6-digit code, auto-sends on entry, and supports resend with a cooldown. A provider upgrade requires the client account to already be OTP-verified.
+- **Provider document verification** — `ProviderDocumentProvider` (`lib/providers/provider_document_provider.dart`) / `ProviderDocumentApiService`, `lib/models/provider/provider_documents.dart`. Uploads profile photo + CNIC front/back (via `image_picker`) to `POST /api/provider/upload-documents`; `ProviderDocumentUploadScreen` runs right after provider registration, `VerificationDocumentsScreen` (`lib/screens/provider/profile/verification_documents_screen.dart`, linked from the Profile tab) lets an existing provider view/replace documents and see admin verification status/remarks.
 - **Service Categories** — `CategoryProvider` / `CategoryApiService`, `lib/models/category.dart`
 - **Client Addresses** — `ClientAddressProvider` / `ClientAddressApiService`, `lib/models/client_address.dart`
 - **Customer Service Requests** — `CustomerServiceRequestProvider` / `CustomerServiceRequestApiService`, `lib/models/customer_service_request.dart` (create/update/cancel/delete a request)
 - **Provider Profile / Availability** — `ProviderDashboardProvider` methods `loadProviderDetail`, `loadIncomingRequests`, `loadAvailabilityStatus`, `setOnline` (`lib/services/provider_profile_api_service.dart`, `provider_availability_api_service.dart`, `provider_service_request_api_service.dart`)
+- **Provider Bookings** — `ProviderBookingsProvider` / `ServiceBookingApiService` (`lib/services/service_booking_api_service.dart`), `lib/models/provider/service_booking.dart` — fetch-by-provider and update (status/amounts) against `/api/service-bookings`. This backs the dashboard's **Jobs tab**, whose widget file is still named `lib/screens/provider/jobs/jobs_tab.dart` but now renders the real `BookingsTab` (not mock data — see below).
 
 ### Mocked / placeholder features
 
-`ProviderDashboardProvider` also exposes `activeJobs`, `jobHistory`, `earningsSummary`, `walletBalance`, `walletTransactions`, `reviews`, `notifications`, `chatThreads`, `availabilitySlots`, `serviceOfferings`, `documents`, and `supportTickets`. These are all backed by `lib/repositories/provider_dashboard_repository.dart`, which is explicitly documented in its own docstring as dummy/mock data — there are no real backend endpoints for Jobs/Earnings/Wallet/Reviews/Chat/Notifications/Availability-Slots/Service-Offerings/Documents/Support-Tickets yet. Don't try to "fix" these into real API calls without confirming new endpoints exist in `api.txt` first.
+`ProviderDashboardProvider` also exposes `quotes`, `jobHistory`, `earningsSummary`, `walletBalance`, `walletTransactions`, `reviews`, `notifications`, `chatThreads`, `availabilitySlots`, `serviceOfferings`, `documents`, and `supportTickets`. These are all backed by `lib/repositories/provider_dashboard_repository.dart`, which is explicitly documented in its own docstring as dummy/mock data — there are no real backend endpoints for Quotes/Job-History/Earnings/Wallet/Reviews/Chat/Notifications/Availability-Slots/Service-Offerings/Documents(mock)/Support-Tickets yet. Don't try to "fix" these into real API calls without confirming new endpoints exist in `api.txt` first. Note the **Requests tab** (`RequestsTab`, incoming requests + "Send Quote") and **My Quotes screen** (`MyQuotesScreen`) are still mock-backed via this repository, distinct from the real Bookings feature above — don't confuse the two.
 
 ### Legacy/unused-in-flow files (still present, still registered as routes)
 
@@ -58,9 +61,13 @@ Real backend `Category` rows don't have a "main category" grouping concept, so t
 - `SubCategoriesScreen._findMatch()` keyword-matches each `SubCategoryItem` against real `Category.name` values (case-insensitive `contains`); a match navigates to `ServiceRequestFormScreen` with the real `Category`, no match shows a "coming soon" snackbar
 - `lib/utils/category_icons.dart` and `lib/utils/service_title_suggestions.dart` use the same keyword-matching pattern to pick an icon / hardcoded common-service-title suggestions for a category name
 
+### Customer navigation shell
+
+`HomeScreen.routeName` (`/home`) now resolves to `lib/widgets/main_navigation_shell.dart` (`MainNavigationShell`), a bottom-nav shell that swaps between 4 embedded tabs (`HomeScreen`, `CategoriesScreen`, `ServiceRequestsScreen`, `ProfileScreen`, each constructed with `embedded: true`) via `AnimatedSwitcher` instead of pushing a new route per tab. Each of those screens accepts an `embedded` flag that suppresses its own `Scaffold`/bottom-nav-bar when hosted inside the shell — pass `embedded: true` when reusing them there, `false` (default) when pushing them standalone. `SplashScreen` is the app's actual `initialRoute` (auth/session bootstrap before landing on `LandingScreen` or `MainNavigationShell`). The bottom nav bar (`lib/widgets/bottom_nav.dart`) has a 5th "Offers" slot (index 3) with no backing screen/route yet — it's a placeholder, tapping it is a no-op.
+
 ### Provider Dashboard
 
-`ProviderDashboardScreen` (`lib/screens/provider_dashboard_screen.dart`) is a 5-tab bottom-nav shell (Dashboard/Requests/Jobs/Earnings/Profile, `lib/screens/provider/dashboard|requests|jobs|earnings|profile/`) plus a drawer (`lib/widgets/provider/provider_app_drawer.dart`) linking to the mock-backed feature screens under `lib/screens/provider/*` (chat, documents, notifications, reviews, schedule, services, settings, support, wallet). Route names for these are centralized in `lib/utils/provider_routes.dart` (`ProviderRoutes`).
+`ProviderDashboardScreen` (`lib/screens/provider_dashboard_screen.dart`) is a 5-tab bottom-nav shell (Dashboard/Requests/Jobs/Earnings/Profile, `lib/screens/provider/dashboard|requests|jobs|earnings|profile/`) — Jobs is the real, API-backed `BookingsTab` described above; Dashboard/Requests/Earnings/Profile's data lists are still mock-backed. The shell also has a drawer (`lib/widgets/provider/provider_app_drawer.dart`) linking to further feature screens under `lib/screens/provider/*` (chat, documents, notifications, reviews, schedule, services, settings, support, wallet, my-quotes) — all mock-backed except the document-verification screen noted above. Route names for these are centralized in `lib/utils/provider_routes.dart` (`ProviderRoutes`).
 
 Customers with `role == 'Provider'` get a "Switch to Provider" button on `ProfileScreen`; Providers get a symmetric "Switch to Customer" button on `lib/screens/provider/profile/profile_tab.dart`. Both use `pushNamed` (not `pushReplacementNamed`) so either dashboard stays on the navigation stack while switching.
 
@@ -84,14 +91,15 @@ Edit `lib/utils/main_categories.dart` to add a `SubCategoryItem(label, keywords)
 
 ```
 lib/
-├── models/              # Data classes (Category, ClientAddress, CustomerServiceRequest, AuthData, MainCategory, ProviderProfile, legacy Service/Booking)
-├── providers/           # ChangeNotifier state (AuthProvider, CategoryProvider, ClientAddressProvider, CustomerServiceRequestProvider, ProviderDashboardProvider, legacy ServiceProvider/BookingProvider)
+├── models/              # Data classes (Category, ClientAddress, CustomerServiceRequest, AuthData, OtpData, MainCategory, ProviderProfile, legacy Service/Booking)
+│   └── provider/         # Provider-dashboard models: ProviderDetail, ServiceRequest, ServiceBooking (real), Quote/Job/EarningsSummary/WalletTransaction/Review/... (mock), ProviderDocuments
+├── providers/           # ChangeNotifier state (AuthProvider, CategoryProvider, ClientAddressProvider, CustomerServiceRequestProvider, ProviderDashboardProvider, ProviderBookingsProvider, ProviderDocumentProvider, legacy ServiceProvider/BookingProvider)
 ├── services/             # HTTP API clients (one per resource) + SessionService (secure storage)
 ├── repositories/         # ProviderDashboardRepository — mock/dummy data pending real endpoints
 ├── database/             # SQLite (DbHelper) — legacy, used only by BookingProvider
-├── screens/              # Top-level customer screens; screens/provider/<feature>/ for the Provider Dashboard tabs & drawer pages
-├── widgets/              # Reusable UI (AuthCardScaffold + auth field helpers, MainCategoryCard, SubcategoryCard, widgets/provider/ for dashboard-specific widgets)
-├── utils/                # constants.dart (colors, kApiBaseUrl), dev_http_overrides.dart, provider_routes.dart, main_categories.dart, category_icons.dart, service_title_suggestions.dart, provider_availability_helper.dart
+├── screens/              # Top-level customer screens (incl. SplashScreen, OtpVerificationScreen, ProviderDocumentUploadScreen); screens/provider/<feature>/ for the Provider Dashboard tabs & drawer pages
+├── widgets/              # Reusable UI (AuthCardScaffold + auth field helpers, MainNavigationShell + AppBottomNavigation, MainCategoryCard, SubcategoryCard, BannerSlider, FeaturedServicesCarousel, widgets/provider/ for dashboard-specific widgets incl. DocumentImageSlot)
+├── utils/                # constants.dart (colors, kApiBaseUrl, kApiFileBaseUrl), dev_http_overrides.dart, provider_routes.dart, main_categories.dart, category_icons.dart, service_title_suggestions.dart, provider_availability_helper.dart
 └── main.dart             # App entry point, MultiProvider setup, route table
 ```
 
@@ -100,9 +108,11 @@ All screens use named routes defined in `SahulatApp.routes` (`lib/main.dart`). A
 
 ## Dependencies
 - `provider` — state management
-- `http` — REST API calls
+- `http` / `http_parser` — REST API calls (incl. multipart uploads for provider documents)
+- `image_picker` — camera/gallery picks for provider document upload (profile photo, CNIC front/back)
 - `flutter_secure_storage` — persisted login session
-- `sqflite` / `path_provider` — legacy local SQLite storage (Booking flow only)
+- `sqflite` — legacy local SQLite storage (Booking flow only)
+- `path_provider` — legacy SQLite storage path, and re-downloading already-uploaded provider documents to resend on partial re-upload (`ProviderDocumentProvider._resolveFile`)
 - `intl` — date/time formatting
 - `flutter_animate` — UI animations
 - `fl_chart` — charts (Provider earnings/wallet screens)
