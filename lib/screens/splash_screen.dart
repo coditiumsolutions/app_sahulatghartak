@@ -49,7 +49,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const FlutterLogo(size: 100),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset('assets/icon/app_icon.png', width: 100, height: 100),
+            ),
             const SizedBox(height: 16),
             Text('Sahulat Ghar Tak', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
             const SizedBox(height: 8),

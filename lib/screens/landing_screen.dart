@@ -55,7 +55,10 @@ class LandingScreen extends StatelessWidget {
                     color: Colors.white,
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 16, offset: const Offset(0, 6))],
                   ),
-                  child: const FlutterLogo(size: 100),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.asset('assets/icon/app_icon.png', width: 100, height: 100),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text('Sahulat Ghar Tak', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),

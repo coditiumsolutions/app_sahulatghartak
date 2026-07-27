@@ -13,8 +13,6 @@ author: Rayder
 version: 1.0.1
 ---
 
-<!-- Author: Rayder | Version: 1.0.1 -->
-
 # Update DB Docs
 
 Update database documentation only when the user explicitly asks. Never run schema introspection or modify documentation files proactively.

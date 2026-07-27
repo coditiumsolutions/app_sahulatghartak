@@ -1,4 +1,4 @@
-package com.example.sahulat_ghar_tak
+package com.coditiumsols.sahulatghartak
 
 import io.flutter.embedding.android.FlutterActivity
 
