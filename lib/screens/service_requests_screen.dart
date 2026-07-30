@@ -99,13 +99,21 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  static const _brandDark = Color(0xFF0A4FA8);
+  static const _brandBlue = Color(0xFF016EE3);
+  static const _brandAccent = Color(0xFF4FC3F7);
+
   @override
   Widget build(BuildContext context) {
     final requestState = context.watch<CustomerServiceRequestProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Service Requests'), backgroundColor: kPrimaryColor),
-      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 2),
+      backgroundColor: const Color(0xFFF4F7FB),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(128),
+        child: _RequestsBanner(count: requestState.requests.length),
+      ),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
       body: RefreshIndicator(
         onRefresh: () async => _loadRequests(),
         child: requestState.loading
@@ -113,16 +121,20 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
             : requestState.error != null
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [Padding(padding: const EdgeInsets.all(24), child: Text(requestState.error!, style: const TextStyle(color: Colors.red)))],
+                    children: [
+                      Padding(padding: const EdgeInsets.all(24), child: Text(requestState.error!, style: const TextStyle(color: Colors.red))),
+                    ],
                   )
                 : requestState.requests.isEmpty
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No service requests yet.')))],
+                        children: const [
+                          Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No service requests yet.'))),
+                        ],
                       )
                     : ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                         itemCount: requestState.requests.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
@@ -130,10 +142,16 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                           final deleting = requestState.deletingUid == request.uid;
                           final cancelling = requestState.cancellingUid == request.uid;
 
-                          return Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(color: _brandDark.withOpacity(0.06), blurRadius: 18, offset: const Offset(0, 6)),
+                              ],
+                            ),
                             child: Padding(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(14),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -204,6 +222,95 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                           );
                         },
                       ),
+      ),
+    );
+  }
+}
+
+/// A gradient header replacing the flat default [AppBar] — mirrors the
+/// brand gradient used on the landing/splash screens and dock, with a
+/// decorative glow and a live request count.
+class _RequestsBanner extends StatelessWidget {
+  final int count;
+  const _RequestsBanner({required this.count});
+
+  static const _brandDark = _ServiceRequestsScreenState._brandDark;
+  static const _brandBlue = _ServiceRequestsScreenState._brandBlue;
+  static const _brandAccent = _ServiceRequestsScreenState._brandAccent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_brandDark, _brandBlue],
+        ),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        boxShadow: [BoxShadow(color: Color(0x330A4FA8), blurRadius: 20, offset: Offset(0, 8))],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -40,
+              right: -30,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withOpacity(0.14)),
+              ),
+            ),
+            Positioned(
+              bottom: -50,
+              left: -20,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)),
+              ),
+            ),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.14),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'My Service Requests',
+                            style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -0.2),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            count == 0 ? 'Track your requests here' : '$count active request${count == 1 ? '' : 's'}',
+                            style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 13, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

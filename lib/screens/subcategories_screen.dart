@@ -33,7 +33,7 @@ class SubCategoriesScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: kPrimaryColor,
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: -1),
       body: Stack(
         children: [
           Positioned(

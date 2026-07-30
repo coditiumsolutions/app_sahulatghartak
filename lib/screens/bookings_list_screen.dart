@@ -12,7 +12,7 @@ class BookingsListScreen extends StatelessWidget {
     final bookings = context.watch<BookingProvider>().bookings;
     return Scaffold(
       appBar: AppBar(title: const Text('My Bookings'), backgroundColor: Colors.yellow),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 2),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
       body: bookings.isEmpty
           ? const Center(child: Text('No bookings yet'))
           : ListView.builder(

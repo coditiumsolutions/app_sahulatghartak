@@ -8,6 +8,7 @@ class CurvedProfileHeader extends StatelessWidget {
   final Widget avatar;
   final Widget child;
   final Color color;
+  final List<Color>? headerColors;
   final double headerHeight;
   final double avatarRadius;
   final Future<void> Function()? onRefresh;
@@ -17,6 +18,7 @@ class CurvedProfileHeader extends StatelessWidget {
     required this.avatar,
     required this.child,
     required this.color,
+    this.headerColors,
     this.headerHeight = 150,
     this.avatarRadius = 48,
     this.onRefresh,
@@ -31,11 +33,17 @@ class CurvedProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final body = Container(
-      color: color,
+      decoration: BoxDecoration(
+        color: headerColors == null ? color : null,
+        gradient: headerColors == null
+            ? null
+            : LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: headerColors!),
+      ),
       child: Stack(
         children: [
           Positioned(top: -70, left: -50, child: _blob(180)),
           Positioned(top: -30, right: -60, child: _blob(160)),
+          Positioned(bottom: headerHeight * 0.15, right: -40, child: _blob(120)),
           Column(
             children: [
               SizedBox(height: headerHeight),

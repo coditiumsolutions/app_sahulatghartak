@@ -27,7 +27,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Categories'), backgroundColor: Colors.yellow),
-      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: -1),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(children: [

@@ -31,7 +31,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_category?.name ?? 'Service Providers'), backgroundColor: const Color(0xFF0078D4)),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: -1),
       body: FutureBuilder<List<ProviderProfileModel>>(
         future: _providersFuture,
         builder: (context, snapshot) {

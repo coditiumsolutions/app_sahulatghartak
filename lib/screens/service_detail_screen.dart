@@ -17,7 +17,7 @@ class ServiceDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(service.name), backgroundColor: Colors.yellow),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar: const AppBottomNavigation(currentIndex: -1),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

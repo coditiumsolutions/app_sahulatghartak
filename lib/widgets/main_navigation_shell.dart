@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../screens/categories_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/service_requests_screen.dart';
@@ -8,10 +7,9 @@ import 'bottom_nav.dart';
 
 const _tabTransitionDuration = Duration(milliseconds: 250);
 
-/// Hosts the four primary customer tabs (Home, Categories, Requests,
-/// Profile) behind a single [Scaffold] and bottom navigation bar, switching
-/// between them with a Scale & Cross-Fade transition instead of pushing a
-/// new route per tab.
+/// Hosts the three primary customer tabs (Home, Requests, Profile) behind a
+/// single [Scaffold] and bottom navigation bar, switching between them with
+/// a Scale & Cross-Fade transition instead of pushing a new route per tab.
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({Key? key}) : super(key: key);
 
@@ -24,9 +22,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   static const _tabs = <int, Widget>{
     0: HomeScreen(embedded: true),
-    1: CategoriesScreen(embedded: true),
-    2: ServiceRequestsScreen(embedded: true),
-    4: ProfileScreen(embedded: true),
+    1: ServiceRequestsScreen(embedded: true),
+    2: ProfileScreen(embedded: true),
   };
 
   void _onTabSelected(int index) {
