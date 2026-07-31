@@ -10,14 +10,16 @@ class AuthCardScaffold extends StatelessWidget {
   final String subtitle;
   final IconData avatarIcon;
   final Widget child;
+  final Color accentColor;
 
   const AuthCardScaffold({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.child,
     this.avatarIcon = Icons.person,
-  }) : super(key: key);
+    this.accentColor = kPrimaryColor,
+  });
 
   static const double avatarRadius = 46;
   static const double headerHeight = 85;
@@ -25,7 +27,7 @@ class AuthCardScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kPrimaryColor,
+      backgroundColor: accentColor,
       body: Stack(
         children: [
           Positioned(
@@ -34,7 +36,7 @@ class AuthCardScaffold extends StatelessWidget {
             child: Container(
               width: 180,
               height: 180,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.08)),
             ),
           ),
           Positioned(
@@ -43,7 +45,7 @@ class AuthCardScaffold extends StatelessWidget {
             child: Container(
               width: 160,
               height: 160,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.08)),
             ),
           ),
           SafeArea(
@@ -80,7 +82,7 @@ class AuthCardScaffold extends StatelessWidget {
                         Text(
                           subtitle,
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+                          style: TextStyle(fontSize: 14, color: Colors.black.withValues(alpha: 0.5)),
                         ),
                         const SizedBox(height: 32),
                         child,
@@ -102,11 +104,11 @@ class AuthCardScaffold extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
                 padding: const EdgeInsets.all(6),
                 child: CircleAvatar(
-                  backgroundColor: kPrimaryColor,
+                  backgroundColor: accentColor,
                   child: Icon(avatarIcon, color: Colors.white, size: 42),
                 ),
               ),
@@ -141,12 +143,11 @@ Widget authFieldLabel(String text) {
 
 class GenderSelector extends FormField<String> {
   GenderSelector({
-    Key? key,
+    super.key,
     String? initialValue,
     required ValueChanged<String> onChanged,
     FormFieldValidator<String>? validator,
   }) : super(
-          key: key,
           initialValue: initialValue,
           validator: validator,
           builder: (state) {
@@ -205,7 +206,7 @@ class _GenderOption extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? kPrimaryColor : const Color(0xFFF5F5F7),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? kPrimaryColor : (hasError ? Colors.redAccent.withOpacity(0.6) : Colors.transparent)),
+          border: Border.all(color: selected ? kPrimaryColor : (hasError ? Colors.redAccent.withValues(alpha: 0.6) : Colors.transparent)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -227,8 +228,9 @@ class AuthPrimaryButton extends StatelessWidget {
   final String label;
   final bool isLoading;
   final VoidCallback? onPressed;
+  final Color color;
 
-  const AuthPrimaryButton({Key? key, required this.label, required this.isLoading, required this.onPressed}) : super(key: key);
+  const AuthPrimaryButton({super.key, required this.label, required this.isLoading, required this.onPressed, this.color = kPrimaryColor});
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +238,7 @@ class AuthPrimaryButton extends StatelessWidget {
       height: 52,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: kPrimaryColor,
+          backgroundColor: color,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

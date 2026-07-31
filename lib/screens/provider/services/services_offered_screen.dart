@@ -6,7 +6,7 @@ import '../../../utils/constants.dart';
 
 class ServicesOfferedScreen extends StatelessWidget {
   static const routeName = '/provider/services-offered';
-  const ServicesOfferedScreen({Key? key}) : super(key: key);
+  const ServicesOfferedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

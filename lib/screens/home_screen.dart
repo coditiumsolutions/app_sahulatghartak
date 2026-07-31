@@ -1,24 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/service.dart';
 import '../providers/service_provider.dart';
 import '../utils/main_categories.dart';
+import '../utils/service_colors.dart';
 import '../widgets/featured_services_carousel.dart';
 import '../widgets/main_category_card.dart';
-import 'subcategories_screen.dart';
+import 'service_detail_screen.dart';
 
 import '../widgets/bottom_nav.dart';
-
-const List<Color> _cardColors = [
-  Color(0xFFFF6B6B),
-  Color(0xFF4ECDC4),
-  Color(0xFF45B7D1),
-  Color(0xFFFFA07A),
-  Color(0xFF98D8C8),
-  Color(0xFFF7DC6F),
-  Color(0xFFBB8FCE),
-  Color(0xFF85C1E2),
-];
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
@@ -27,7 +18,7 @@ class HomeScreen extends StatefulWidget {
   /// the bottom navigation bar.
   final bool embedded;
 
-  const HomeScreen({Key? key, this.embedded = false}) : super(key: key);
+  const HomeScreen({super.key, this.embedded = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -36,22 +27,100 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
 
+  final LayerLink _searchLink = LayerLink();
+  final FocusNode _searchFocusNode = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
+  OverlayEntry? _suggestionsOverlay;
+
   static const _brandDark = Color(0xFF0A4FA8);
   static const _brandBlue = Color(0xFF016EE3);
   static const _brandAccent = Color(0xFF4FC3F7);
   static const _ink = Color(0xFF14213D);
 
   @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _removeSuggestionsOverlay();
+    _searchFocusNode.removeListener(_onFocusChanged);
+    _searchFocusNode.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (!_searchFocusNode.hasFocus) {
+      _removeSuggestionsOverlay();
+    } else {
+      _updateSuggestionsOverlay();
+    }
+  }
+
+  void _onQueryChanged(String value) {
+    setState(() => _searchQuery = value);
+    _updateSuggestionsOverlay();
+  }
+
+  List<Service> _matchingServices(List<Service> services) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return const [];
+    return services.where((s) => s.name.toLowerCase().contains(query)).take(6).toList();
+  }
+
+  void _updateSuggestionsOverlay() {
+    final services = context.read<ServiceProvider>().services;
+    final matches = _matchingServices(services);
+    final shouldShow = _searchFocusNode.hasFocus && _searchQuery.trim().isNotEmpty;
+
+    if (!shouldShow) {
+      _removeSuggestionsOverlay();
+      return;
+    }
+
+    if (_suggestionsOverlay == null) {
+      _suggestionsOverlay = OverlayEntry(
+        builder: (context) => _SearchSuggestionsOverlay(
+          link: _searchLink,
+          matches: matches,
+          onTap: _onSuggestionTap,
+        ),
+      );
+      Overlay.of(context).insert(_suggestionsOverlay!);
+    } else {
+      _suggestionsOverlay!.markNeedsBuild();
+    }
+  }
+
+  void _removeSuggestionsOverlay() {
+    _suggestionsOverlay?.remove();
+    _suggestionsOverlay = null;
+  }
+
+  void _onSuggestionTap(Service service) {
+    _searchFocusNode.unfocus();
+    _removeSuggestionsOverlay();
+    _searchController.text = service.name;
+    setState(() => _searchQuery = service.name);
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ServiceDetailScreen(serviceId: service.id)));
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _onQueryChanged('');
+  }
+
+  @override
   Widget build(BuildContext context) {
     final services = context.watch<ServiceProvider>().services;
-    final filteredServices = services.where((s) => s.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
-    final query = _searchQuery.toLowerCase();
-    final filteredMainCategories = mainCategories.where((c) {
-      if (query.isEmpty) return true;
-      if (c.title.toLowerCase().contains(query)) return true;
-      return c.subCategories.any((s) => s.label.toLowerCase().contains(query));
-    }).toList();
+    // Keep the overlay's suggestion list in sync as services load/change.
+    if (_suggestionsOverlay != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateSuggestionsOverlay());
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
@@ -59,7 +128,11 @@ class _HomeScreenState extends State<HomeScreen> {
         preferredSize: const Size.fromHeight(176),
         child: _HomeHeader(
           query: _searchQuery,
-          onQueryChanged: (v) => setState(() => _searchQuery = v),
+          controller: _searchController,
+          searchLink: _searchLink,
+          focusNode: _searchFocusNode,
+          onQueryChanged: _onQueryChanged,
+          onClear: _clearSearch,
         ),
       ),
       bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(),
@@ -70,37 +143,31 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const _SectionHeader(title: 'Services'),
             const SizedBox(height: 12),
-            if (filteredMainCategories.isEmpty)
-              const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: Text('No matching services')))
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.3,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                ),
-                itemCount: filteredMainCategories.length,
-                itemBuilder: (context, index) {
-                  final category = filteredMainCategories[index];
-                  return MainCategoryCard(
-                    category: category,
-                    onTap: () => Navigator.of(context).pushNamed(SubCategoriesScreen.routeName, arguments: category),
-                  );
-                },
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.3,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
               ),
+              itemCount: mainCategories.length,
+              itemBuilder: (context, index) {
+                final category = mainCategories[index];
+                return MainCategoryCard(category: category, index: index);
+              },
+            ),
             const SizedBox(height: 16),
-            const Divider(thickness: 1),
+            const _SectionFade(),
             const SizedBox(height: 12),
             const _SectionHeader(title: 'Featured Services'),
             const SizedBox(height: 12),
-            FeaturedServicesCarousel(services: filteredServices.take(4).toList(), cardColors: _cardColors),
+            FeaturedServicesCarousel(services: services.take(4).toList(), cardColors: serviceCardColors),
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Customer Reviews'),
             const SizedBox(height: 12),
-            Card(elevation: 2, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: const [ListTile(title: Text('Excellent service'), subtitle: Text('Quick and professional.')), ListTile(title: Text('Very satisfied'), subtitle: Text('Will use again.'))]))),
+            const _ReviewsList(),
             const SizedBox(height: 40),
           ],
         ),
@@ -113,9 +180,20 @@ class _HomeScreenState extends State<HomeScreen> {
 /// floating search field that overlaps the seam with the page body.
 class _HomeHeader extends StatelessWidget {
   final String query;
+  final TextEditingController controller;
+  final LayerLink searchLink;
+  final FocusNode focusNode;
   final ValueChanged<String> onQueryChanged;
+  final VoidCallback onClear;
 
-  const _HomeHeader({required this.query, required this.onQueryChanged});
+  const _HomeHeader({
+    required this.query,
+    required this.controller,
+    required this.searchLink,
+    required this.focusNode,
+    required this.onQueryChanged,
+    required this.onClear,
+  });
 
   static const _brandDark = _HomeScreenState._brandDark;
   static const _brandBlue = _HomeScreenState._brandBlue;
@@ -143,7 +221,7 @@ class _HomeHeader extends StatelessWidget {
               child: Container(
                 width: 150,
                 height: 150,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withOpacity(0.14)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.14)),
               ),
             ),
             Positioned(
@@ -152,7 +230,7 @@ class _HomeHeader extends StatelessWidget {
               child: Container(
                 width: 130,
                 height: 130,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
               ),
             ),
             SafeArea(
@@ -170,7 +248,7 @@ class _HomeHeader extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(13),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 3))],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 3))],
                           ),
                           padding: const EdgeInsets.all(6),
                           child: ClipRRect(
@@ -198,21 +276,32 @@ class _HomeHeader extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 14, offset: const Offset(0, 6))],
-                      ),
-                      child: TextField(
-                        onChanged: onQueryChanged,
-                        style: const TextStyle(fontSize: 15),
-                        decoration: InputDecoration(
-                          hintText: 'Search services...',
-                          hintStyle: TextStyle(color: Colors.grey.shade500),
-                          prefixIcon: Icon(Icons.search_rounded, color: _brandBlue),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    CompositedTransformTarget(
+                      link: searchLink,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 14, offset: const Offset(0, 6))],
+                        ),
+                        child: TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          onChanged: onQueryChanged,
+                          style: const TextStyle(fontSize: 15),
+                          decoration: InputDecoration(
+                            hintText: 'Search services...',
+                            hintStyle: TextStyle(color: Colors.grey.shade500),
+                            prefixIcon: Icon(Icons.search_rounded, color: _brandBlue),
+                            suffixIcon: query.isEmpty
+                                ? null
+                                : IconButton(
+                                    icon: Icon(Icons.close_rounded, color: Colors.grey.shade500, size: 20),
+                                    onPressed: onClear,
+                                  ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
                         ),
                       ),
                     ),
@@ -246,6 +335,216 @@ class _SectionHeader extends StatelessWidget {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _HomeScreenState._ink, letterSpacing: -0.2),
         ),
       ],
+    );
+  }
+}
+
+/// Thin gradient fade used between sections instead of a hard divider line.
+class _SectionFade extends StatelessWidget {
+  const _SectionFade();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.transparent, _HomeScreenState._brandBlue.withValues(alpha: 0.18), Colors.transparent],
+        ),
+      ),
+    );
+  }
+}
+
+class _Review {
+  final String name;
+  final String comment;
+  final int rating;
+  final Color color;
+  const _Review(this.name, this.comment, this.rating, this.color);
+}
+
+const List<_Review> _reviews = [
+  _Review('Ayesha Khan', 'Excellent service, arrived on time and did a fantastic job!', 5, Color(0xFF45B7D1)),
+  _Review('Bilal Ahmed', 'Very satisfied with the plumbing work, will definitely use again.', 5, Color(0xFF4ECDC4)),
+  _Review('Sana Malik', 'Professional and quick. Fixed my AC in under an hour.', 4, Color(0xFFBB8FCE)),
+];
+
+class _ReviewsList extends StatefulWidget {
+  const _ReviewsList();
+
+  @override
+  State<_ReviewsList> createState() => _ReviewsListState();
+}
+
+class _ReviewsListState extends State<_ReviewsList> {
+  late final ScrollController _controller;
+  double _page = 0;
+
+  static const double _cardWidth = 260;
+  static const double _spacing = 12;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController()..addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onScroll);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    setState(() => _page = _controller.offset / (_cardWidth + _spacing));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 148,
+      child: ListView.separated(
+        controller: _controller,
+        scrollDirection: Axis.horizontal,
+        physics: const PageScrollPhysics().applyTo(const BouncingScrollPhysics()),
+        itemCount: _reviews.length,
+        separatorBuilder: (_, __) => const SizedBox(width: _spacing),
+        itemBuilder: (context, index) {
+          final review = _reviews[index];
+          final scale = (1 - (index - _page).abs() * 0.08).clamp(0.94, 1.0);
+          return Transform.scale(
+            scale: scale,
+            child: Container(
+            width: _cardWidth,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [BoxShadow(color: _HomeScreenState._brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: review.color.withValues(alpha: 0.2),
+                      child: Text(
+                        review.name[0],
+                        style: TextStyle(color: review.color, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        review.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700, color: _HomeScreenState._ink, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(5, (i) {
+                    return Icon(
+                      i < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                      size: 16,
+                      color: const Color(0xFFFFB020),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Text(
+                    review.comment,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.black.withValues(alpha: 0.6), fontSize: 13, height: 1.35),
+                  ),
+                ),
+              ],
+            ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Floating dropdown of live search matches, anchored below the header's
+/// search field via [CompositedTransformFollower]. Only rendered while the
+/// field is focused and non-empty.
+class _SearchSuggestionsOverlay extends StatelessWidget {
+  final LayerLink link;
+  final List<Service> matches;
+  final ValueChanged<Service> onTap;
+
+  const _SearchSuggestionsOverlay({required this.link, required this.matches, required this.onTap});
+
+  static const _ink = _HomeScreenState._ink;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      width: MediaQuery.of(context).size.width - 40,
+      child: CompositedTransformFollower(
+        link: link,
+        showWhenUnlinked: false,
+        offset: const Offset(0, 62),
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey(matches.length),
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          builder: (context, t, child) {
+            return Opacity(
+              opacity: t,
+              child: Transform.translate(offset: Offset(0, (1 - t) * -8), child: child),
+            );
+          },
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(16),
+            shadowColor: Colors.black.withValues(alpha: 0.25),
+            child: matches.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                    child: Text('No services found', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+                  )
+                : ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      itemCount: matches.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final service = matches[index];
+                        final tint = colorForServiceId(service.id);
+                        return ListTile(
+                          dense: true,
+                          leading: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(color: tint.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+                            child: Icon(service.iconData, color: tint, size: 18),
+                          ),
+                          title: Text(service.name, style: const TextStyle(fontWeight: FontWeight.w700, color: _ink)),
+                          subtitle: Text('Rs. ${service.startingPrice.toStringAsFixed(0)} onwards', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          onTap: () => onTap(service),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -6,7 +6,7 @@ import '../../../utils/constants.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = '/provider/profile/edit';
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();

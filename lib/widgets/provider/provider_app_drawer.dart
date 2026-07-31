@@ -7,7 +7,7 @@ import '../../utils/constants.dart';
 import '../../utils/provider_routes.dart';
 
 class ProviderAppDrawer extends StatelessWidget {
-  const ProviderAppDrawer({Key? key}) : super(key: key);
+  const ProviderAppDrawer({super.key});
 
   void _goTo(BuildContext context, String routeName) {
     Navigator.of(context).pop();

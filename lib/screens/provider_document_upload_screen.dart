@@ -15,7 +15,7 @@ class ProviderDocumentUploadArgs {
 
 class ProviderDocumentUploadScreen extends StatefulWidget {
   static const routeName = '/provider-document-upload';
-  const ProviderDocumentUploadScreen({Key? key}) : super(key: key);
+  const ProviderDocumentUploadScreen({super.key});
 
   @override
   State<ProviderDocumentUploadScreen> createState() => _ProviderDocumentUploadScreenState();

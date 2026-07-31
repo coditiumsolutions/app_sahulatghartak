@@ -14,7 +14,7 @@ class CurvedProfileHeader extends StatelessWidget {
   final Future<void> Function()? onRefresh;
 
   const CurvedProfileHeader({
-    Key? key,
+    super.key,
     required this.avatar,
     required this.child,
     required this.color,
@@ -22,12 +22,12 @@ class CurvedProfileHeader extends StatelessWidget {
     this.headerHeight = 150,
     this.avatarRadius = 48,
     this.onRefresh,
-  }) : super(key: key);
+  });
 
   Widget _blob(double size) => Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.08)),
       );
 
   @override
@@ -66,7 +66,7 @@ class CurvedProfileHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
                 padding: const EdgeInsets.all(6),
                 child: avatar,
@@ -91,21 +91,21 @@ class ProfileStatBadge extends StatelessWidget {
   final Color color;
 
   const ProfileStatBadge({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -59,7 +59,7 @@ void main() async {
 }
 
 class SahulatApp extends StatelessWidget {
-  const SahulatApp({Key? key}) : super(key: key);
+  const SahulatApp({super.key});
 
   @override
   Widget build(BuildContext context) {

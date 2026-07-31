@@ -10,7 +10,7 @@ enum _Filter { today, thisWeek, thisMonth, custom }
 
 class JobHistoryScreen extends StatefulWidget {
   static const routeName = '/provider/job-history';
-  const JobHistoryScreen({Key? key}) : super(key: key);
+  const JobHistoryScreen({super.key});
 
   @override
   State<JobHistoryScreen> createState() => _JobHistoryScreenState();

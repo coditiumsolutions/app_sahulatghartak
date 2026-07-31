@@ -28,7 +28,7 @@ Color _statusColor(String status) {
 bool _isFinalized(String status) => status == 'Closed' || status == 'Completed' || status == 'Cancelled';
 
 class BookingsTab extends StatefulWidget {
-  const BookingsTab({Key? key}) : super(key: key);
+  const BookingsTab({super.key});
 
   @override
   State<BookingsTab> createState() => _BookingsTabState();
@@ -126,7 +126,7 @@ class _BookingGridTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFE5E5EA)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         padding: const EdgeInsets.all(12),
         child: Column(

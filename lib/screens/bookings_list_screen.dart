@@ -5,7 +5,7 @@ import '../widgets/bottom_nav.dart';
 
 class BookingsListScreen extends StatelessWidget {
   static const routeName = '/bookings';
-  const BookingsListScreen({Key? key}) : super(key: key);
+  const BookingsListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

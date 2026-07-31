@@ -9,7 +9,7 @@ import '../../../widgets/provider/status_chip.dart';
 
 class SupportCenterScreen extends StatelessWidget {
   static const routeName = '/provider/support';
-  const SupportCenterScreen({Key? key}) : super(key: key);
+  const SupportCenterScreen({super.key});
 
   Color _statusColor(TicketStatus status) {
     switch (status) {
@@ -37,7 +37,7 @@ class SupportCenterScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<TicketCategory>(
-                  value: category,
+                  initialValue: category,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: TicketCategory.values.map((c) => DropdownMenuItem(value: c, child: Text(c.label))).toList(),
                   onChanged: (v) => setDialogState(() => category = v ?? category),

@@ -5,7 +5,7 @@ import 'login_screen.dart';
 
 class LandingScreen extends StatelessWidget {
   static const routeName = '/landing';
-  const LandingScreen({Key? key}) : super(key: key);
+  const LandingScreen({super.key});
 
   static const _brandDark = Color(0xFF0A4FA8);
   static const _brandBlue = Color(0xFF016EE3);
@@ -30,7 +30,7 @@ class LandingScreen extends StatelessWidget {
               child: Container(
                 width: 180,
                 height: 180,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withOpacity(0.12)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.12)),
               ),
             ),
             Positioned(
@@ -39,7 +39,7 @@ class LandingScreen extends StatelessWidget {
               child: Container(
                 width: 160,
                 height: 160,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
               ),
             ),
             Positioned(
@@ -48,7 +48,7 @@ class LandingScreen extends StatelessWidget {
               child: Container(
                 width: 220,
                 height: 220,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withOpacity(0.08)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.08)),
               ),
             ),
             Padding(
@@ -59,7 +59,7 @@ class LandingScreen extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(36),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 20, offset: const Offset(0, 8))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 8))],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(36),
@@ -72,7 +72,7 @@ class LandingScreen extends StatelessWidget {
                   Text(
                     'Quality Services Delivered to Your Doorstep',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.75)),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75)),
                   ),
                   const SizedBox(height: 48),
                   Row(

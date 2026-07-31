@@ -13,13 +13,13 @@ class SubCategoryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const SubCategoryCard({
-    Key? key,
+    super.key,
     required this.label,
     required this.icon,
     required this.color,
     required this.available,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +36,14 @@ class SubCategoryCard extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: const Color(0xFFE5E5EA)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(radius: 24, backgroundColor: effectiveColor.withOpacity(0.15), child: Icon(icon, size: 24, color: effectiveColor)),
+                CircleAvatar(radius: 24, backgroundColor: effectiveColor.withValues(alpha: 0.15), child: Icon(icon, size: 24, color: effectiveColor)),
                 const SizedBox(height: 8),
                 Text(
                   label,

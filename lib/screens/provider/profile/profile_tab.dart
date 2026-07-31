@@ -10,7 +10,7 @@ import '../../../widgets/curved_profile_header.dart';
 import '../../home_screen.dart';
 
 class ProfileTab extends StatefulWidget {
-  const ProfileTab({Key? key}) : super(key: key);
+  const ProfileTab({super.key});
 
   @override
   State<ProfileTab> createState() => _ProfileTabState();
@@ -85,7 +85,7 @@ class _ProfileTabState extends State<ProfileTab> {
               ],
             ),
             const SizedBox(height: 4),
-            Text(detail.categoryName, style: TextStyle(color: Colors.black.withOpacity(0.5))),
+            Text(detail.categoryName, style: TextStyle(color: Colors.black.withValues(alpha: 0.5))),
             const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

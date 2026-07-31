@@ -8,7 +8,7 @@ import '../providers/booking_provider.dart';
 
 class BookingScreen extends StatefulWidget {
   static const routeName = '/booking';
-  const BookingScreen({Key? key}) : super(key: key);
+  const BookingScreen({super.key});
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -100,6 +100,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
 
     await context.read<BookingProvider>().addBooking(booking);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking confirmed')));
     Navigator.of(context).popUntil((route) => route.isFirst);
   }

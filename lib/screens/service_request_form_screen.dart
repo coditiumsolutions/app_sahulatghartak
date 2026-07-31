@@ -13,9 +13,18 @@ import '../widgets/auth_card_scaffold.dart';
 import 'add_address_screen.dart';
 import 'service_requests_screen.dart';
 
+/// Route arguments for [ServiceRequestFormScreen]: the matched backend
+/// [Category] plus the tapped subcategory's [MainCategory] color, so the
+/// form's accent matches where the user came from.
+class ServiceRequestFormArgs {
+  final Category category;
+  final Color color;
+  const ServiceRequestFormArgs({required this.category, required this.color});
+}
+
 class ServiceRequestFormScreen extends StatefulWidget {
   static const routeName = '/service-request/new';
-  const ServiceRequestFormScreen({Key? key}) : super(key: key);
+  const ServiceRequestFormScreen({super.key});
 
   @override
   State<ServiceRequestFormScreen> createState() => _ServiceRequestFormScreenState();
@@ -30,6 +39,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   final _remarksController = TextEditingController();
 
   Category? _category;
+  Color _accentColor = kPrimaryColor;
   String? _selectedServiceTitle;
   ClientAddress? _selectedAddress;
   DateTime? _selectedDate;
@@ -43,7 +53,9 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     if (_initialized) return;
     _initialized = true;
 
-    _category = ModalRoute.of(context)!.settings.arguments as Category;
+    final args = ModalRoute.of(context)!.settings.arguments as ServiceRequestFormArgs;
+    _category = args.category;
+    _accentColor = args.color;
 
     final user = context.read<AuthProvider>().currentUser;
     _contactPersonController.text = user?.username ?? '';
@@ -129,6 +141,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       title: _category?.name ?? 'Service Request',
       subtitle: 'Fill in the details to request this service',
       avatarIcon: Icons.assignment_outlined,
+      accentColor: _accentColor,
       child: Form(
         key: _formKey,
         child: Column(
@@ -163,7 +176,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
             else ...[
               authFieldLabel('Service Address'),
               DropdownButtonFormField<ClientAddress>(
-                value: _selectedAddress,
+                initialValue: _selectedAddress,
                 decoration: authFieldDecoration(hint: 'Select an address'),
                 items: addressState.addresses
                     .map((a) => DropdownMenuItem(value: a, child: Text('${a.addressTitle} - ${a.area}, ${a.city}', overflow: TextOverflow.ellipsis)))
@@ -175,7 +188,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
             const SizedBox(height: 20),
             authFieldLabel('Service Title'),
             DropdownButtonFormField<String>(
-              value: _selectedServiceTitle,
+              initialValue: _selectedServiceTitle,
               decoration: authFieldDecoration(hint: 'Select a service title'),
               items: getServiceTitleSuggestions(_category?.name ?? '')
                   .map((title) => DropdownMenuItem(value: title, child: Text(title, overflow: TextOverflow.ellipsis)))
@@ -198,7 +211,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: const Text('Mark as Urgent', style: TextStyle(fontWeight: FontWeight.w600)),
                 value: _isUrgent,
-                activeColor: kPrimaryColor,
+                activeThumbColor: _accentColor,
                 onChanged: (v) => setState(() => _isUrgent = v),
               ),
             ),
@@ -254,7 +267,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
               ],
             ),
             const SizedBox(height: 28),
-            AuthPrimaryButton(label: 'Submit Request', isLoading: saving, onPressed: _submit),
+            AuthPrimaryButton(label: 'Submit Request', isLoading: saving, onPressed: _submit, color: _accentColor),
           ],
         ),
       ),

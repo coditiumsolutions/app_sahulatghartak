@@ -9,7 +9,7 @@ import '../../../widgets/provider/status_chip.dart';
 
 class DocumentsScreen extends StatelessWidget {
   static const routeName = '/provider/documents';
-  const DocumentsScreen({Key? key}) : super(key: key);
+  const DocumentsScreen({super.key});
 
   Color _statusColor(DocumentStatus status) {
     switch (status) {

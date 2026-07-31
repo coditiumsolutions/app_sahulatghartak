@@ -7,7 +7,7 @@ import '../../../utils/provider_availability_helper.dart';
 
 class OnlineStatusScreen extends StatelessWidget {
   static const routeName = '/provider/online-status';
-  const OnlineStatusScreen({Key? key}) : super(key: key);
+  const OnlineStatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class OnlineStatusScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     isBusy
                         ? const CircularProgressIndicator()
-                        : Switch(value: isOnline, activeColor: Colors.green, onChanged: (v) => toggleProviderOnlineStatus(context, v)),
+                        : Switch(value: isOnline, activeThumbColor: Colors.green, onChanged: (v) => toggleProviderOnlineStatus(context, v)),
                   ],
                 ),
               ),

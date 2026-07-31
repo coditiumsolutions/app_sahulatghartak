@@ -7,7 +7,7 @@ import '../../../utils/constants.dart';
 
 class ReviewsScreen extends StatelessWidget {
   static const routeName = '/provider/reviews';
-  const ReviewsScreen({Key? key}) : super(key: key);
+  const ReviewsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

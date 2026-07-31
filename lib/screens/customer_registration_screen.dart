@@ -9,7 +9,7 @@ import 'otp_verification_screen.dart';
 
 class CustomerRegistrationScreen extends StatefulWidget {
   static const routeName = '/register-customer';
-  const CustomerRegistrationScreen({Key? key}) : super(key: key);
+  const CustomerRegistrationScreen({super.key});
 
   @override
   State<CustomerRegistrationScreen> createState() => _CustomerRegistrationScreenState();

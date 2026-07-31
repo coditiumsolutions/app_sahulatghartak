@@ -15,7 +15,7 @@ import 'provider/requests/requests_tab.dart';
 
 class ProviderDashboardScreen extends StatefulWidget {
   static const routeName = ProviderRoutes.dashboard;
-  const ProviderDashboardScreen({Key? key}) : super(key: key);
+  const ProviderDashboardScreen({super.key});
 
   @override
   State<ProviderDashboardScreen> createState() => _ProviderDashboardScreenState();

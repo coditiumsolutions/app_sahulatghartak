@@ -9,7 +9,7 @@ const _days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday
 
 class AvailabilityScheduleScreen extends StatelessWidget {
   static const routeName = '/provider/schedule';
-  const AvailabilityScheduleScreen({Key? key}) : super(key: key);
+  const AvailabilityScheduleScreen({super.key});
 
   Future<void> _editSlot(BuildContext context, {AvailabilitySlot? existing}) async {
     String day = existing?.day ?? _days.first;
@@ -25,7 +25,7 @@ class AvailabilityScheduleScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: day,
+                initialValue: day,
                 decoration: const InputDecoration(labelText: 'Day'),
                 items: _days.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
                 onChanged: (v) => setDialogState(() => day = v ?? day),

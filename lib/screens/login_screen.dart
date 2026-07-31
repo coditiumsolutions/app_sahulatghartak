@@ -11,7 +11,7 @@ import 'provider_registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           shape: BoxShape.circle,
           color: Colors.white,
           border: Border.all(color: const Color(0xFFE5E5EA)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Icon(icon, color: color, size: 24),
       ),
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Expanded(child: Divider(color: Color(0xFFE5E5EA))),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('Or sign up with', style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 13)),
+                  child: Text('Or sign up with', style: TextStyle(color: Colors.black.withValues(alpha: 0.4), fontSize: 13)),
                 ),
                 const Expanded(child: Divider(color: Color(0xFFE5E5EA))),
               ],

@@ -8,7 +8,7 @@ import '../../../utils/provider_availability_helper.dart';
 import '../../../widgets/provider/dashboard_stat_card.dart';
 
 class ProviderHomeTab extends StatelessWidget {
-  const ProviderHomeTab({Key? key}) : super(key: key);
+  const ProviderHomeTab({super.key});
 
   Future<void> _refresh(BuildContext context) async {
     final providerUid = context.read<AuthProvider>().currentUser?.providerUid;
@@ -74,7 +74,7 @@ class ProviderHomeTab extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           dashboard.isOnline ? "You're online and visible to customers" : "You're offline right now",
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12.5),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -85,7 +85,7 @@ class ProviderHomeTab extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: dashboard.isOnline ? Colors.green.withOpacity(0.2) : Colors.white.withOpacity(0.15),
+                        color: dashboard.isOnline ? Colors.green.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(

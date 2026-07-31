@@ -15,7 +15,7 @@ class ServiceRequestsScreen extends StatefulWidget {
   /// the bottom navigation bar.
   final bool embedded;
 
-  const ServiceRequestsScreen({Key? key, this.embedded = false}) : super(key: key);
+  const ServiceRequestsScreen({super.key, this.embedded = false});
 
   @override
   State<ServiceRequestsScreen> createState() => _ServiceRequestsScreenState();
@@ -147,7 +147,7 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(18),
                               boxShadow: [
-                                BoxShadow(color: _brandDark.withOpacity(0.06), blurRadius: 18, offset: const Offset(0, 6)),
+                                BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6)),
                               ],
                             ),
                             child: Padding(
@@ -160,7 +160,7 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                                       Expanded(child: Text(request.serviceTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(color: _statusColor(request.status).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                                        decoration: BoxDecoration(color: _statusColor(request.status).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
                                         child: Text(request.status, style: TextStyle(color: _statusColor(request.status), fontWeight: FontWeight.w600, fontSize: 12)),
                                       ),
                                     ],
@@ -260,7 +260,7 @@ class _RequestsBanner extends StatelessWidget {
               child: Container(
                 width: 140,
                 height: 140,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withOpacity(0.14)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.14)),
               ),
             ),
             Positioned(
@@ -269,7 +269,7 @@ class _RequestsBanner extends StatelessWidget {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
               ),
             ),
             SafeArea(
@@ -283,7 +283,7 @@ class _RequestsBanner extends StatelessWidget {
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.14),
+                        color: Colors.white.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 24),
@@ -300,7 +300,7 @@ class _RequestsBanner extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             count == 0 ? 'Track your requests here' : '$count active request${count == 1 ? '' : 's'}',
-                            style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 13, fontWeight: FontWeight.w500),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),

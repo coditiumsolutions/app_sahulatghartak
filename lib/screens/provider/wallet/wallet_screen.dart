@@ -8,7 +8,7 @@ import '../../../utils/constants.dart';
 
 class WalletScreen extends StatelessWidget {
   static const routeName = '/provider/wallet';
-  const WalletScreen({Key? key}) : super(key: key);
+  const WalletScreen({super.key});
 
   void _requestWithdrawal(BuildContext context) {
     final controller = TextEditingController();

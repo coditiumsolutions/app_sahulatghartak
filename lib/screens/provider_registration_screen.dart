@@ -11,7 +11,7 @@ import 'provider_document_upload_screen.dart';
 
 class ProviderRegistrationScreen extends StatefulWidget {
   static const routeName = '/register-provider';
-  const ProviderRegistrationScreen({Key? key}) : super(key: key);
+  const ProviderRegistrationScreen({super.key});
 
   @override
   State<ProviderRegistrationScreen> createState() => _ProviderRegistrationScreenState();

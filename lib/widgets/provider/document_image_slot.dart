@@ -15,14 +15,14 @@ class DocumentImageSlot extends StatelessWidget {
   final VoidCallback? onRemove;
 
   const DocumentImageSlot({
-    Key? key,
+    super.key,
     required this.file,
     this.networkUrl,
     required this.placeholderIcon,
     required this.label,
     required this.onTap,
     this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

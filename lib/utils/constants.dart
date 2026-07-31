@@ -10,7 +10,7 @@ ButtonStyle kProminentFilledButtonStyle(Color color) => ElevatedButton.styleFrom
       backgroundColor: color,
       foregroundColor: Colors.white,
       elevation: 4,
-      shadowColor: color.withOpacity(0.4),
+      shadowColor: color.withValues(alpha: 0.4),
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -19,7 +19,7 @@ ButtonStyle kProminentFilledButtonStyle(Color color) => ElevatedButton.styleFrom
 /// Prominent outlined button style for secondary profile-page actions.
 ButtonStyle kProminentOutlinedButtonStyle(Color color) => OutlinedButton.styleFrom(
       foregroundColor: color,
-      backgroundColor: color.withOpacity(0.06),
+      backgroundColor: color.withValues(alpha: 0.06),
       side: BorderSide(color: color, width: 2),
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

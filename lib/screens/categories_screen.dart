@@ -12,7 +12,7 @@ class CategoriesScreen extends StatefulWidget {
   /// the bottom navigation bar.
   final bool embedded;
 
-  const CategoriesScreen({Key? key, this.embedded = false}) : super(key: key);
+  const CategoriesScreen({super.key, this.embedded = false});
 
   @override
   State<CategoriesScreen> createState() => _CategoriesScreenState();

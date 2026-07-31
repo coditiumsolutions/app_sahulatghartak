@@ -7,7 +7,7 @@ import '../widgets/bottom_nav.dart';
 
 class ServiceProvidersScreen extends StatefulWidget {
   static const routeName = '/service-providers';
-  const ServiceProvidersScreen({Key? key}) : super(key: key);
+  const ServiceProvidersScreen({super.key});
 
   @override
   State<ServiceProvidersScreen> createState() => _ServiceProvidersScreenState();
@@ -71,7 +71,7 @@ class _ProviderCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 28,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
               child: Icon(Icons.person, size: 30, color: Theme.of(context).primaryColor),
             ),
             const SizedBox(width: 12),

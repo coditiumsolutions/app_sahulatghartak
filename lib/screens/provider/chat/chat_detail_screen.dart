@@ -8,7 +8,7 @@ import '../../../utils/constants.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String threadId;
-  const ChatDetailScreen({Key? key, required this.threadId}) : super(key: key);
+  const ChatDetailScreen({super.key, required this.threadId});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();

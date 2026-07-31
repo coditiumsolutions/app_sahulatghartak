@@ -143,28 +143,28 @@ class ProviderDashboardRepository {
 
   List<AvailabilitySlot> getAvailabilitySlots() {
     return [
-      AvailabilitySlot(id: 'a1', day: 'Monday', startTime: const TimeOfDay(hour: 9, minute: 0), endTime: const TimeOfDay(hour: 18, minute: 0)),
-      AvailabilitySlot(id: 'a2', day: 'Tuesday', startTime: const TimeOfDay(hour: 9, minute: 0), endTime: const TimeOfDay(hour: 18, minute: 0)),
-      AvailabilitySlot(id: 'a3', day: 'Wednesday', startTime: const TimeOfDay(hour: 9, minute: 0), endTime: const TimeOfDay(hour: 18, minute: 0)),
-      AvailabilitySlot(id: 'a4', day: 'Thursday', startTime: const TimeOfDay(hour: 9, minute: 0), endTime: const TimeOfDay(hour: 18, minute: 0)),
-      AvailabilitySlot(id: 'a5', day: 'Friday', startTime: const TimeOfDay(hour: 14, minute: 0), endTime: const TimeOfDay(hour: 20, minute: 0)),
+      const AvailabilitySlot(id: 'a1', day: 'Monday', startTime: TimeOfDay(hour: 9, minute: 0), endTime: TimeOfDay(hour: 18, minute: 0)),
+      const AvailabilitySlot(id: 'a2', day: 'Tuesday', startTime: TimeOfDay(hour: 9, minute: 0), endTime: TimeOfDay(hour: 18, minute: 0)),
+      const AvailabilitySlot(id: 'a3', day: 'Wednesday', startTime: TimeOfDay(hour: 9, minute: 0), endTime: TimeOfDay(hour: 18, minute: 0)),
+      const AvailabilitySlot(id: 'a4', day: 'Thursday', startTime: TimeOfDay(hour: 9, minute: 0), endTime: TimeOfDay(hour: 18, minute: 0)),
+      const AvailabilitySlot(id: 'a5', day: 'Friday', startTime: TimeOfDay(hour: 14, minute: 0), endTime: TimeOfDay(hour: 20, minute: 0)),
     ];
   }
 
   List<ServiceCategoryOffering> getServiceOfferings() {
     return [
-      ServiceCategoryOffering(categoryName: 'Plumbing', subServices: [
+      const ServiceCategoryOffering(categoryName: 'Plumbing', subServices: [
         ServiceSubItem(name: 'Pipe Leakage', isSelected: true),
         ServiceSubItem(name: 'Water Tank Repair', isSelected: true),
         ServiceSubItem(name: 'Bathroom Fittings', isSelected: true),
         ServiceSubItem(name: 'Drainage Cleaning', isSelected: false),
       ]),
-      ServiceCategoryOffering(categoryName: 'Electrical', subServices: [
+      const ServiceCategoryOffering(categoryName: 'Electrical', subServices: [
         ServiceSubItem(name: 'Wiring', isSelected: true),
         ServiceSubItem(name: 'Fan Installation', isSelected: false),
         ServiceSubItem(name: 'Switch Board Repair', isSelected: false),
       ]),
-      ServiceCategoryOffering(categoryName: 'AC Repair', subServices: [
+      const ServiceCategoryOffering(categoryName: 'AC Repair', subServices: [
         ServiceSubItem(name: 'AC Servicing', isSelected: false),
         ServiceSubItem(name: 'Gas Refilling', isSelected: false),
       ]),

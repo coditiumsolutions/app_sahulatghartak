@@ -24,7 +24,7 @@ class OtpVerificationArgs {
 
 class OtpVerificationScreen extends StatefulWidget {
   static const routeName = '/verify-otp';
-  const OtpVerificationScreen({Key? key}) : super(key: key);
+  const OtpVerificationScreen({super.key});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -202,9 +202,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               margin: const EdgeInsets.only(bottom: 24),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: kAccentColor.withOpacity(0.1),
+                color: kAccentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kAccentColor.withOpacity(0.3)),
+                border: Border.all(color: kAccentColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [

@@ -10,7 +10,7 @@ class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget
   /// named routes. Used by [MainNavigationShell] to switch tabs in place.
   final ValueChanged<int>? onTabSelected;
 
-  const AppBottomNavigation({Key? key, this.currentIndex = 0, this.onTabSelected}) : super(key: key);
+  const AppBottomNavigation({super.key, this.currentIndex = 0, this.onTabSelected});
 
   static const _routeNames = [
     HomeScreen.routeName,
@@ -60,7 +60,7 @@ class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget
         ),
         boxShadow: [
           BoxShadow(
-            color: _brandDark.withOpacity(0.35),
+            color: _brandDark.withValues(alpha: 0.35),
             blurRadius: 24,
             offset: const Offset(0, -6),
           ),
@@ -115,7 +115,7 @@ class _NavItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         customBorder: const StadiumBorder(),
-        splashColor: accentColor.withOpacity(0.2),
+        splashColor: accentColor.withValues(alpha: 0.2),
         highlightColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -128,12 +128,12 @@ class _NavItem extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
                 decoration: BoxDecoration(
-                  color: selected ? accentColor.withOpacity(0.18) : Colors.transparent,
+                  color: selected ? accentColor.withValues(alpha: 0.18) : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: selected
                       ? [
                           BoxShadow(
-                            color: accentColor.withOpacity(0.35),
+                            color: accentColor.withValues(alpha: 0.35),
                             blurRadius: 14,
                             spreadRadius: -2,
                           ),

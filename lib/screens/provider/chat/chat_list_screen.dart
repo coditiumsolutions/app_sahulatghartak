@@ -8,7 +8,7 @@ import 'chat_detail_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
   static const routeName = '/provider/chat';
-  const ChatListScreen({Key? key}) : super(key: key);
+  const ChatListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

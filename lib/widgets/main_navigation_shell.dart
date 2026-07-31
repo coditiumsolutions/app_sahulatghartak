@@ -11,7 +11,7 @@ const _tabTransitionDuration = Duration(milliseconds: 250);
 /// single [Scaffold] and bottom navigation bar, switching between them with
 /// a Scale & Cross-Fade transition instead of pushing a new route per tab.
 class MainNavigationShell extends StatefulWidget {
-  const MainNavigationShell({Key? key}) : super(key: key);
+  const MainNavigationShell({super.key});
 
   @override
   State<MainNavigationShell> createState() => _MainNavigationShellState();

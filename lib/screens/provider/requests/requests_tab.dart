@@ -8,7 +8,7 @@ import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
 
 class RequestsTab extends StatefulWidget {
-  const RequestsTab({Key? key}) : super(key: key);
+  const RequestsTab({super.key});
 
   @override
   State<RequestsTab> createState() => _RequestsTabState();
@@ -145,7 +145,7 @@ class _RequestsTabState extends State<RequestsTab> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: kPrimaryColor.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(color: kPrimaryColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
                         child: Text(request.status, style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w600, fontSize: 12)),
                       ),
                     ],

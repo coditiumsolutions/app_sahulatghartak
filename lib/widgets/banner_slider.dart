@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class BannerSlider extends StatefulWidget {
-  const BannerSlider({Key? key}) : super(key: key);
+  const BannerSlider({super.key});
 
   @override
   State<BannerSlider> createState() => _BannerSliderState();
@@ -14,8 +14,6 @@ class _BannerSliderState extends State<BannerSlider> {
     {'title': 'Hygiene & Care', 'subtitle': 'Cleaning & sanitization experts'},
     {'title': 'Safe & Reliable', 'subtitle': 'Verified service providers'},
   ];
-
-  int _current = 0;
 
   @override
   void dispose() {

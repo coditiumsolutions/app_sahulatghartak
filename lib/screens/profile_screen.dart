@@ -19,7 +19,7 @@ class ProfileScreen extends StatefulWidget {
   /// the bottom navigation bar.
   final bool embedded;
 
-  const ProfileScreen({Key? key, this.embedded = false}) : super(key: key);
+  const ProfileScreen({super.key, this.embedded = false});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -134,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 user.mobileNo,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black.withOpacity(0.45), fontWeight: FontWeight.w500),
+                style: TextStyle(color: Colors.black.withValues(alpha: 0.45), fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 22),
               Row(
@@ -163,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: [BoxShadow(color: _brandDark.withOpacity(0.06), blurRadius: 18, offset: const Offset(0, 6))],
+                  boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Column(
@@ -186,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: _brandBlue,
                       foregroundColor: Colors.white,
                       elevation: 3,
-                      shadowColor: _brandBlue.withOpacity(0.4),
+                      shadowColor: _brandBlue.withValues(alpha: 0.4),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -207,10 +207,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
-                    boxShadow: [BoxShadow(color: _brandDark.withOpacity(0.06), blurRadius: 18, offset: const Offset(0, 6))],
+                    boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
                   ),
                   child: Center(
-                    child: Text('No addresses added yet.', style: TextStyle(color: Colors.black.withOpacity(0.5), fontWeight: FontWeight.w500)),
+                    child: Text('No addresses added yet.', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontWeight: FontWeight.w500)),
                   ),
                 )
               else
@@ -218,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
-                    boxShadow: [BoxShadow(color: _brandDark.withOpacity(0.06), blurRadius: 18, offset: const Offset(0, 6))],
+                    boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
                   ),
                   child: Column(
                     children: [
@@ -227,7 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           leading: Container(
                             width: 38,
                             height: 38,
-                            decoration: BoxDecoration(color: _brandBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(11)),
+                            decoration: BoxDecoration(color: _brandBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(11)),
                             child: Icon(Icons.location_on_rounded, color: _brandBlue, size: 20),
                           ),
                           title: Text(address.addressTitle, style: const TextStyle(fontWeight: FontWeight.w700)),

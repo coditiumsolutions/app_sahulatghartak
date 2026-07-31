@@ -7,7 +7,7 @@ import '../../../utils/constants.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/provider/settings';
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
     await context.read<AuthProvider>().logout();
@@ -82,7 +82,7 @@ class SettingsScreen extends StatelessWidget {
             secondary: const Icon(Icons.notifications, color: kPrimaryColor),
             title: const Text('Notifications'),
             value: true,
-            activeColor: kPrimaryColor,
+            activeThumbColor: kPrimaryColor,
             onChanged: (_) {},
           ),
           const Divider(height: 1),

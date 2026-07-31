@@ -8,7 +8,7 @@ import '../../../widgets/provider/status_chip.dart';
 
 class MyQuotesScreen extends StatelessWidget {
   static const routeName = '/provider/quotes';
-  const MyQuotesScreen({Key? key}) : super(key: key);
+  const MyQuotesScreen({super.key});
 
   Color _statusColor(QuoteStatus status) {
     switch (status) {

@@ -5,14 +5,24 @@ import '../models/category.dart';
 import '../models/main_category.dart';
 import '../providers/category_provider.dart';
 import '../utils/category_icons.dart';
-import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/subcategory_card.dart';
 import 'service_request_form_screen.dart';
 
 class SubCategoriesScreen extends StatelessWidget {
   static const routeName = '/subcategories';
-  const SubCategoriesScreen({Key? key}) : super(key: key);
+
+  /// Optional explicit category, used when pushed directly (e.g. via
+  /// [OpenContainer]). Falls back to the route arguments when navigated to
+  /// via [Navigator.pushNamed].
+  final MainCategory? mainCategory;
+
+  /// When set (i.e. hosted inside an [OpenContainer]), the back button calls
+  /// this instead of [Navigator.maybePop] so the closing transform animation
+  /// plays instead of a plain route pop.
+  final VoidCallback? onClose;
+
+  const SubCategoriesScreen({super.key, this.mainCategory, this.onClose});
 
   static const double _avatarRadius = 46;
   static const double _headerHeight = 170;
@@ -27,12 +37,17 @@ class SubCategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mainCategory = ModalRoute.of(context)!.settings.arguments as MainCategory;
+    final mainCategory = this.mainCategory ?? ModalRoute.of(context)!.settings.arguments as MainCategory;
     final categoryProvider = context.watch<CategoryProvider>();
     final categories = categoryProvider.categories;
 
-    return Scaffold(
-      backgroundColor: kPrimaryColor,
+    return PopScope(
+      canPop: onClose == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) onClose?.call();
+      },
+      child: Scaffold(
+      backgroundColor: mainCategory.color,
       bottomNavigationBar: const AppBottomNavigation(currentIndex: -1),
       body: Stack(
         children: [
@@ -42,7 +57,7 @@ class SubCategoriesScreen extends StatelessWidget {
             child: Container(
               width: 180,
               height: 180,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.12)),
             ),
           ),
           Positioned(
@@ -51,7 +66,7 @@ class SubCategoriesScreen extends StatelessWidget {
             child: Container(
               width: 160,
               height: 160,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08)),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.12)),
             ),
           ),
           SafeArea(
@@ -60,7 +75,7 @@ class SubCategoriesScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: onClose ?? () => Navigator.of(context).maybePop(),
               ),
             ),
           ),
@@ -82,7 +97,7 @@ class SubCategoriesScreen extends StatelessWidget {
                         child: Container(
                           width: 200,
                           height: 200,
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: mainCategory.color.withOpacity(0.1)),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: mainCategory.color.withValues(alpha: 0.1)),
                         ),
                       ),
                       Positioned(
@@ -91,7 +106,7 @@ class SubCategoriesScreen extends StatelessWidget {
                         child: Container(
                           width: 220,
                           height: 220,
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: mainCategory.color.withOpacity(0.08)),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: mainCategory.color.withValues(alpha: 0.08)),
                         ),
                       ),
                       Padding(
@@ -108,7 +123,7 @@ class SubCategoriesScreen extends StatelessWidget {
                             Text(
                               'Choose a service to get started',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+                              style: TextStyle(fontSize: 14, color: Colors.black.withValues(alpha: 0.5)),
                             ),
                             Expanded(
                               child: categoryProvider.isLoading
@@ -142,7 +157,10 @@ class SubCategoriesScreen extends StatelessWidget {
                                                         available: match != null,
                                                         onTap: () {
                                                           if (match != null) {
-                                                            Navigator.of(context).pushNamed(ServiceRequestFormScreen.routeName, arguments: match);
+                                                            Navigator.of(context).pushNamed(
+                                                              ServiceRequestFormScreen.routeName,
+                                                              arguments: ServiceRequestFormArgs(category: match, color: mainCategory.color),
+                                                            );
                                                           } else {
                                                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${subCategory.label} is coming soon')));
                                                           }
@@ -176,17 +194,18 @@ class SubCategoriesScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
                 padding: const EdgeInsets.all(6),
                 child: CircleAvatar(
-                  backgroundColor: kPrimaryColor,
+                  backgroundColor: mainCategory.color,
                   child: Icon(mainCategory.icon, color: Colors.white, size: 42),
                 ),
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }

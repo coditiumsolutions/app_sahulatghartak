@@ -8,7 +8,7 @@ import '../../../utils/constants.dart';
 
 class NotificationsScreen extends StatelessWidget {
   static const routeName = '/provider/notifications';
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   IconData _iconFor(NotificationType type) {
     switch (type) {
@@ -41,10 +41,10 @@ class NotificationsScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final notification = notifications[index];
                 return Card(
-                  color: notification.isRead ? null : kPrimaryColor.withOpacity(0.06),
+                  color: notification.isRead ? null : kPrimaryColor.withValues(alpha: 0.06),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
-                    leading: CircleAvatar(backgroundColor: kPrimaryColor.withOpacity(0.15), child: Icon(_iconFor(notification.type), color: kPrimaryColor)),
+                    leading: CircleAvatar(backgroundColor: kPrimaryColor.withValues(alpha: 0.15), child: Icon(_iconFor(notification.type), color: kPrimaryColor)),
                     title: Text(notification.type.label, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(notification.message),
                     trailing: Text(DateFormat('hh:mm a').format(notification.time), style: TextStyle(color: Colors.grey[500], fontSize: 12)),

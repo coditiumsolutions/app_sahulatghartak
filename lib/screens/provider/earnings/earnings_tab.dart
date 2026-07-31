@@ -7,7 +7,7 @@ import '../../../utils/constants.dart';
 import '../../../widgets/provider/dashboard_stat_card.dart';
 
 class EarningsTab extends StatelessWidget {
-  const EarningsTab({Key? key}) : super(key: key);
+  const EarningsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +95,7 @@ class EarningsTab extends StatelessWidget {
                     color: kAccentColor,
                     barWidth: 3,
                     dotData: const FlDotData(show: true),
-                    belowBarData: BarAreaData(show: true, color: kAccentColor.withOpacity(0.15)),
+                    belowBarData: BarAreaData(show: true, color: kAccentColor.withValues(alpha: 0.15)),
                     spots: summary.monthlyChart.asMap().entries.map((entry) => FlSpot(entry.key.toDouble(), entry.value.amount)).toList(),
                   ),
                 ],

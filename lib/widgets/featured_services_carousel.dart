@@ -8,7 +8,7 @@ import 'service_card.dart';
 class FeaturedServicesCarousel extends StatefulWidget {
   final List<Service> services;
   final List<Color> cardColors;
-  const FeaturedServicesCarousel({Key? key, required this.services, required this.cardColors}) : super(key: key);
+  const FeaturedServicesCarousel({super.key, required this.services, required this.cardColors});
 
   @override
   State<FeaturedServicesCarousel> createState() => _FeaturedServicesCarouselState();
@@ -51,36 +51,77 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
               final service = widget.services[index];
               final color = widget.cardColors[index % widget.cardColors.length];
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: service.imagePath != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.asset(service.imagePath!, fit: BoxFit.cover),
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                color: Colors.black54,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Text(
-                                  service.name,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                                ),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 14, offset: const Offset(0, 8))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, child) {
+                            double offset = 0;
+                            if (_controller.position.haveDimensions) {
+                              final page = _controller.page ?? _controller.initialPage.toDouble();
+                              offset = (page - index).clamp(-1.0, 1.0) * 24;
+                            }
+                            return Transform.translate(offset: Offset(offset, 0), child: child);
+                          },
+                          child: Transform.scale(
+                            scale: 1.08,
+                            child: service.imagePath != null
+                                ? Image.asset(service.imagePath!, fit: BoxFit.cover)
+                                : ServiceCard(service: service, backgroundColor: color),
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(14, 24, 14, 12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.black.withValues(alpha: 0), Colors.black.withValues(alpha: 0.65)],
                               ),
                             ),
-                          ],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    service.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    'Rs. ${service.startingPrice.toStringAsFixed(0)}',
+                                    style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      )
-                    : ServiceCard(service: service, backgroundColor: color),
+                      ],
+                    ),
+                  ),
               );
             },
           ),
@@ -89,13 +130,16 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(widget.services.length, (index) {
-            return Container(
+            final active = index == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 8,
+              width: active ? 22 : 8,
               height: 8,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: index == _currentPage ? Theme.of(context).primaryColor : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
+                color: active ? Theme.of(context).primaryColor : Colors.grey.shade300,
               ),
             );
           }),

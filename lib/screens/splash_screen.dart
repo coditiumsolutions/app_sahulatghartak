@@ -9,7 +9,7 @@ import 'provider_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   static const routeName = '/';
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(36),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 20, offset: const Offset(0, 8))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 8))],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(36),
@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 24),
               Text('Sahulat Ghar Tak', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.75))),
+              Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
             ],
           ).animate().fade().scale(),
         ),

@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import '../models/client_address.dart';
 import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
-import '../utils/constants.dart';
+import '../widgets/auth_card_scaffold.dart';
 
 class AddAddressScreen extends StatefulWidget {
   static const routeName = '/add-address';
   final ClientAddress? existing;
-  const AddAddressScreen({Key? key, this.existing}) : super(key: key);
+  const AddAddressScreen({super.key, this.existing});
 
   @override
   State<AddAddressScreen> createState() => _AddAddressScreenState();
@@ -86,48 +86,47 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   Widget build(BuildContext context) {
     final saving = context.watch<ClientAddressProvider>().saving;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Address' : 'Add Address'), backgroundColor: kPrimaryColor),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Address Title (e.g. Home, Office)', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _fullAddressController,
-                decoration: const InputDecoration(labelText: 'Full Address', border: OutlineInputBorder()),
-                maxLines: 2,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _areaController,
-                decoration: const InputDecoration(labelText: 'Area', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _cityController,
-                decoration: const InputDecoration(labelText: 'City', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: saving ? null : _save,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                child: saving
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Text(_isEditing ? 'Save Changes' : 'Save Address'),
-              ),
-            ],
-          ),
+    return AuthCardScaffold(
+      title: _isEditing ? 'Edit Address' : 'Add Address',
+      subtitle: _isEditing ? 'Update your saved address details' : 'Save an address for faster bookings',
+      avatarIcon: Icons.location_on_outlined,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            authFieldLabel('Address Title'),
+            TextFormField(
+              controller: _titleController,
+              decoration: authFieldDecoration(hint: 'e.g. Home, Office'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Full Address'),
+            TextFormField(
+              controller: _fullAddressController,
+              decoration: authFieldDecoration(hint: 'House no, street, landmark'),
+              minLines: 2,
+              maxLines: 4,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('Area'),
+            TextFormField(
+              controller: _areaController,
+              decoration: authFieldDecoration(hint: 'Enter area'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 20),
+            authFieldLabel('City'),
+            TextFormField(
+              controller: _cityController,
+              decoration: authFieldDecoration(hint: 'Enter city'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 28),
+            AuthPrimaryButton(label: _isEditing ? 'Save Changes' : 'Save Address', isLoading: saving, onPressed: _save),
+          ],
         ),
       ),
     );

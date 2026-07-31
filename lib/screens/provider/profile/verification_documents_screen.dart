@@ -12,7 +12,7 @@ import '../../../widgets/provider/document_image_slot.dart';
 /// the Provider Profile page at any time - not just during registration.
 class VerificationDocumentsScreen extends StatefulWidget {
   static const routeName = '/provider/profile/verification-documents';
-  const VerificationDocumentsScreen({Key? key}) : super(key: key);
+  const VerificationDocumentsScreen({super.key});
 
   @override
   State<VerificationDocumentsScreen> createState() => _VerificationDocumentsScreenState();
@@ -112,7 +112,7 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
                         Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.red.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
                           child: Row(
                             children: [
                               const Icon(Icons.error_outline, color: Colors.red, size: 20),
@@ -125,9 +125,9 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: (provider.isVerified ? Colors.green : Colors.orange).withOpacity(0.1),
+                          color: (provider.isVerified ? Colors.green : Colors.orange).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: (provider.isVerified ? Colors.green : Colors.orange).withOpacity(0.3)),
+                          border: Border.all(color: (provider.isVerified ? Colors.green : Colors.orange).withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
