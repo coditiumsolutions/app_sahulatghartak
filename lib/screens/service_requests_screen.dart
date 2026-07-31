@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
+import 'request_detail_screen.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
   static const routeName = '/service-requests';
@@ -60,10 +62,15 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Request'),
-        content: Text('Are you sure you want to delete "${request.serviceTitle}"?'),
+        content:
+            Text('Are you sure you want to delete "${request.serviceTitle}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -73,8 +80,11 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     final success = await requestProvider.deleteRequest(request.uid);
     if (!mounted) return;
 
-    final message = success ? 'Request deleted' : (requestProvider.error ?? 'Failed to delete request');
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    final message = success
+        ? 'Request deleted'
+        : (requestProvider.error ?? 'Failed to delete request');
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _cancelRequest(CustomerServiceRequest request) async {
@@ -82,10 +92,16 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Cancel Request'),
-        content: Text('Are you sure you want to cancel "${request.serviceTitle}"?'),
+        content:
+            Text('Are you sure you want to cancel "${request.serviceTitle}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('No')),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red))),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('No')),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Yes, Cancel',
+                  style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -95,8 +111,11 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     final success = await requestProvider.cancelRequest(request);
     if (!mounted) return;
 
-    final message = success ? 'Request cancelled' : (requestProvider.error ?? 'Failed to cancel request');
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    final message = success
+        ? 'Request cancelled'
+        : (requestProvider.error ?? 'Failed to cancel request');
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   static const _brandDark = Color(0xFF0A4FA8);
@@ -113,7 +132,8 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
         preferredSize: const Size.fromHeight(128),
         child: _RequestsBanner(count: requestState.requests.length),
       ),
-      bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
+      bottomNavigationBar:
+          widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
       body: RefreshIndicator(
         onRefresh: () async => _loadRequests(),
         child: requestState.loading
@@ -122,14 +142,20 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      Padding(padding: const EdgeInsets.all(24), child: Text(requestState.error!, style: const TextStyle(color: Colors.red))),
+                      Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(requestState.error!,
+                              style: const TextStyle(color: Colors.red))),
                     ],
                   )
                 : requestState.requests.isEmpty
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         children: const [
-                          Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No service requests yet.'))),
+                          Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(
+                                  child: Text('No service requests yet.'))),
                         ],
                       )
                     : ListView.separated(
@@ -139,90 +165,334 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final request = requestState.requests[index];
-                          final deleting = requestState.deletingUid == request.uid;
-                          final cancelling = requestState.cancellingUid == request.uid;
+                          final deleting =
+                              requestState.deletingUid == request.uid;
+                          final cancelling =
+                              requestState.cancellingUid == request.uid;
 
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: [
-                                BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6)),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(child: Text(request.serviceTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(color: _statusColor(request.status).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                                        child: Text(request.status, style: TextStyle(color: _statusColor(request.status), fontWeight: FontWeight.w600, fontSize: 12)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(request.categoryName, style: TextStyle(color: Colors.grey[600])),
-                                  const SizedBox(height: 8),
-                                  Text(request.serviceDescription),
-                                  const SizedBox(height: 8),
-                                  Row(children: [
-                                    const Icon(Icons.location_on, size: 16, color: kPrimaryColor),
-                                    const SizedBox(width: 4),
-                                    Expanded(child: Text(request.addressTitle, overflow: TextOverflow.ellipsis)),
-                                  ]),
-                                  const SizedBox(height: 4),
-                                  Row(children: [
-                                    const Icon(Icons.event, size: 16, color: kPrimaryColor),
-                                    const SizedBox(width: 4),
-                                    Text('${request.preferredServiceDate} at ${request.preferredServiceTime}'),
-                                    if (request.isUrgent) ...[
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.priority_high, size: 16, color: Colors.red),
-                                      const Text('Urgent', style: TextStyle(color: Colors.red, fontSize: 12)),
-                                    ],
-                                  ]),
-                                  if (request.estimatedBudget > 0) ...[
-                                    const SizedBox(height: 4),
-                                    Text('Estimated Budget: Rs. ${request.estimatedBudget.toStringAsFixed(0)}'),
-                                  ],
-                                  const SizedBox(height: 4),
-                                  Text('Requested on ${DateFormat('dd MMM yyyy').format(request.createdOn)}', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                                  if (_canCancel(request.status) || _canDelete(request.status)) ...[
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        if (_canCancel(request.status))
-                                          cancelling
-                                              ? const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)))
-                                              : TextButton.icon(
-                                                  onPressed: () => _cancelRequest(request),
-                                                  icon: const Icon(Icons.cancel_outlined, color: Colors.orange),
-                                                  label: const Text('Cancel Request', style: TextStyle(color: Colors.orange)),
-                                                ),
-                                        if (_canDelete(request.status))
-                                          deleting
-                                              ? const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)))
-                                              : TextButton.icon(
-                                                  onPressed: () => _deleteRequest(request),
-                                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                                  label: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                                ),
-                                      ],
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
+                          return _RequestCard(
+                            request: request,
+                            statusColor: _statusColor(request.status),
+                            canCancel: _canCancel(request.status),
+                            canDelete: _canDelete(request.status),
+                            cancelling: cancelling,
+                            deleting: deleting,
+                            onCancel: () => _cancelRequest(request),
+                            onDelete: () => _deleteRequest(request),
                           );
                         },
                       ),
       ),
+    );
+  }
+}
+
+IconData _statusIcon(String status) {
+  switch (status.toLowerCase()) {
+    case 'completed':
+      return Icons.check_circle_rounded;
+    case 'cancelled':
+      return Icons.cancel_rounded;
+    case 'inprogress':
+      return Icons.sync_rounded;
+    default:
+      return Icons.hourglass_top_rounded;
+  }
+}
+
+/// A single service-request card: a colored left rail signals status at a
+/// glance, icon-led rows keep address/schedule/budget scannable, and the
+/// status pill + urgent flag are pulled into the header for quick triage.
+class _RequestCard extends StatelessWidget {
+  final CustomerServiceRequest request;
+  final Color statusColor;
+  final bool canCancel;
+  final bool canDelete;
+  final bool cancelling;
+  final bool deleting;
+  final VoidCallback onCancel;
+  final VoidCallback onDelete;
+
+  const _RequestCard({
+    required this.request,
+    required this.statusColor,
+    required this.canCancel,
+    required this.canDelete,
+    required this.cancelling,
+    required this.deleting,
+    required this.onCancel,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OpenContainer(
+      closedElevation: 0,
+      openElevation: 0,
+      closedColor: Colors.transparent,
+      openColor: const Color(0xFFF4F7FB),
+      closedShape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      transitionDuration: const Duration(milliseconds: 420),
+      closedBuilder: (context, openContainer) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0xFF0A4FA8).withValues(alpha: 0.06),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6)),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: openContainer,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(width: 5, color: statusColor),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 16, 14, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      request.serviceTitle,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 16.5,
+                                          color: Color(0xFF1A2233),
+                                          height: 1.2),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      request.categoryName,
+                                      style: TextStyle(
+                                          color: Colors.grey[500],
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(_statusIcon(request.status),
+                                        size: 13, color: statusColor),
+                                    const SizedBox(width: 4),
+                                    Text(request.status,
+                                        style: TextStyle(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 11.5)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (request.serviceDescription.trim().isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              request.serviceDescription,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 13.5,
+                                  height: 1.35),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                color: const Color(0xFFF6F8FC),
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _InfoRow(
+                                    icon: Icons.location_on_rounded,
+                                    text: request.addressTitle),
+                                const SizedBox(height: 6),
+                                _InfoRow(
+                                  icon: Icons.event_rounded,
+                                  text:
+                                      '${request.preferredServiceDate} · ${request.preferredServiceTime}',
+                                  trailing: request.isUrgent
+                                      ? Container(
+                                          margin:
+                                              const EdgeInsets.only(left: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                              color: Colors.red
+                                                  .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8)),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.priority_high_rounded,
+                                                  size: 12, color: Colors.red),
+                                              Text('Urgent',
+                                                  style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w700)),
+                                            ],
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                if (request.estimatedBudget > 0) ...[
+                                  const SizedBox(height: 6),
+                                  _InfoRow(
+                                      icon: Icons.payments_rounded,
+                                      text:
+                                          'Est. budget Rs. ${request.estimatedBudget.toStringAsFixed(0)}'),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.schedule_rounded,
+                                  size: 13, color: Colors.grey[400]),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Requested ${DateFormat('dd MMM yyyy').format(request.createdOn)}',
+                                style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                          if (canCancel || canDelete) ...[
+                            const Divider(height: 22),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (canCancel)
+                                  cancelling
+                                      ? const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          child: SizedBox(
+                                              height: 18,
+                                              width: 18,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2)))
+                                      : TextButton.icon(
+                                          style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10),
+                                              visualDensity:
+                                                  VisualDensity.compact),
+                                          onPressed: onCancel,
+                                          icon: const Icon(
+                                              Icons.cancel_outlined,
+                                              size: 17,
+                                              color: Colors.orange),
+                                          label: const Text('Cancel',
+                                              style: TextStyle(
+                                                  color: Colors.orange,
+                                                  fontWeight: FontWeight.w600)),
+                                        ),
+                                if (canDelete)
+                                  deleting
+                                      ? const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          child: SizedBox(
+                                              height: 18,
+                                              width: 18,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2)))
+                                      : TextButton.icon(
+                                          style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10),
+                                              visualDensity:
+                                                  VisualDensity.compact),
+                                          onPressed: onDelete,
+                                          icon: const Icon(
+                                              Icons.delete_outline_rounded,
+                                              size: 17,
+                                              color: Colors.red),
+                                          label: const Text('Delete',
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.w600)),
+                                        ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      openBuilder: (context, closeContainer) {
+        return RequestDetailScreen(request: request, onClose: closeContainer);
+      },
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Widget? trailing;
+
+  const _InfoRow({required this.icon, required this.text, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: kPrimaryColor),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(text,
+              style: const TextStyle(
+                  color: Color(0xFF3A4658),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis),
+        ),
+        if (trailing != null) trailing!,
+      ],
     );
   }
 }
@@ -247,11 +517,16 @@ class _RequestsBanner extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [_brandDark, _brandBlue],
         ),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
-        boxShadow: [BoxShadow(color: Color(0x330A4FA8), blurRadius: 20, offset: Offset(0, 8))],
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x330A4FA8), blurRadius: 20, offset: Offset(0, 8))
+        ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
         child: Stack(
           children: [
             Positioned(
@@ -260,7 +535,9 @@ class _RequestsBanner extends StatelessWidget {
               child: Container(
                 width: 140,
                 height: 140,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.14)),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _brandAccent.withValues(alpha: 0.14)),
               ),
             ),
             Positioned(
@@ -269,43 +546,58 @@ class _RequestsBanner extends StatelessWidget {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.06)),
               ),
             ),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(14),
+            Positioned.fill(
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.receipt_long_rounded,
+                            color: Colors.white, size: 24),
                       ),
-                      child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'My Service Requests',
-                            style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -0.2),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            count == 0 ? 'Track your requests here' : '$count active request${count == 1 ? '' : 's'}',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13, fontWeight: FontWeight.w500),
-                          ),
-                        ],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'My Service Requests',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.2),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              count == 0
+                                  ? 'Track your requests here'
+                                  : '$count active request${count == 1 ? '' : 's'}',
+                              style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

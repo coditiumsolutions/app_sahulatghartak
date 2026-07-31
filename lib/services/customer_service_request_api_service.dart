@@ -14,6 +14,13 @@ class CustomerServiceRequestApiService {
     return data.map((item) => CustomerServiceRequest.fromJson(item as Map<String, dynamic>)).toList();
   }
 
+  Future<CustomerServiceRequest> fetchById(int requestUid) async {
+    final response = await http.get(Uri.parse('$kApiBaseUrl/customer-service-requests/$requestUid'));
+
+    final json = _decode(response, 'Failed to load service request');
+    return CustomerServiceRequest.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
   Future<CustomerServiceRequest> create({
     required int clientUid,
     required int categoryUid,

@@ -83,6 +83,8 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     }
   }
 
+  Future<CustomerServiceRequest> fetchRequestById(int requestUid) => _apiService.fetchById(requestUid);
+
   Future<bool> cancelRequest(CustomerServiceRequest request) async {
     _cancellingUid = request.uid;
     _error = null;
