@@ -6,6 +6,7 @@ import '../providers/category_provider.dart';
 import '../utils/category_icons.dart';
 import '../utils/service_catalog_style.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/empty_state_placeholder.dart';
 import '../widgets/subcategory_card.dart';
 import 'service_request_form_screen.dart';
 
@@ -140,9 +141,20 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                               child: categoryProvider.isLoading
                                   ? const Center(child: CircularProgressIndicator())
                                   : categoryProvider.error != null
-                                      ? Center(child: Text('Failed to load services: ${categoryProvider.error}', textAlign: TextAlign.center))
+                                      ? EmptyStatePlaceholder(
+                                          icon: Icons.wifi_off_rounded,
+                                          color: Colors.red,
+                                          title: 'Couldn\'t load services',
+                                          message: categoryProvider.error,
+                                          onRetry: () => categoryProvider.fetchCategories(serviceUid: service.id),
+                                        )
                                       : categories.isEmpty
-                                          ? const Center(child: Text('No services available yet.\nComing soon.', textAlign: TextAlign.center))
+                                          ? EmptyStatePlaceholder(
+                                              icon: Icons.hourglass_top_rounded,
+                                              color: style.color,
+                                              title: 'Coming soon',
+                                              message: 'We\'re still adding services under ${service.name}. Check back shortly.',
+                                            )
                                           : LayoutBuilder(
                                               builder: (context, constraints) {
                                                 return SingleChildScrollView(

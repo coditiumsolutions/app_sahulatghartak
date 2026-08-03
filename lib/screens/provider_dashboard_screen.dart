@@ -3,10 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/provider_dashboard_provider.dart';
-import '../utils/constants.dart';
 import '../utils/provider_routes.dart';
-import '../widgets/provider/provider_app_drawer.dart';
-import 'landing_screen.dart';
+import '../widgets/provider/provider_bottom_nav.dart';
 import 'provider/dashboard/provider_home_tab.dart';
 import 'provider/earnings/earnings_tab.dart';
 import 'provider/jobs/jobs_tab.dart';
@@ -23,8 +21,6 @@ class ProviderDashboardScreen extends StatefulWidget {
 
 class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   int _index = 0;
-
-  static const _titles = ['Provider Dashboard', 'Requests', 'Bookings', 'Earnings', 'Provider Profile'];
 
   static const _tabs = [
     ProviderHomeTab(),
@@ -49,36 +45,13 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
     });
   }
 
-  Future<void> _logout(BuildContext context) async {
-    await context.read<AuthProvider>().logout();
-    if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[_index]),
-        backgroundColor: kPrimaryColor,
-        actions: _index == 4 ? [IconButton(icon: const Icon(Icons.logout), tooltip: 'Logout', onPressed: () => _logout(context))] : null,
-      ),
-      drawer: const ProviderAppDrawer(),
       body: IndexedStack(index: _index, children: _tabs),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: ProviderBottomNavigation(
         currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: kPrimaryColor,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'Requests'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: 'Earnings'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        onTabSelected: (i) => setState(() => _index = i),
       ),
     );
   }

@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/empty_state_placeholder.dart';
 import 'request_detail_screen.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
@@ -139,24 +140,19 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
         child: requestState.loading
             ? const Center(child: CircularProgressIndicator())
             : requestState.error != null
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(requestState.error!,
-                              style: const TextStyle(color: Colors.red))),
-                    ],
+                ? EmptyStatePlaceholder(
+                    icon: Icons.wifi_off_rounded,
+                    color: Colors.red,
+                    title: 'Couldn\'t load requests',
+                    message: requestState.error,
+                    onRetry: _loadRequests,
                   )
                 : requestState.requests.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Center(
-                                  child: Text('No service requests yet.'))),
-                        ],
+                    ? const EmptyStatePlaceholder(
+                        icon: Icons.receipt_long_rounded,
+                        color: kPrimaryColor,
+                        title: 'No service requests yet',
+                        message: 'Requests you submit will show up here so you can track their status.',
                       )
                     : ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),

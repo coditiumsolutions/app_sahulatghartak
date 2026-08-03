@@ -6,6 +6,7 @@ import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/provider_availability_helper.dart';
 import '../../../widgets/provider/dashboard_stat_card.dart';
+import '../../../widgets/provider/provider_tab_header.dart';
 
 class ProviderHomeTab extends StatelessWidget {
   const ProviderHomeTab({super.key});
@@ -36,87 +37,67 @@ class ProviderHomeTab extends StatelessWidget {
       DashboardStatCard(label: 'Wallet Balance', value: 'Rs ${dashboard.walletBalance.toStringAsFixed(0)}', icon: Icons.account_balance_wallet, color: kSecondaryColor),
     ];
 
-    return RefreshIndicator(
-      onRefresh: () => _refresh(context),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: kPrimaryColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F7FB),
+      appBar: ProviderTabHeader(
+        title: firstName == null ? 'Welcome back!' : 'Welcome back, $firstName!',
+        subtitle: dashboard.isOnline ? "You're online and visible to customers" : "You're offline right now",
+        trailing: GestureDetector(
+          onTap: () => toggleProviderOnlineStatus(context, !dashboard.isOnline),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: dashboard.isOnline ? Colors.green.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(dashboard.isOnline ? Icons.wifi_tethering : Icons.wifi_tethering_off, color: Colors.white, size: 16),
+                const SizedBox(height: 2),
+                Text(
+                  dashboard.isOnline ? 'Online' : 'Offline',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      (firstName ?? 'P')[0].toUpperCase(),
-                      style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          firstName == null ? 'Welcome back!' : 'Welcome back, $firstName!',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          dashboard.isOnline ? "You're online and visible to customers" : "You're offline right now",
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12.5),
-                        ),
-                      ],
-                    ),
+                  Container(
+                    width: 4,
+                    height: 18,
+                    decoration: BoxDecoration(color: providerBrandBlue, borderRadius: BorderRadius.circular(2)),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => toggleProviderOnlineStatus(context, !dashboard.isOnline),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: dashboard.isOnline ? Colors.green.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(dashboard.isOnline ? Icons.wifi_tethering : Icons.wifi_tethering_off, color: Colors.white, size: 16),
-                          const SizedBox(height: 2),
-                          Text(
-                            dashboard.isOnline ? 'Online' : 'Offline',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const Text(
+                    'Overview',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF14213D), letterSpacing: -0.2),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Text('Overview', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.3,
-              children: cards,
-            ),
-          ],
+              const SizedBox(height: 12),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.3,
+                children: cards,
+              ),
+            ],
+          ),
         ),
       ),
     );

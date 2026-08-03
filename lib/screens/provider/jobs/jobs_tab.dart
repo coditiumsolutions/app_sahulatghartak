@@ -5,7 +5,9 @@ import '../../../models/provider/service_booking.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_bookings_provider.dart';
 import '../../../utils/constants.dart';
+import '../../../widgets/provider/provider_tab_header.dart';
 import '../../../widgets/provider/status_chip.dart';
+import '../../../widgets/provider/tab_state_placeholder.dart';
 
 Color _statusColor(String status) {
   switch (status) {
@@ -65,46 +67,53 @@ class _BookingsTabState extends State<BookingsTab> {
     final provider = context.watch<ProviderBookingsProvider>();
     final bookings = provider.bookings;
 
-    if (provider.loading && bookings.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.error != null && bookings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Failed to load bookings: ${provider.error}'),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: _loadBookings, child: const Text('Retry')),
-          ],
-        ),
-      );
-    }
-
-    if (bookings.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: () async => _loadBookings(),
-        child: ListView(children: const [SizedBox(height: 200), Center(child: Text('No bookings yet.'))]),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async => _loadBookings(),
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.95,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: bookings.length,
-        itemBuilder: (context, index) {
-          final booking = bookings[index];
-          return _BookingGridTile(booking: booking, onTap: () => _openBookingDetail(booking));
-        },
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F7FB),
+      appBar: ProviderTabHeader(
+        title: 'My Bookings',
+        subtitle: bookings.isEmpty ? 'No bookings yet' : '${bookings.length} booking${bookings.length == 1 ? '' : 's'}',
       ),
+      body: provider.loading && bookings.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : provider.error != null && bookings.isEmpty
+              ? RefreshIndicator(
+                  onRefresh: () async => _loadBookings(),
+                  child: TabStatePlaceholder(
+                    icon: Icons.wifi_off_rounded,
+                    color: Colors.red,
+                    title: 'Couldn\'t load bookings',
+                    message: provider.error,
+                    onRetry: _loadBookings,
+                  ),
+                )
+              : bookings.isEmpty
+                  ? RefreshIndicator(
+                      onRefresh: () async => _loadBookings(),
+                      child: const TabStatePlaceholder(
+                        icon: Icons.work_outline_rounded,
+                        color: kPrimaryColor,
+                        title: 'No bookings yet',
+                        message: 'Bookings appear here once you accept a service request from a customer.',
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async => _loadBookings(),
+                      child: GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.95,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemCount: bookings.length,
+                        itemBuilder: (context, index) {
+                          final booking = bookings[index];
+                          return _BookingGridTile(booking: booking, onTap: () => _openBookingDetail(booking));
+                        },
+                      ),
+                    ),
     );
   }
 }
@@ -124,17 +133,16 @@ class _BookingGridTile extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E5EA)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [BoxShadow(color: const Color(0xFF0A4FA8).withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
         ),
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(booking.requestTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(booking.requestTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1A2233))),
             const SizedBox(height: 4),
-            Text(booking.clientName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            Text(booking.clientName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.w600)),
             const Spacer(),
             StatusChip(label: booking.status, color: statusColor),
             const SizedBox(height: 8),

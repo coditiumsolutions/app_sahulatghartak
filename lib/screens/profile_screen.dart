@@ -200,17 +200,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (addressState.loading)
                 const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: CircularProgressIndicator()))
               else if (addressState.error != null)
-                Text(addressState.error!, style: const TextStyle(color: Colors.red))
-              else if (addressState.addresses.isEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
                   ),
-                  child: Center(
-                    child: Text('No addresses added yet.', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontWeight: FontWeight.w500)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Couldn\'t load addresses', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A2233))),
+                      const SizedBox(height: 6),
+                      Text(addressState.error!, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: _loadAddresses,
+                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                        label: const Text('Retry'),
+                        style: OutlinedButton.styleFrom(foregroundColor: _brandBlue, side: BorderSide(color: _brandBlue.withValues(alpha: 0.4))),
+                      ),
+                    ],
+                  ),
+                )
+              else if (addressState.addresses.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('No addresses added yet', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A2233), fontSize: 14.5)),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Add one so providers know where to reach you.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black.withValues(alpha: 0.45), fontSize: 12.5, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
                 )
               else
