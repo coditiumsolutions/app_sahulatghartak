@@ -8,6 +8,7 @@ import 'providers/auth_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/booking_provider.dart';
 import 'providers/category_provider.dart';
+import 'providers/service_catalog_provider.dart';
 import 'providers/client_address_provider.dart';
 import 'providers/customer_service_request_provider.dart';
 import 'providers/provider_bookings_provider.dart';
@@ -25,14 +26,12 @@ import 'screens/provider_dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'widgets/main_navigation_shell.dart';
-import 'screens/categories_screen.dart';
 import 'screens/service_detail_screen.dart';
 import 'screens/service_providers_screen.dart';
 import 'screens/service_request_form_screen.dart';
 import 'screens/service_requests_screen.dart';
 import 'screens/subcategories_screen.dart';
 import 'screens/booking_screen.dart';
-import 'screens/bookings_list_screen.dart';
 import 'screens/provider/chat/chat_list_screen.dart';
 import 'screens/provider/dashboard/online_status_screen.dart';
 import 'screens/provider/documents/documents_screen.dart';
@@ -69,6 +68,7 @@ class SahulatApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ServiceProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => ServiceCatalogProvider()),
         ChangeNotifierProvider(create: (_) => ProviderDashboardProvider()),
         ChangeNotifierProvider(create: (_) => ProviderBookingsProvider()),
         ChangeNotifierProvider(create: (_) => ClientAddressProvider()),
@@ -94,14 +94,12 @@ class SahulatApp extends StatelessWidget {
           HomeScreen.routeName: (_) => const MainNavigationShell(),
           ProfileScreen.routeName: (_) => const ProfileScreen(),
           AddAddressScreen.routeName: (_) => const AddAddressScreen(),
-          CategoriesScreen.routeName: (_) => const CategoriesScreen(),
           ServiceDetailScreen.routeName: (_) => const ServiceDetailScreen(),
           ServiceProvidersScreen.routeName: (_) => const ServiceProvidersScreen(),
           SubCategoriesScreen.routeName: (_) => const SubCategoriesScreen(),
           ServiceRequestFormScreen.routeName: (_) => const ServiceRequestFormScreen(),
           ServiceRequestsScreen.routeName: (_) => const ServiceRequestsScreen(),
           BookingScreen.routeName: (_) => const BookingScreen(),
-          BookingsListScreen.routeName: (_) => const BookingsListScreen(),
           OnlineStatusScreen.routeName: (_) => const OnlineStatusScreen(),
           MyQuotesScreen.routeName: (_) => const MyQuotesScreen(),
           JobHistoryScreen.routeName: (_) => const JobHistoryScreen(),

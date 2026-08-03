@@ -18,13 +18,16 @@ class CategoryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchCategories() async {
+  /// Fetches categories. Pass [serviceUid] to scope to a single parent
+  /// service; omit to fetch the full flat list (used e.g. by the provider
+  /// registration category dropdown, which spans all services).
+  Future<void> fetchCategories({int? serviceUid}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _categories = await _apiService.fetchCategories();
+      _categories = await _apiService.fetchCategories(serviceUid: serviceUid);
     } catch (e) {
       _error = e.toString();
     } finally {

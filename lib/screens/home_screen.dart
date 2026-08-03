@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/service.dart';
+import '../models/category.dart';
+import '../providers/category_provider.dart';
+import '../providers/service_catalog_provider.dart';
 import '../providers/service_provider.dart';
-import '../utils/main_categories.dart';
+import '../utils/category_icons.dart';
+import '../utils/service_catalog_style.dart';
 import '../utils/service_colors.dart';
 import '../widgets/featured_services_carousel.dart';
 import '../widgets/main_category_card.dart';
-import 'service_detail_screen.dart';
+import 'service_request_form_screen.dart';
 
 import '../widgets/bottom_nav.dart';
 
@@ -65,15 +68,43 @@ class _HomeScreenState extends State<HomeScreen> {
     _updateSuggestionsOverlay();
   }
 
-  List<Service> _matchingServices(List<Service> services) {
+  /// Ranks [categories] against the query so exact/prefix/word-start matches
+  /// (e.g. "paint" matching "Paint Services") outrank categories that merely
+  /// contain the query as a substring elsewhere in the name. Ties within the
+  /// same rank break by where the match starts (earlier is better), never by
+  /// unrelated name length.
+  List<Category> _matchingCategories(List<Category> categories) {
     final query = _searchQuery.trim().toLowerCase();
     if (query.isEmpty) return const [];
-    return services.where((s) => s.name.toLowerCase().contains(query)).take(6).toList();
+
+    final scored = <MapEntry<Category, List<int>>>[];
+    for (final category in categories) {
+      final name = category.name.toLowerCase();
+      final matchIndex = name.indexOf(query);
+      if (matchIndex == -1) continue;
+
+      final int rank;
+      if (name == query) {
+        rank = 0;
+      } else if (matchIndex == 0) {
+        rank = 1;
+      } else if (RegExp('\\b${RegExp.escape(query)}').hasMatch(name)) {
+        rank = 2;
+      } else {
+        rank = 3;
+      }
+      scored.add(MapEntry(category, [rank, matchIndex]));
+    }
+
+    scored.sort((a, b) {
+      final rankCompare = a.value[0].compareTo(b.value[0]);
+      if (rankCompare != 0) return rankCompare;
+      return a.value[1].compareTo(b.value[1]);
+    });
+    return scored.map((e) => e.key).take(6).toList();
   }
 
   void _updateSuggestionsOverlay() {
-    final services = context.read<ServiceProvider>().services;
-    final matches = _matchingServices(services);
     final shouldShow = _searchFocusNode.hasFocus && _searchQuery.trim().isNotEmpty;
 
     if (!shouldShow) {
@@ -82,10 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_suggestionsOverlay == null) {
+      // The builder recomputes matches on every rebuild (rather than
+      // capturing a snapshot list), so markNeedsBuild() below always shows
+      // results for the current query instead of the query at entry-creation
+      // time.
       _suggestionsOverlay = OverlayEntry(
         builder: (context) => _SearchSuggestionsOverlay(
           link: _searchLink,
-          matches: matches,
+          matches: _matchingCategories(context.read<CategoryProvider>().categories),
           onTap: _onSuggestionTap,
         ),
       );
@@ -100,12 +135,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _suggestionsOverlay = null;
   }
 
-  void _onSuggestionTap(Service service) {
+  void _onSuggestionTap(Category category) {
     _searchFocusNode.unfocus();
     _removeSuggestionsOverlay();
-    _searchController.text = service.name;
-    setState(() => _searchQuery = service.name);
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ServiceDetailScreen(serviceId: service.id)));
+    _searchController.text = category.name;
+    setState(() => _searchQuery = category.name);
+    final color = styleForServiceName(category.serviceName, 0).color;
+    Navigator.of(context).pushNamed(
+      ServiceRequestFormScreen.routeName,
+      arguments: ServiceRequestFormArgs(category: category, color: color),
+    );
   }
 
   void _clearSearch() {
@@ -116,6 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final services = context.watch<ServiceProvider>().services;
+    final catalogProvider = context.watch<ServiceCatalogProvider>();
+    final catalogServices = catalogProvider.services;
 
     // Keep the overlay's suggestion list in sync as services load/change.
     if (_suggestionsOverlay != null) {
@@ -143,21 +184,29 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const _SectionHeader(title: 'Services'),
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.3,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
+            if (catalogProvider.isLoading)
+              const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
+            else if (catalogProvider.error != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: Text('Failed to load services: ${catalogProvider.error}', textAlign: TextAlign.center)),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.3,
+                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20,
+                ),
+                itemCount: catalogServices.length,
+                itemBuilder: (context, index) {
+                  final service = catalogServices[index];
+                  return MainCategoryCard(service: service, index: index);
+                },
               ),
-              itemCount: mainCategories.length,
-              itemBuilder: (context, index) {
-                final category = mainCategories[index];
-                return MainCategoryCard(category: category, index: index);
-              },
-            ),
             const SizedBox(height: 16),
             const _SectionFade(),
             const SizedBox(height: 12),
@@ -482,8 +531,8 @@ class _ReviewsListState extends State<_ReviewsList> {
 /// field is focused and non-empty.
 class _SearchSuggestionsOverlay extends StatelessWidget {
   final LayerLink link;
-  final List<Service> matches;
-  final ValueChanged<Service> onTap;
+  final List<Category> matches;
+  final ValueChanged<Category> onTap;
 
   const _SearchSuggestionsOverlay({required this.link, required this.matches, required this.onTap});
 
@@ -525,19 +574,19 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
                       itemCount: matches.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
-                        final service = matches[index];
-                        final tint = colorForServiceId(service.id);
+                        final category = matches[index];
+                        final tint = styleForServiceName(category.serviceName, 0).color;
                         return ListTile(
                           dense: true,
                           leading: Container(
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(color: tint.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                            child: Icon(service.iconData, color: tint, size: 18),
+                            child: Icon(getCategoryIcon(category.name), color: tint, size: 18),
                           ),
-                          title: Text(service.name, style: const TextStyle(fontWeight: FontWeight.w700, color: _ink)),
-                          subtitle: Text('Rs. ${service.startingPrice.toStringAsFixed(0)} onwards', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                          onTap: () => onTap(service),
+                          title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w700, color: _ink)),
+                          subtitle: Text(category.serviceName, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          onTap: () => onTap(category),
                         );
                       },
                     ),

@@ -36,6 +36,13 @@ IconData _statusIcon(String status) {
   }
 }
 
+bool _canCancel(String status) => status.toLowerCase() == 'pending';
+
+bool _canDelete(String status) {
+  final normalized = status.toLowerCase();
+  return normalized == 'cancelled' || normalized == 'completed';
+}
+
 /// Read-only detail view for a single service request. Accepts either the
 /// already-fetched [request] (fast path from the list screen) or a
 /// [requestUid] to fetch fresh via GET /customer-service-requests/{id}.
@@ -92,9 +99,79 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     }
   }
 
+  Future<void> _cancelRequest() async {
+    final request = _request;
+    if (request == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cancel Request'),
+        content: Text('Are you sure you want to cancel "${request.serviceTitle}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('No')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final requestProvider = context.read<CustomerServiceRequestProvider>();
+    final success = await requestProvider.cancelRequest(request);
+    if (!mounted) return;
+
+    if (success) {
+      final updated = requestProvider.requests.firstWhere((r) => r.uid == request.uid, orElse: () => request);
+      setState(() => _request = updated);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'Request cancelled' : (requestProvider.error ?? 'Failed to cancel request'))),
+    );
+  }
+
+  Future<void> _deleteRequest() async {
+    final request = _request;
+    if (request == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Request'),
+        content: Text('Are you sure you want to delete "${request.serviceTitle}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final requestProvider = context.read<CustomerServiceRequestProvider>();
+    final success = await requestProvider.deleteRequest(request.uid);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request deleted')));
+      (widget.onClose ?? () => Navigator.of(context).maybePop())();
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(requestProvider.error ?? 'Failed to delete request')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final request = _request;
+    final requestState = context.watch<CustomerServiceRequestProvider>();
+    final cancelling = request != null && requestState.cancellingUid == request.uid;
+    final deleting = request != null && requestState.deletingUid == request.uid;
 
     return PopScope(
       canPop: widget.onClose == null,
@@ -243,6 +320,42 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                 ),
                               ],
                             ),
+                            if (_canCancel(request.status) || _canDelete(request.status)) ...[
+                              const SizedBox(height: 20),
+                              if (_canCancel(request.status))
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    style: kProminentOutlinedButtonStyle(Colors.orange).copyWith(
+                                      side: WidgetStateProperty.all(const BorderSide(color: Colors.orange, width: 2)),
+                                    ),
+                                    onPressed: cancelling ? null : _cancelRequest,
+                                    icon: cancelling
+                                        ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange))
+                                        : const Icon(Icons.cancel_outlined),
+                                    label: Text(cancelling ? 'Cancelling…' : 'Cancel Request'),
+                                  ),
+                                ),
+                              if (_canCancel(request.status) && _canDelete(request.status)) const SizedBox(height: 12),
+                              if (_canDelete(request.status))
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    style: kProminentFilledButtonStyle(Colors.red),
+                                    onPressed: deleting ? null : _deleteRequest,
+                                    icon: deleting
+                                        ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                        : const Icon(Icons.delete_outline_rounded),
+                                    label: Text(deleting ? 'Deleting…' : 'Delete Request'),
+                                  ),
+                                ),
+                            ],
                           ],
                         ),
                       ),

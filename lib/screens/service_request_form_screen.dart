@@ -13,9 +13,9 @@ import '../widgets/auth_card_scaffold.dart';
 import 'add_address_screen.dart';
 import 'service_requests_screen.dart';
 
-/// Route arguments for [ServiceRequestFormScreen]: the matched backend
-/// [Category] plus the tapped subcategory's [MainCategory] color, so the
-/// form's accent matches where the user came from.
+/// Route arguments for [ServiceRequestFormScreen]: the selected backend
+/// [Category] plus the parent service's accent color, so the form's accent
+/// matches where the user came from.
 class ServiceRequestFormArgs {
   final Category category;
   final Color color;

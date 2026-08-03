@@ -6,8 +6,12 @@ import '../models/category.dart';
 import '../utils/constants.dart';
 
 class CategoryApiService {
-  Future<List<Category>> fetchCategories() async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/service-categories'));
+  Future<List<Category>> fetchCategories({int? serviceUid}) async {
+    final uri = serviceUid == null
+        ? Uri.parse('$kApiBaseUrl/service-categories')
+        : Uri.parse('$kApiBaseUrl/service-categories').replace(queryParameters: {'serviceUid': '$serviceUid'});
+
+    final response = await http.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load categories (status ${response.statusCode})');
