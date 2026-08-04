@@ -14,6 +14,7 @@ import 'providers/customer_service_request_provider.dart';
 import 'providers/provider_bookings_provider.dart';
 import 'providers/provider_dashboard_provider.dart';
 import 'providers/provider_document_provider.dart';
+import 'providers/provider_wallet_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/add_address_screen.dart';
 import 'screens/landing_screen.dart';
@@ -32,6 +33,7 @@ import 'screens/service_request_form_screen.dart';
 import 'screens/service_requests_screen.dart';
 import 'screens/subcategories_screen.dart';
 import 'screens/booking_screen.dart';
+import 'screens/provider/notifications/notifications_screen.dart';
 import 'screens/provider/profile/edit_profile_screen.dart';
 import 'screens/provider/profile/verification_documents_screen.dart';
 import 'utils/constants.dart';
@@ -62,6 +64,7 @@ class SahulatApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClientAddressProvider()),
         ChangeNotifierProvider(create: (_) => CustomerServiceRequestProvider()),
         ChangeNotifierProvider(create: (_) => ProviderDocumentProvider()),
+        ChangeNotifierProvider(create: (_) => ProviderWalletProvider()),
       ],
       child: MaterialApp(
         title: 'Sahulat Ghar Tak',
@@ -90,6 +93,7 @@ class SahulatApp extends StatelessWidget {
           BookingScreen.routeName: (_) => const BookingScreen(),
           EditProfileScreen.routeName: (_) => const EditProfileScreen(),
           VerificationDocumentsScreen.routeName: (_) => const VerificationDocumentsScreen(),
+          NotificationsScreen.routeName: (_) => const NotificationsScreen(),
         },
         debugShowCheckedModeBanner: false,
       ),

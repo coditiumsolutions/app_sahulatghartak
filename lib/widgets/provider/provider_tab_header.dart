@@ -11,8 +11,9 @@ class ProviderTabHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String subtitle;
   final Widget? trailing;
+  final Widget? leading;
 
-  const ProviderTabHeader({super.key, required this.title, required this.subtitle, this.trailing});
+  const ProviderTabHeader({super.key, required this.title, required this.subtitle, this.trailing, this.leading});
 
   @override
   Size get preferredSize => const Size.fromHeight(112);
@@ -54,9 +55,10 @@ class ProviderTabHeader extends StatelessWidget implements PreferredSizeWidget {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 12, 16),
+                padding: EdgeInsets.fromLTRB(leading != null ? 4 : 20, 4, 12, 16),
                 child: Row(
                   children: [
+                    if (leading != null) leading!,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

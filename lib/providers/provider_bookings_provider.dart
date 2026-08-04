@@ -33,6 +33,62 @@ class ProviderBookingsProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> respond(ServiceBooking booking, bool accept) async {
+    _updatingUid = booking.uid;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updated = await _apiService.respond(
+        bookingUid: booking.uid,
+        providerUid: booking.providerUid,
+        accept: accept,
+      );
+      if (accept) {
+        _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
+      } else {
+        // Rejected bookings are never shown to the provider.
+        _bookings = _bookings.where((b) => b.uid != booking.uid).toList();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _updatingUid = null;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> verifyCompletion(
+    ServiceBooking booking, {
+    required String passcode,
+    required double actualAmountPaid,
+    String? paymentMode,
+  }) async {
+    _updatingUid = booking.uid;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updated = await _apiService.verifyCompletion(
+        bookingUid: booking.uid,
+        providerUid: booking.providerUid,
+        passcode: passcode,
+        actualAmountPaid: actualAmountPaid,
+        paymentMode: paymentMode,
+      );
+      _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _updatingUid = null;
+      notifyListeners();
+    }
+  }
+
   Future<bool> updateStatus(ServiceBooking booking, String status, {required double customerPaid}) async {
     _updatingUid = booking.uid;
     _error = null;

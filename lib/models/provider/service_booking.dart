@@ -20,7 +20,18 @@ class ServiceBooking {
   final double commissionAmount;
   final double providerEarning;
   final String status;
+  final String? passcode;
+  final DateTime? acceptedOn;
+  final DateTime? completedOn;
   final DateTime createdOn;
+  final String? providerMobileNo;
+  final String? providerProfilePhotoPath;
+  final String? providerCnic;
+  final String? clientMobileNo;
+  final String? clientAddressTitle;
+  final String? clientFullAddress;
+  final String? clientArea;
+  final String? clientCity;
 
   const ServiceBooking({
     required this.uid,
@@ -44,8 +55,24 @@ class ServiceBooking {
     required this.commissionAmount,
     required this.providerEarning,
     required this.status,
+    this.passcode,
+    this.acceptedOn,
+    this.completedOn,
     required this.createdOn,
+    this.providerMobileNo,
+    this.providerProfilePhotoPath,
+    this.providerCnic,
+    this.clientMobileNo,
+    this.clientAddressTitle,
+    this.clientFullAddress,
+    this.clientArea,
+    this.clientCity,
   });
+
+  /// True for the "Rejected" status, which staff-only/never shown to the
+  /// current provider per the backend contract, but guarded against here in
+  /// case it ever appears in a response.
+  bool get isRejected => status == 'Rejected';
 
   factory ServiceBooking.fromJson(Map<String, dynamic> json) {
     return ServiceBooking(
@@ -70,7 +97,18 @@ class ServiceBooking {
       commissionAmount: (json['commissionAmount'] as num?)?.toDouble() ?? 0,
       providerEarning: (json['providerEarning'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? 'Pending',
+      passcode: json['passcode'] as String?,
+      acceptedOn: json['acceptedOn'] != null ? DateTime.parse(json['acceptedOn'] as String) : null,
+      completedOn: json['completedOn'] != null ? DateTime.parse(json['completedOn'] as String) : null,
       createdOn: json['createdOn'] != null ? DateTime.parse(json['createdOn'] as String) : DateTime.now(),
+      providerMobileNo: json['providerMobileNo'] as String?,
+      providerProfilePhotoPath: json['providerProfilePhotoPath'] as String?,
+      providerCnic: json['providerCnic'] as String?,
+      clientMobileNo: json['clientMobileNo'] as String?,
+      clientAddressTitle: json['clientAddressTitle'] as String?,
+      clientFullAddress: json['clientFullAddress'] as String?,
+      clientArea: json['clientArea'] as String?,
+      clientCity: json['clientCity'] as String?,
     );
   }
 }

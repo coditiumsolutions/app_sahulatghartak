@@ -13,7 +13,7 @@ class ProviderBottomNavigation extends StatelessWidget {
     Icons.home_rounded,
     Icons.inbox_rounded,
     Icons.work_rounded,
-    Icons.attach_money_rounded,
+    Icons.account_balance_wallet_rounded,
     Icons.person_rounded,
   ];
 
@@ -21,11 +21,11 @@ class ProviderBottomNavigation extends StatelessWidget {
     Icons.home_outlined,
     Icons.inbox_outlined,
     Icons.work_outline_rounded,
-    Icons.attach_money_outlined,
+    Icons.account_balance_wallet_outlined,
     Icons.person_outline_rounded,
   ];
 
-  static const _labels = ['Home', 'Requests', 'Bookings', 'Earnings', 'Profile'];
+  static const _labels = ['Home', 'Requests', 'Bookings', 'Wallet', 'Profile'];
 
   static const _brandDark = Color(0xFF0A4FA8);
   static const _brandBlue = Color(0xFF016EE3);

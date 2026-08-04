@@ -6,10 +6,10 @@ import '../providers/provider_dashboard_provider.dart';
 import '../utils/provider_routes.dart';
 import '../widgets/provider/provider_bottom_nav.dart';
 import 'provider/dashboard/provider_home_tab.dart';
-import 'provider/earnings/earnings_tab.dart';
 import 'provider/jobs/jobs_tab.dart';
 import 'provider/profile/profile_tab.dart';
 import 'provider/requests/requests_tab.dart';
+import 'provider/wallet/wallet_tab.dart';
 
 class ProviderDashboardScreen extends StatefulWidget {
   static const routeName = ProviderRoutes.dashboard;
@@ -21,14 +21,6 @@ class ProviderDashboardScreen extends StatefulWidget {
 
 class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   int _index = 0;
-
-  static const _tabs = [
-    ProviderHomeTab(),
-    RequestsTab(),
-    BookingsTab(),
-    EarningsTab(),
-    ProfileTab(),
-  ];
 
   @override
   void initState() {
@@ -45,10 +37,20 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
     });
   }
 
+  void _goToTab(int index) => setState(() => _index = index);
+
   @override
   Widget build(BuildContext context) {
+    final tabs = [
+      ProviderHomeTab(onNavigateToTab: _goToTab),
+      const RequestsTab(),
+      const BookingsTab(),
+      const WalletTab(),
+      const ProfileTab(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _index, children: _tabs),
+      body: IndexedStack(index: _index, children: tabs),
       bottomNavigationBar: ProviderBottomNavigation(
         currentIndex: _index,
         onTabSelected: (i) => setState(() => _index = i),

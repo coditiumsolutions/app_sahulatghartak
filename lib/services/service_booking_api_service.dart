@@ -51,6 +51,46 @@ class ServiceBookingApiService {
     return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
   }
 
+  Future<ServiceBooking> respond({
+    required int bookingUid,
+    required int providerUid,
+    required bool accept,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid/respond'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'providerUid': providerUid,
+        'accept': accept,
+      }),
+    );
+
+    final json = _decode(response, accept ? 'Failed to accept booking' : 'Failed to reject booking');
+    return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<ServiceBooking> verifyCompletion({
+    required int bookingUid,
+    required int providerUid,
+    required String passcode,
+    required double actualAmountPaid,
+    String? paymentMode,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid/verify-completion'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'providerUid': providerUid,
+        'passcode': passcode,
+        'actualAmountPaid': actualAmountPaid,
+        'paymentMode': paymentMode,
+      }),
+    );
+
+    final json = _decode(response, 'Failed to verify completion');
+    return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
   Map<String, dynamic> _decode(http.Response response, String errorPrefix) {
     Map<String, dynamic> json;
     try {

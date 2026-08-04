@@ -21,6 +21,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   fl_chart: ^0.66.0
   animations: ^2.0.11
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
