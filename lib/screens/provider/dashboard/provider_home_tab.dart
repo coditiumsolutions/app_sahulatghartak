@@ -94,6 +94,11 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
       appBar: ProviderTabHeader(
         title: firstName == null ? 'Welcome back!' : 'Welcome back, $firstName!',
         subtitle: dashboard.isOnline ? "You're online and visible to customers" : "You're offline right now",
+        leading: SizedBox(
+          width: 48,
+          height: 48,
+          child: Image.asset('assets/icon/app_logo_transparent.png', fit: BoxFit.contain),
+        ),
         trailing: GestureDetector(
           onTap: () => toggleProviderOnlineStatus(context, !dashboard.isOnline),
           child: Container(

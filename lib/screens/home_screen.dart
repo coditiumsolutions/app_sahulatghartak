@@ -291,18 +291,12 @@ class _HomeHeader extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: 46,
                           height: 46,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(13),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 3))],
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.asset('assets/icon/app_icon.png', fit: BoxFit.cover),
+                          child: Image.asset(
+                            'assets/icon/app_logo_transparent.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(width: 12),

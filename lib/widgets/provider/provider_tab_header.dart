@@ -55,10 +55,11 @@ class ProviderTabHeader extends StatelessWidget implements PreferredSizeWidget {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(leading != null ? 4 : 20, 4, 12, 16),
+                padding: EdgeInsets.fromLTRB(leading != null ? 12 : 20, 4, 12, 16),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if (leading != null) leading!,
+                    if (leading != null) ...[leading!, const SizedBox(width: 12)],
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
