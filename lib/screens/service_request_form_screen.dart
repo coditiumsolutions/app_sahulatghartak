@@ -10,6 +10,7 @@ import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../utils/service_title_suggestions.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/themed_dropdown.dart';
 import 'add_address_screen.dart';
 import 'service_requests_screen.dart';
 
@@ -175,11 +176,11 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
               )
             else ...[
               authFieldLabel('Service Address'),
-              DropdownButtonFormField<ClientAddress>(
-                initialValue: _selectedAddress,
-                decoration: authFieldDecoration(hint: 'Select an address'),
+              ThemedDropdownField<ClientAddress>(
+                value: _selectedAddress,
+                hint: 'Select an address',
                 items: addressState.addresses
-                    .map((a) => DropdownMenuItem(value: a, child: Text('${a.addressTitle} - ${a.area}, ${a.city}', overflow: TextOverflow.ellipsis)))
+                    .map((a) => ThemedDropdownItem(value: a, label: '${a.addressTitle} - ${a.area}, ${a.city}'))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedAddress = v),
                 validator: (v) => v == null ? 'Required' : null,
@@ -187,11 +188,11 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
             ],
             const SizedBox(height: 20),
             authFieldLabel('Service Title'),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedServiceTitle,
-              decoration: authFieldDecoration(hint: 'Select a service title'),
+            ThemedDropdownField<String>(
+              value: _selectedServiceTitle,
+              hint: 'Select a service title',
               items: getServiceTitleSuggestions(_category?.name ?? '')
-                  .map((title) => DropdownMenuItem(value: title, child: Text(title, overflow: TextOverflow.ellipsis)))
+                  .map((title) => ThemedDropdownItem(value: title, label: title))
                   .toList(),
               onChanged: (v) => setState(() => _selectedServiceTitle = v),
               validator: (v) => v == null ? 'Required' : null,

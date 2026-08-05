@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/empty_state_placeholder.dart';
 import 'request_detail_screen.dart';
 
@@ -59,21 +60,13 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
   }
 
   Future<void> _deleteRequest(CustomerServiceRequest request) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Request'),
-        content:
-            Text('Are you sure you want to delete "${request.serviceTitle}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red))),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete Request',
+      message: 'Are you sure you want to delete "${request.serviceTitle}"? This cannot be undone.',
+      confirmLabel: 'Delete',
+      icon: Icons.delete_outline_rounded,
+      color: Colors.red,
     );
     if (confirmed != true || !mounted) return;
 
@@ -89,22 +82,14 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
   }
 
   Future<void> _cancelRequest(CustomerServiceRequest request) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancel Request'),
-        content:
-            Text('Are you sure you want to cancel "${request.serviceTitle}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('No')),
-          TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Yes, Cancel',
-                  style: TextStyle(color: Colors.red))),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Cancel Request',
+      message: 'Are you sure you want to cancel "${request.serviceTitle}"?',
+      confirmLabel: 'Yes, Cancel',
+      cancelLabel: 'No',
+      icon: Icons.cancel_outlined,
+      color: Colors.orange,
     );
     if (confirmed != true || !mounted) return;
 

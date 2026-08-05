@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/curved_profile_header.dart';
 import 'add_address_screen.dart';
 import 'landing_screen.dart';
@@ -51,16 +52,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _deleteAddress(ClientAddress address) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Address'),
-        content: Text('Are you sure you want to delete "${address.addressTitle}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete Address',
+      message: 'Are you sure you want to delete "${address.addressTitle}"? This cannot be undone.',
+      confirmLabel: 'Delete',
+      icon: Icons.delete_outline_rounded,
+      color: Colors.red,
     );
     if (confirmed != true || !mounted) return;
 
@@ -73,6 +71,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Log Out',
+      message: 'Are you sure you want to log out of your account?',
+      confirmLabel: 'Log Out',
+      icon: Icons.logout_rounded,
+      color: kPrimaryColor,
+    );
+    if (confirmed != true || !context.mounted) return;
+
     await context.read<AuthProvider>().logout();
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);

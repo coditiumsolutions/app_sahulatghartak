@@ -6,6 +6,7 @@ import '../../../models/provider/service_request.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_dashboard_provider.dart';
 import '../../../utils/constants.dart';
+import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/provider/provider_tab_header.dart';
 import '../../../widgets/provider/tab_state_placeholder.dart';
 
@@ -113,6 +114,19 @@ class _RequestsTabState extends State<RequestsTab> {
     );
   }
 
+  Future<void> _rejectRequest(BuildContext context, ServiceRequest request) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Reject Request',
+      message: 'Are you sure you want to reject "${request.requestTitle}"? This cannot be undone.',
+      confirmLabel: 'Reject',
+      icon: Icons.cancel_outlined,
+      color: Colors.red,
+    );
+    if (confirmed != true || !context.mounted) return;
+    context.read<ProviderDashboardProvider>().rejectRequest(request.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final dashboard = context.watch<ProviderDashboardProvider>();
@@ -160,7 +174,7 @@ class _RequestsTabState extends State<RequestsTab> {
                             request: request,
                             onViewDetails: () => _viewDetails(context, request),
                             onSendQuote: () => _sendQuote(context, request),
-                            onReject: () => dashboard.rejectRequest(request.id),
+                            onReject: () => _rejectRequest(context, request),
                           );
                         },
                       ),

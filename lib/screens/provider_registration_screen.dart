@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/category_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/themed_dropdown.dart';
 import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
 import 'provider_document_upload_screen.dart';
@@ -161,10 +162,10 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             if (categoryProvider.isLoading)
               const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator()))
             else
-              DropdownButtonFormField<int>(
-                initialValue: _selectedCategoryId,
-                decoration: authFieldDecoration(hint: 'Select your category'),
-                items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+              ThemedDropdownField<int>(
+                value: _selectedCategoryId,
+                hint: 'Select your category',
+                items: categories.map((c) => ThemedDropdownItem(value: c.id, label: c.name)).toList(),
                 onChanged: (value) => setState(() => _selectedCategoryId = value),
                 validator: (v) => v == null ? 'Required' : null,
               ),

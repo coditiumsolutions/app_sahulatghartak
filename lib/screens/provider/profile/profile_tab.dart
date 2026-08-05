@@ -8,6 +8,7 @@ import '../../../providers/provider_document_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/provider_availability_helper.dart';
 import '../../../utils/provider_routes.dart';
+import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/curved_profile_header.dart';
 import '../../../widgets/provider/provider_tab_header.dart' show providerBrandDark, providerBrandBlue, providerBrandAccent;
 import '../../home_screen.dart';
@@ -41,6 +42,16 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Log Out',
+      message: 'Are you sure you want to log out of your account?',
+      confirmLabel: 'Log Out',
+      icon: Icons.logout_rounded,
+      color: providerBrandBlue,
+    );
+    if (confirmed != true || !context.mounted) return;
+
     await context.read<AuthProvider>().logout();
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
