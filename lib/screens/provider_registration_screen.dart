@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/category.dart';
 import '../providers/auth_provider.dart';
-import '../providers/category_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/auth_card_scaffold.dart';
-import '../widgets/themed_dropdown.dart';
+import 'category_picker_screen.dart';
 import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
 import 'provider_document_upload_screen.dart';
@@ -27,7 +27,7 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   final _experienceController = TextEditingController();
   final _descriptionController = TextEditingController();
   String? _selectedGender;
-  int? _selectedCategoryId;
+  Category? _selectedCategory;
   bool _obscurePassword = true;
 
   @override
@@ -49,9 +49,16 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
     super.dispose();
   }
 
+  Future<void> _pickCategory() async {
+    final result = await Navigator.of(context).push<Category>(
+      MaterialPageRoute(builder: (_) => CategoryPickerScreen(selectedCategoryId: _selectedCategory?.id)),
+    );
+    if (result != null) setState(() => _selectedCategory = result);
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedCategoryId == null) {
+    if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
@@ -59,9 +66,6 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a gender')));
       return;
     }
-
-    final categoryProvider = context.read<CategoryProvider>();
-    final selectedCategory = categoryProvider.categories.firstWhere((c) => c.id == _selectedCategoryId);
 
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.registerProvider(
@@ -72,8 +76,8 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       gender: _selectedGender!,
       experienceYears: int.parse(_experienceController.text.trim()),
       description: _descriptionController.text.trim(),
-      categoryId: _selectedCategoryId!,
-      categoryName: selectedCategory.name,
+      categoryId: _selectedCategory!.id,
+      categoryName: _selectedCategory!.name,
     );
 
     if (!mounted) return;
@@ -99,8 +103,6 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
-    final categoryProvider = context.watch<CategoryProvider>();
-    final categories = categoryProvider.categories;
 
     return AuthCardScaffold(
       title: 'Create Account',
@@ -159,16 +161,38 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             ),
             const SizedBox(height: 20),
             authFieldLabel('Category'),
-            if (categoryProvider.isLoading)
-              const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator()))
-            else
-              ThemedDropdownField<int>(
-                value: _selectedCategoryId,
-                hint: 'Select your category',
-                items: categories.map((c) => ThemedDropdownItem(value: c.id, label: c.name)).toList(),
-                onChanged: (value) => setState(() => _selectedCategoryId = value),
-                validator: (v) => v == null ? 'Required' : null,
-              ),
+            FormField<Category>(
+              initialValue: _selectedCategory,
+              validator: (v) => v == null ? 'Required' : null,
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        await _pickCategory();
+                        state.didChange(_selectedCategory);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: InputDecorator(
+                        decoration: authFieldDecoration(hint: 'Select your category').copyWith(
+                          errorText: state.errorText,
+                          suffixIcon: const Icon(Icons.chevron_right_rounded, color: Colors.black38),
+                        ),
+                        child: Text(
+                          _selectedCategory?.name ?? 'Select your category',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: _selectedCategory == null ? Colors.grey.shade600 : Colors.black87,
+                            fontWeight: _selectedCategory == null ? FontWeight.normal : FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 20),
             authFieldLabel('Experience (years)'),
             TextFormField(
