@@ -10,6 +10,14 @@ class CategoryProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Guards against out-of-order responses: the app-wide initial fetch (no
+  // serviceUid, fired from the constructor) and a screen-scoped fetch (with
+  // serviceUid) can both be in flight at once, and whichever resolves last
+  // used to win — sometimes overwriting a scoped result with the full
+  // unfiltered list. Only the response matching the most recently *started*
+  // call is applied.
+  int _requestId = 0;
+
   CategoryProvider() {
     fetchCategories();
   }
@@ -22,17 +30,23 @@ class CategoryProvider extends ChangeNotifier {
   /// service; omit to fetch the full flat list (used e.g. by the provider
   /// registration category dropdown, which spans all services).
   Future<void> fetchCategories({int? serviceUid}) async {
+    final requestId = ++_requestId;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _categories = await _apiService.fetchCategories(serviceUid: serviceUid);
+      final result = await _apiService.fetchCategories(serviceUid: serviceUid);
+      if (requestId != _requestId) return;
+      _categories = result;
     } catch (e) {
+      if (requestId != _requestId) return;
       _error = e.toString();
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (requestId == _requestId) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 }

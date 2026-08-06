@@ -47,6 +47,7 @@ const Map<String, IconData> _keywordIcons = {
   'renovat': Icons.construction,
   'lawyer': Icons.gavel,
   'legal': Icons.gavel,
+  'aluminum': Icons.window,
 };
 
 IconData getCategoryIcon(String categoryName) {

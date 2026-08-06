@@ -7,8 +7,8 @@ import '../models/client_address.dart';
 import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
 import '../providers/customer_service_request_provider.dart';
+import '../providers/service_title_provider.dart';
 import '../utils/constants.dart';
-import '../utils/service_title_suggestions.dart';
 import '../widgets/auth_card_scaffold.dart';
 import '../widgets/themed_dropdown.dart';
 import 'add_address_screen.dart';
@@ -57,6 +57,8 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     final args = ModalRoute.of(context)!.settings.arguments as ServiceRequestFormArgs;
     _category = args.category;
     _accentColor = args.color;
+
+    context.read<ServiceTitleProvider>().loadServiceTitles(_category!.id);
 
     final user = context.read<AuthProvider>().currentUser;
     _contactPersonController.text = user?.username ?? '';
@@ -137,6 +139,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   Widget build(BuildContext context) {
     final addressState = context.watch<ClientAddressProvider>();
     final saving = context.watch<CustomerServiceRequestProvider>().saving;
+    final titleState = context.watch<ServiceTitleProvider>();
 
     return AuthCardScaffold(
       title: _category?.name ?? 'Service Request',
@@ -188,15 +191,21 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
             ],
             const SizedBox(height: 20),
             authFieldLabel('Service Title'),
-            ThemedDropdownField<String>(
-              value: _selectedServiceTitle,
-              hint: 'Select a service title',
-              items: getServiceTitleSuggestions(_category?.name ?? '')
-                  .map((title) => ThemedDropdownItem(value: title, label: title))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedServiceTitle = v),
-              validator: (v) => v == null ? 'Required' : null,
-            ),
+            if (titleState.isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              ThemedDropdownField<String>(
+                value: _selectedServiceTitle,
+                hint: 'Select a service title',
+                items: titleState.serviceTitles
+                    .map((t) => ThemedDropdownItem(value: t.title, label: t.title))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedServiceTitle = v),
+                validator: (v) => v == null ? 'Required' : null,
+              ),
             const SizedBox(height: 20),
             authFieldLabel('Service Description (optional)'),
             TextFormField(

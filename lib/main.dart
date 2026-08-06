@@ -8,6 +8,7 @@ import 'providers/auth_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/booking_provider.dart';
 import 'providers/category_provider.dart';
+import 'providers/service_title_provider.dart';
 import 'providers/service_catalog_provider.dart';
 import 'providers/client_address_provider.dart';
 import 'providers/customer_service_request_provider.dart';
@@ -58,6 +59,7 @@ class SahulatApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ServiceProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => ServiceTitleProvider()),
         ChangeNotifierProvider(create: (_) => ServiceCatalogProvider()),
         ChangeNotifierProvider(create: (_) => ProviderDashboardProvider()),
         ChangeNotifierProvider(create: (_) => ProviderBookingsProvider()),
