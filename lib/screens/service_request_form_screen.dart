@@ -31,8 +31,14 @@ class ServiceRequestFormScreen extends StatefulWidget {
   State<ServiceRequestFormScreen> createState() => _ServiceRequestFormScreenState();
 }
 
+/// Sentinel dropdown value for "my job isn't listed" — when selected, the
+/// user types their own service title and the description becomes required
+/// so staff have enough detail to assign a provider manually.
+const String _otherServiceTitleValue = '__other__';
+
 class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _otherTitleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _contactPersonController = TextEditingController();
   final _contactNoController = TextEditingController();
@@ -76,8 +82,11 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     }
   }
 
+  bool get _isOtherServiceTitle => _selectedServiceTitle == _otherServiceTitleValue;
+
   @override
   void dispose() {
+    _otherTitleController.dispose();
     _descriptionController.dispose();
     _contactPersonController.dispose();
     _contactNoController.dispose();
@@ -114,7 +123,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       clientUid: clientUid,
       categoryUid: _category!.id,
       clientAddressUid: _selectedAddress!.uid,
-      serviceTitle: _selectedServiceTitle!,
+      serviceTitle: _isOtherServiceTitle ? _otherTitleController.text.trim() : _selectedServiceTitle!,
       serviceDescription: _descriptionController.text.trim(),
       preferredServiceDate: _selectedDate == null ? '' : DateFormat('yyyy-MM-dd').format(_selectedDate!),
       preferredServiceTime: _selectedTime == null ? '' : _formatTime(_selectedTime!),
@@ -200,19 +209,32 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
               ThemedDropdownField<String>(
                 value: _selectedServiceTitle,
                 hint: 'Select a service title',
-                items: titleState.serviceTitles
-                    .map((t) => ThemedDropdownItem(value: t.title, label: t.title))
-                    .toList(),
+                items: [
+                  ...titleState.serviceTitles.map((t) => ThemedDropdownItem(value: t.title, label: t.title)),
+                  const ThemedDropdownItem(value: _otherServiceTitleValue, label: 'Other (not listed)'),
+                ],
                 onChanged: (v) => setState(() => _selectedServiceTitle = v),
                 validator: (v) => v == null ? 'Required' : null,
               ),
+            if (_isOtherServiceTitle) ...[
+              const SizedBox(height: 20),
+              authFieldLabel('Specify Service'),
+              TextFormField(
+                controller: _otherTitleController,
+                decoration: authFieldDecoration(hint: 'What job do you need done?'),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+            ],
             const SizedBox(height: 20),
-            authFieldLabel('Service Description (optional)'),
+            authFieldLabel(_isOtherServiceTitle ? 'Service Description' : 'Service Description (optional)'),
             TextFormField(
               controller: _descriptionController,
               decoration: authFieldDecoration(hint: 'Describe what you need'),
               minLines: 2,
               maxLines: 4,
+              validator: _isOtherServiceTitle
+                  ? (v) => (v == null || v.trim().isEmpty) ? 'Please describe the job so staff can assign a provider' : null
+                  : null,
             ),
             const SizedBox(height: 20),
             Container(

@@ -205,6 +205,14 @@ class _RequestCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  /// Completed/cancelled requests are done and no longer interactable (aside
+  /// from deleting them), so they get a compact single-row treatment instead
+  /// of the full card — freeing screen space for requests still in play.
+  bool get _isCompact {
+    final normalized = request.status.toLowerCase();
+    return normalized == 'completed' || normalized == 'cancelled';
+  }
+
   @override
   Widget build(BuildContext context) {
     return OpenContainer(
@@ -216,6 +224,9 @@ class _RequestCard extends StatelessWidget {
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       transitionDuration: const Duration(milliseconds: 420),
       closedBuilder: (context, openContainer) {
+        if (_isCompact) {
+          return _buildCompactCard(context, openContainer);
+        }
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -446,6 +457,83 @@ class _RequestCard extends StatelessWidget {
       openBuilder: (context, closeContainer) {
         return RequestDetailScreen(request: request, onClose: closeContainer);
       },
+    );
+  }
+
+  Widget _buildCompactCard(BuildContext context, VoidCallback openContainer) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF0A4FA8).withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: openContainer,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: statusColor),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  child: Row(
+                    children: [
+                      Icon(_statusIcon(request.status), size: 16, color: statusColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              request.serviceTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Color(0xFF1A2233)),
+                            ),
+                            Text(
+                              '${request.status} · ${DateFormat('dd MMM yyyy').format(request.createdOn)}',
+                              style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (canDelete)
+                        deleting
+                            ? const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2)),
+                              )
+                            : IconButton(
+                                onPressed: onDelete,
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(Icons.delete_outline_rounded, size: 19, color: Colors.red),
+                                tooltip: 'Delete',
+                              ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
