@@ -69,10 +69,49 @@ class ServiceBooking {
     this.clientCity,
   });
 
-  /// True for the "Rejected" status, which staff-only/never shown to the
-  /// current provider per the backend contract, but guarded against here in
-  /// case it ever appears in a response.
+  /// True for the "Rejected" status. The backend never returns rejected
+  /// bookings from GET /service-bookings (staff-only), so these only exist
+  /// via the /respond endpoint's response and are persisted locally — see
+  /// [RejectedBookingsStore].
   bool get isRejected => status == 'Rejected';
+
+  Map<String, dynamic> toJson() {
+    return {
+      'uid': uid,
+      'requestUid': requestUid,
+      'requestTitle': requestTitle,
+      'clientUid': clientUid,
+      'clientName': clientName,
+      'providerUid': providerUid,
+      'providerName': providerName,
+      'serviceDetail': serviceDetail,
+      'estimatedAmount': estimatedAmount,
+      'visitCharges': visitCharges,
+      'additionalCharges': additionalCharges,
+      'deductions': deductions,
+      'finalAmount': finalAmount,
+      'customerPaid': customerPaid,
+      'paymentMode': paymentMode,
+      'customerRemaining': customerRemaining,
+      'commissionType': commissionType,
+      'commissionValue': commissionValue,
+      'commissionAmount': commissionAmount,
+      'providerEarning': providerEarning,
+      'status': status,
+      'passcode': passcode,
+      'acceptedOn': acceptedOn?.toIso8601String(),
+      'completedOn': completedOn?.toIso8601String(),
+      'createdOn': createdOn.toIso8601String(),
+      'providerMobileNo': providerMobileNo,
+      'providerProfilePhotoPath': providerProfilePhotoPath,
+      'providerCnic': providerCnic,
+      'clientMobileNo': clientMobileNo,
+      'clientAddressTitle': clientAddressTitle,
+      'clientFullAddress': clientFullAddress,
+      'clientArea': clientArea,
+      'clientCity': clientCity,
+    };
+  }
 
   factory ServiceBooking.fromJson(Map<String, dynamic> json) {
     return ServiceBooking(

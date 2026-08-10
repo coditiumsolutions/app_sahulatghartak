@@ -65,7 +65,12 @@ class BookingDetailScreen extends StatefulWidget {
   final ServiceBooking booking;
   final VoidCallback? onClose;
 
-  const BookingDetailScreen({super.key, required this.booking, this.onClose});
+  /// When true, hides all accept/reject/cancel/complete actions and shows
+  /// only the booking's details — used for stale records like rejected
+  /// requests that the provider can no longer act on.
+  final bool readOnly;
+
+  const BookingDetailScreen({super.key, required this.booking, this.onClose, this.readOnly = false});
 
   @override
   State<BookingDetailScreen> createState() => _BookingDetailScreenState();
@@ -106,6 +111,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _confirmReject() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Reject Booking',
+      message: 'Are you sure you want to reject this booking for "${widget.booking.requestTitle}"? This cannot be undone.',
+      confirmLabel: 'Yes, Reject',
+      cancelLabel: 'No',
+      icon: Icons.cancel_outlined,
+      color: Colors.red,
+    );
+    if (confirmed != true || !mounted) return;
+    await _respond(false);
+  }
+
   Future<void> _confirmCancel() async {
     final confirmed = await showConfirmDialog(
       context,
@@ -134,8 +153,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final booking = widget.booking;
-    final isPending = booking.status == 'Pending';
-    final canComplete = booking.status == 'Accepted' || booking.status == 'In Progress';
+    final isPending = !widget.readOnly && booking.status == 'Pending';
+    final canComplete = !widget.readOnly && (booking.status == 'Accepted' || booking.status == 'In Progress');
 
     return PopScope(
       canPop: widget.onClose == null,
@@ -234,7 +253,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                           Expanded(
                             child: OutlinedButton(
                               style: kProminentOutlinedButtonStyle(Colors.red),
-                              onPressed: _submitting ? null : () => _respond(false),
+                              onPressed: _submitting ? null : _confirmReject,
                               child: const Text('Reject'),
                             ),
                           ),

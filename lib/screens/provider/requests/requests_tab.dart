@@ -2,39 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/provider/service_request.dart';
+import '../../../models/provider/service_booking.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/provider_dashboard_provider.dart';
+import '../../../providers/provider_bookings_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/provider/provider_tab_header.dart';
 import '../../../widgets/provider/tab_state_placeholder.dart';
-
-Color _requestStatusColor(String status) {
-  switch (status.toLowerCase()) {
-    case 'accepted':
-      return kAccentColor;
-    case 'quoted':
-      return Colors.orange;
-    case 'rejected':
-      return Colors.red;
-    default:
-      return kPrimaryColor;
-  }
-}
-
-IconData _requestStatusIcon(String status) {
-  switch (status.toLowerCase()) {
-    case 'accepted':
-      return Icons.check_circle_rounded;
-    case 'quoted':
-      return Icons.request_quote_rounded;
-    case 'rejected':
-      return Icons.cancel_rounded;
-    default:
-      return Icons.hourglass_top_rounded;
-  }
-}
+import '../jobs/booking_detail_screen.dart';
+import '../jobs/rejected_requests_screen.dart';
 
 class RequestsTab extends StatefulWidget {
   const RequestsTab({super.key});
@@ -53,101 +29,74 @@ class _RequestsTabState extends State<RequestsTab> {
   void _loadRequests() {
     final providerUid = context.read<AuthProvider>().currentUser?.providerUid;
     if (providerUid != null) {
-      context.read<ProviderDashboardProvider>().loadIncomingRequests(providerUid);
+      context.read<ProviderBookingsProvider>().loadBookings(providerUid);
     }
   }
 
-  void _viewDetails(BuildContext context, ServiceRequest request) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(request.requestTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Customer: ${request.customerName}'),
-            Text('Mobile: ${request.customerMobile}'),
-            Text('Category: ${request.categoryName}'),
-            Text('Description: ${request.description}'),
-            Text('Address: ${request.serviceAddress}'),
-            Text('Status: ${request.status}'),
-            Text('Requested: ${DateFormat('dd MMM yyyy, hh:mm a').format(request.requestDate)}'),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
-      ),
+  void _viewDetails(BuildContext context, ServiceBooking booking) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => BookingDetailScreen(booking: booking)));
+  }
+
+  Future<void> _accept(BuildContext context, ServiceBooking booking) async {
+    final provider = context.read<ProviderBookingsProvider>();
+    final success = await provider.respond(booking, true);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'Booking accepted' : (provider.error ?? 'Failed to accept booking'))),
     );
   }
 
-  void _sendQuote(BuildContext context, ServiceRequest request) {
-    final amountController = TextEditingController();
-    final etaController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Send Quote'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Quote Amount (Rs)')),
-            const SizedBox(height: 12),
-            TextField(controller: etaController, decoration: const InputDecoration(labelText: 'ETA (e.g. 30 mins)')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final amount = double.tryParse(amountController.text.trim()) ?? 0;
-              final eta = etaController.text.trim().isEmpty ? 'N/A' : etaController.text.trim();
-              if (amount > 0) {
-                context.read<ProviderDashboardProvider>().sendQuote(request, amount, eta);
-                Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quote sent successfully')));
-              }
-            },
-            child: const Text('Send'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _rejectRequest(BuildContext context, ServiceRequest request) async {
+  Future<void> _reject(BuildContext context, ServiceBooking booking) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: 'Reject Request',
-      message: 'Are you sure you want to reject "${request.requestTitle}"? This cannot be undone.',
-      confirmLabel: 'Reject',
+      title: 'Reject Booking',
+      message: 'Are you sure you want to reject this booking for "${booking.requestTitle}"? This cannot be undone.',
+      confirmLabel: 'Yes, Reject',
+      cancelLabel: 'No',
       icon: Icons.cancel_outlined,
       color: Colors.red,
     );
     if (confirmed != true || !context.mounted) return;
-    context.read<ProviderDashboardProvider>().rejectRequest(request.id);
+
+    final provider = context.read<ProviderBookingsProvider>();
+    final success = await provider.respond(booking, false);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'Booking rejected' : (provider.error ?? 'Failed to reject booking'))),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final dashboard = context.watch<ProviderDashboardProvider>();
-    final requests = dashboard.incomingRequests;
+    final bookingsProvider = context.watch<ProviderBookingsProvider>();
+    final requests = bookingsProvider.bookings.where((b) => b.status == 'Pending').toList();
+    final unviewedRejectedCount = bookingsProvider.unviewedRejectedCount;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: ProviderTabHeader(
         title: 'Incoming Requests',
         subtitle: requests.isEmpty ? 'No requests right now' : '${requests.length} request${requests.length == 1 ? '' : 's'} waiting',
+        trailing: IconButton(
+          icon: Badge(
+            isLabelVisible: unviewedRejectedCount > 0,
+            label: Text('$unviewedRejectedCount'),
+            child: const Icon(Icons.history_rounded, color: Colors.white),
+          ),
+          tooltip: 'Rejected Requests',
+          onPressed: () => Navigator.of(context).pushNamed(RejectedRequestsScreen.routeName),
+        ),
       ),
-      body: dashboard.requestsLoading
+      body: bookingsProvider.loading && requests.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : dashboard.requestsError != null
+          : bookingsProvider.error != null && requests.isEmpty
               ? RefreshIndicator(
                   onRefresh: () async => _loadRequests(),
                   child: TabStatePlaceholder(
                     icon: Icons.wifi_off_rounded,
                     color: Colors.red,
                     title: 'Couldn\'t load requests',
-                    message: dashboard.requestsError,
+                    message: bookingsProvider.error,
                     onRetry: _loadRequests,
                   ),
                 )
@@ -158,7 +107,7 @@ class _RequestsTabState extends State<RequestsTab> {
                         icon: Icons.inbox_rounded,
                         color: kPrimaryColor,
                         title: 'No requests yet',
-                        message: 'New service requests from customers will show up here as soon as they come in.',
+                        message: 'New job assignments from staff will show up here as soon as they come in.',
                       ),
                     )
                   : RefreshIndicator(
@@ -169,12 +118,14 @@ class _RequestsTabState extends State<RequestsTab> {
                         itemCount: requests.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final request = requests[index];
+                          final booking = requests[index];
+                          final updating = bookingsProvider.updatingUid == booking.uid;
                           return _IncomingRequestCard(
-                            request: request,
-                            onViewDetails: () => _viewDetails(context, request),
-                            onSendQuote: () => _sendQuote(context, request),
-                            onReject: () => _rejectRequest(context, request),
+                            booking: booking,
+                            updating: updating,
+                            onViewDetails: () => _viewDetails(context, booking),
+                            onAccept: () => _accept(context, booking),
+                            onReject: () => _reject(context, booking),
                           );
                         },
                       ),
@@ -186,21 +137,23 @@ class _RequestsTabState extends State<RequestsTab> {
 /// Incoming-request card matching the customer side's white-card/left-rail
 /// style ([lib/screens/service_requests_screen.dart]'s `_RequestCard`).
 class _IncomingRequestCard extends StatelessWidget {
-  final ServiceRequest request;
+  final ServiceBooking booking;
+  final bool updating;
   final VoidCallback onViewDetails;
-  final VoidCallback onSendQuote;
+  final VoidCallback onAccept;
   final VoidCallback onReject;
 
   const _IncomingRequestCard({
-    required this.request,
+    required this.booking,
+    required this.updating,
     required this.onViewDetails,
-    required this.onSendQuote,
+    required this.onAccept,
     required this.onReject,
   });
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _requestStatusColor(request.status);
+    const statusColor = Colors.blueGrey;
 
     return Container(
       decoration: BoxDecoration(
@@ -236,7 +189,7 @@ class _IncomingRequestCard extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            request.customerName.isNotEmpty ? request.customerName[0].toUpperCase() : '?',
+                            booking.clientName.isNotEmpty ? booking.clientName[0].toUpperCase() : '?',
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17),
                           ),
                         ),
@@ -245,9 +198,9 @@ class _IncomingRequestCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(request.customerName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF1A2233))),
+                              Text(booking.clientName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF1A2233))),
                               const SizedBox(height: 2),
-                              Text(request.categoryName, style: TextStyle(color: Colors.grey[500], fontSize: 12.5, fontWeight: FontWeight.w600)),
+                              Text(booking.requestTitle, style: TextStyle(color: Colors.grey[500], fontSize: 12.5, fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -255,23 +208,21 @@ class _IncomingRequestCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_requestStatusIcon(request.status), size: 13, color: statusColor),
-                              const SizedBox(width: 4),
-                              Text(request.status, style: TextStyle(color: statusColor, fontWeight: FontWeight.w700, fontSize: 11.5)),
+                              Icon(Icons.hourglass_top_rounded, size: 13, color: statusColor),
+                              SizedBox(width: 4),
+                              Text('Pending', style: TextStyle(color: statusColor, fontWeight: FontWeight.w700, fontSize: 11.5)),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(request.requestTitle, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: Color(0xFF1A2233))),
-                    if (request.description.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                    if (booking.serviceDetail.trim().isNotEmpty) ...[
+                      const SizedBox(height: 12),
                       Text(
-                        request.description,
+                        booking.serviceDetail,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.grey[700], fontSize: 13, height: 1.35),
@@ -284,27 +235,29 @@ class _IncomingRequestCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on_rounded, size: 16, color: kPrimaryColor),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  request.serviceAddress,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Color(0xFF3A4658), fontSize: 13, fontWeight: FontWeight.w500),
+                          if (booking.clientAddressTitle != null) ...[
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_rounded, size: 16, color: kPrimaryColor),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    booking.clientAddressTitle!,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Color(0xFF3A4658), fontSize: 13, fontWeight: FontWeight.w500),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                          ],
                           Row(
                             children: [
-                              const Icon(Icons.call_rounded, size: 16, color: kPrimaryColor),
+                              const Icon(Icons.payments_rounded, size: 16, color: kPrimaryColor),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  request.customerMobile,
+                                  'Est. Rs ${booking.estimatedAmount.toStringAsFixed(0)}',
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(color: Color(0xFF3A4658), fontSize: 13, fontWeight: FontWeight.w500),
                                 ),
@@ -320,7 +273,7 @@ class _IncomingRequestCard extends StatelessWidget {
                         Icon(Icons.schedule_rounded, size: 13, color: Colors.grey[400]),
                         const SizedBox(width: 4),
                         Text(
-                          'Requested ${DateFormat('dd MMM yyyy, hh:mm a').format(request.requestDate)}',
+                          'Requested ${DateFormat('dd MMM yyyy, hh:mm a').format(booking.createdOn)}',
                           style: TextStyle(color: Colors.grey[400], fontSize: 11.5, fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -336,7 +289,7 @@ class _IncomingRequestCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
-                            onPressed: onViewDetails,
+                            onPressed: updating ? null : onViewDetails,
                             child: const Text('Details', style: TextStyle(fontWeight: FontWeight.w700)),
                           ),
                         ),
@@ -350,8 +303,10 @@ class _IncomingRequestCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
-                            onPressed: onSendQuote,
-                            child: const Text('Send Quote', style: TextStyle(fontWeight: FontWeight.w700)),
+                            onPressed: updating ? null : onAccept,
+                            child: updating
+                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Text('Accept', style: TextStyle(fontWeight: FontWeight.w700)),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -361,7 +316,7 @@ class _IncomingRequestCard extends StatelessWidget {
                           child: IconButton(
                             icon: const Icon(Icons.close_rounded, color: Colors.red, size: 20),
                             tooltip: 'Reject',
-                            onPressed: onReject,
+                            onPressed: updating ? null : onReject,
                           ),
                         ),
                       ],

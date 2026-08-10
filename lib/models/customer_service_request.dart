@@ -17,6 +17,12 @@ class CustomerServiceRequest {
   final String status;
   final String? remarks;
   final DateTime createdOn;
+  final int? providerUid;
+  final String? providerName;
+  final String? providerMobileNo;
+  final String? providerProfilePhotoPath;
+  final String? providerCnic;
+  final String? passcode;
 
   const CustomerServiceRequest({
     required this.uid,
@@ -37,6 +43,12 @@ class CustomerServiceRequest {
     required this.status,
     this.remarks,
     required this.createdOn,
+    this.providerUid,
+    this.providerName,
+    this.providerMobileNo,
+    this.providerProfilePhotoPath,
+    this.providerCnic,
+    this.passcode,
   });
 
   factory CustomerServiceRequest.fromJson(Map<String, dynamic> json) {
@@ -59,6 +71,12 @@ class CustomerServiceRequest {
       status: json['status'] as String? ?? 'Pending',
       remarks: json['remarks'] as String?,
       createdOn: json['createdOn'] != null ? DateTime.parse(json['createdOn'] as String) : DateTime.now(),
+      providerUid: json['providerUid'] as int?,
+      providerName: json['providerName'] as String?,
+      providerMobileNo: json['providerMobileNo'] as String?,
+      providerProfilePhotoPath: json['providerProfilePhotoPath'] as String?,
+      providerCnic: json['providerCnic'] as String?,
+      passcode: json['passcode'] as String?,
     );
   }
 }

@@ -37,7 +37,6 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
     if (providerUid == null) return;
     final dashboard = context.read<ProviderDashboardProvider>();
     await Future.wait([
-      dashboard.loadIncomingRequests(providerUid),
       dashboard.loadAvailabilityStatus(providerUid),
       dashboard.loadProviderDetail(providerUid),
       context.read<ProviderBookingsProvider>().loadBookings(providerUid),
@@ -53,6 +52,7 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
     final username = context.watch<AuthProvider>().currentUser?.username ?? '';
     final firstName = username.trim().isEmpty ? null : username.trim().split(' ').first;
 
+    final pendingRequests = bookingsProvider.bookings.where((b) => b.status == 'Pending').length;
     final activeBookings = bookingsProvider.bookings
         .where((b) => b.status == 'Accepted' || b.status == 'In Progress')
         .length;
@@ -66,7 +66,7 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
     final cards = [
       DashboardStatCard(
         label: 'Available Requests',
-        value: '${dashboard.incomingRequests.length}',
+        value: '$pendingRequests',
         icon: Icons.inbox,
         color: kPrimaryColor,
         onTap: () => widget.onNavigateToTab?.call(_kRequestsTabIndex),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../models/provider/service_booking.dart';
+import '../services/rejected_bookings_store.dart';
 import '../services/service_booking_api_service.dart';
 
 class ProviderBookingsProvider extends ChangeNotifier {
   final ServiceBookingApiService _apiService = ServiceBookingApiService();
+  final RejectedBookingsStore _rejectedStore = RejectedBookingsStore();
 
   List<ServiceBooking> _bookings = [];
   List<ServiceBooking> get bookings => _bookings;
@@ -18,13 +20,36 @@ class ProviderBookingsProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  int? _providerUid;
+  int _rejectedSeenCount = 0;
+
+  int get unviewedRejectedCount {
+    final rejectedCount = _bookings.where((b) => b.isRejected).length;
+    return (rejectedCount - _rejectedSeenCount).clamp(0, rejectedCount);
+  }
+
+  Future<void> markRejectedSeen() async {
+    final rejectedCount = _bookings.where((b) => b.isRejected).length;
+    if (rejectedCount == _rejectedSeenCount) return;
+
+    _rejectedSeenCount = rejectedCount;
+    notifyListeners();
+    if (_providerUid != null) {
+      await _rejectedStore.saveSeenCount(_providerUid!, rejectedCount);
+    }
+  }
+
   Future<void> loadBookings(int providerUid) async {
     _loading = true;
     _error = null;
+    _providerUid = providerUid;
     notifyListeners();
 
     try {
-      _bookings = await _apiService.fetchByProvider(providerUid);
+      final fetched = await _apiService.fetchByProvider(providerUid);
+      final rejected = await _rejectedStore.load(providerUid);
+      _bookings = [...fetched, ...rejected];
+      _rejectedSeenCount = await _rejectedStore.loadSeenCount(providerUid);
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -44,11 +69,9 @@ class ProviderBookingsProvider extends ChangeNotifier {
         providerUid: booking.providerUid,
         accept: accept,
       );
-      if (accept) {
-        _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
-      } else {
-        // Rejected bookings are never shown to the provider.
-        _bookings = _bookings.where((b) => b.uid != booking.uid).toList();
+      _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
+      if (!accept && updated.isRejected) {
+        await _rejectedStore.add(booking.providerUid, updated);
       }
       return true;
     } catch (e) {

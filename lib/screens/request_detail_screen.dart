@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/customer_service_request.dart';
 import '../providers/customer_service_request_provider.dart';
@@ -42,6 +43,14 @@ bool _canCancel(String status) => status.toLowerCase() == 'pending';
 bool _canDelete(String status) {
   final normalized = status.toLowerCase();
   return normalized == 'cancelled' || normalized == 'completed';
+}
+
+Future<void> _callNumber(BuildContext context, String mobileNo) async {
+  final uri = Uri(scheme: 'tel', path: mobileNo);
+  final launched = await launchUrl(uri);
+  if (!launched && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not start a call.')));
+  }
 }
 
 /// Read-only detail view for a single service request. Accepts either the
@@ -126,6 +135,27 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(success ? 'Request cancelled' : (requestProvider.error ?? 'Failed to cancel request'))),
+    );
+  }
+
+  Future<void> _showPasscode() async {
+    final request = _request;
+    if (request == null) return;
+
+    var passcode = request.passcode;
+    passcode ??= await context.read<CustomerServiceRequestProvider>().getStoredPasscode(request.uid);
+    if (!mounted) return;
+
+    if (passcode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passcode not available yet.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => _PasscodeDialog(passcode: passcode!),
     );
   }
 
@@ -253,6 +283,81 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                     icon: Icons.location_on_rounded),
                               ],
                             ),
+                            if (request.providerUid != null) ...[
+                              const SizedBox(height: 14),
+                              _SectionCard(
+                                title: 'Provider Details',
+                                icon: Icons.engineering_rounded,
+                                children: [
+                                  if (request.providerName != null)
+                                    _DetailRow(
+                                      label: 'Name',
+                                      icon: Icons.badge_rounded,
+                                      valueWidget: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundColor: const Color(0xFFF6F8FC),
+                                            backgroundImage: request.providerProfilePhotoPath != null
+                                                ? NetworkImage('$kApiFileBaseUrl/${request.providerProfilePhotoPath!}')
+                                                : null,
+                                            child: request.providerProfilePhotoPath == null
+                                                ? Icon(Icons.person_rounded, size: 18, color: kPrimaryColor)
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              request.providerName!,
+                                              style: const TextStyle(color: Color(0xFF1A2233), fontSize: 14, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  if (request.providerMobileNo != null)
+                                    _DetailRow(
+                                      label: 'Contact Number',
+                                      icon: Icons.phone_rounded,
+                                      valueWidget: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              request.providerMobileNo!,
+                                              style: const TextStyle(color: Color(0xFF1A2233), fontSize: 14, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          TextButton.icon(
+                                            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8), visualDensity: VisualDensity.compact),
+                                            onPressed: () => _callNumber(context, request.providerMobileNo!),
+                                            icon: Icon(Icons.call_rounded, size: 16, color: _brandBlue),
+                                            label: Text('Call', style: TextStyle(color: _brandBlue, fontWeight: FontWeight.w700)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  _DetailRow(label: 'Provider ID', value: '#${request.providerUid}', icon: Icons.badge_outlined),
+                                  if (request.providerCnic != null)
+                                    _DetailRow(label: 'CNIC No', value: request.providerCnic!, icon: Icons.credit_card_rounded),
+                                  const SizedBox(height: 4),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: _brandBlue,
+                                        side: BorderSide(color: _brandBlue.withValues(alpha: 0.4)),
+                                        padding: const EdgeInsets.symmetric(vertical: 11),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                      onPressed: _showPasscode,
+                                      icon: const Icon(Icons.password_rounded, size: 18),
+                                      label: const Text('Show Passcode', style: TextStyle(fontWeight: FontWeight.w700)),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ],
                             const SizedBox(height: 14),
                             _SectionCard(
                               title: 'Contact Information',
@@ -630,6 +735,84 @@ class _DetailRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Read-only display of the completion passcode the customer must give the
+/// provider to mark the job done — mirrors the branded look of
+/// [showConfirmDialog] but with a single "Close" action.
+class _PasscodeDialog extends StatelessWidget {
+  final String passcode;
+
+  const _PasscodeDialog({required this.passcode});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.22), blurRadius: 28, offset: const Offset(0, 12))],
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: _brandBlue.withValues(alpha: 0.12), shape: BoxShape.circle),
+                child: const Icon(Icons.password_rounded, color: _brandBlue, size: 28),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Completion Passcode',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2233), letterSpacing: -0.2),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Share this code with your provider once the job is finished so they can mark it complete.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13.5, color: Colors.grey[600], height: 1.4, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(color: const Color(0xFFF6F8FC), borderRadius: BorderRadius.circular(14)),
+                child: Text(
+                  passcode,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: _brandDark, letterSpacing: 8),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _brandBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

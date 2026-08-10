@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../models/customer_service_request.dart';
 import '../services/customer_service_request_api_service.dart';
+import '../services/request_passcode_store.dart';
 
 class CustomerServiceRequestProvider extends ChangeNotifier {
   final CustomerServiceRequestApiService _apiService = CustomerServiceRequestApiService();
+  final RequestPasscodeStore _passcodeStore = RequestPasscodeStore();
 
   List<CustomerServiceRequest> _requests = [];
   List<CustomerServiceRequest> get requests => _requests;
@@ -31,6 +33,9 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
 
     try {
       _requests = await _apiService.fetchByClient(clientUid);
+      for (final request in _requests) {
+        _persistPasscode(request);
+      }
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -38,6 +43,17 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void _persistPasscode(CustomerServiceRequest request) {
+    if (request.passcode != null) {
+      _passcodeStore.save(request.uid, request.passcode!);
+    }
+  }
+
+  /// Falls back to the on-device copy saved the last time this request's
+  /// passcode was received from the API — keeps "Show Passcode" working
+  /// even if the request is later refetched without a live connection.
+  Future<String?> getStoredPasscode(int requestUid) => _passcodeStore.load(requestUid);
 
   Future<bool> createRequest({
     required int clientUid,
@@ -83,7 +99,11 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     }
   }
 
-  Future<CustomerServiceRequest> fetchRequestById(int requestUid) => _apiService.fetchById(requestUid);
+  Future<CustomerServiceRequest> fetchRequestById(int requestUid) async {
+    final request = await _apiService.fetchById(requestUid);
+    _persistPasscode(request);
+    return request;
+  }
 
   Future<bool> cancelRequest(CustomerServiceRequest request) async {
     _cancellingUid = request.uid;

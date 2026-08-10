@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/provider/service_booking.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_bookings_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/provider/provider_tab_header.dart';
@@ -11,88 +10,66 @@ import '../../../widgets/provider/status_chip.dart';
 import '../../../widgets/provider/tab_state_placeholder.dart';
 import 'booking_detail_screen.dart';
 
-class BookingsTab extends StatefulWidget {
-  const BookingsTab({super.key});
+/// Read-only history of bookings the provider rejected — kept out of the
+/// main Bookings tab, but still viewable here since the underlying request
+/// is stale and can no longer be acted on.
+class RejectedRequestsScreen extends StatefulWidget {
+  static const routeName = '/provider/jobs/rejected';
+
+  const RejectedRequestsScreen({super.key});
 
   @override
-  State<BookingsTab> createState() => _BookingsTabState();
+  State<RejectedRequestsScreen> createState() => _RejectedRequestsScreenState();
 }
 
-class _BookingsTabState extends State<BookingsTab> {
+class _RejectedRequestsScreenState extends State<RejectedRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadBookings());
-  }
-
-  void _loadBookings() {
-    final providerUid = context.read<AuthProvider>().currentUser?.providerUid;
-    if (providerUid != null) {
-      context.read<ProviderBookingsProvider>().loadBookings(providerUid);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ProviderBookingsProvider>().markRejectedSeen();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<ProviderBookingsProvider>();
-    // Rejected bookings move to a separate read-only history screen instead
-    // of cluttering the active bookings list.
-    final bookings = provider.bookings.where((b) => !b.isRejected).toList();
+    final rejected = context.watch<ProviderBookingsProvider>().bookings.where((b) => b.isRejected).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: ProviderTabHeader(
-        title: 'My Bookings',
-        subtitle: bookings.isEmpty ? 'No bookings yet' : '${bookings.length} booking${bookings.length == 1 ? '' : 's'}',
+        title: 'Rejected Requests',
+        subtitle: rejected.isEmpty ? 'No rejected requests' : '${rejected.length} request${rejected.length == 1 ? '' : 's'}',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
       ),
-      body: provider.loading && bookings.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : provider.error != null && bookings.isEmpty
-              ? RefreshIndicator(
-                  onRefresh: () async => _loadBookings(),
-                  child: TabStatePlaceholder(
-                    icon: Icons.wifi_off_rounded,
-                    color: Colors.red,
-                    title: 'Couldn\'t load bookings',
-                    message: provider.error,
-                    onRetry: _loadBookings,
-                  ),
-                )
-              : bookings.isEmpty
-                  ? RefreshIndicator(
-                      onRefresh: () async => _loadBookings(),
-                      child: const TabStatePlaceholder(
-                        icon: Icons.work_outline_rounded,
-                        color: kPrimaryColor,
-                        title: 'No bookings yet',
-                        message: 'Bookings appear here once you accept a service request from a customer.',
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async => _loadBookings(),
-                      child: ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
-                        itemCount: bookings.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) => _BookingCard(booking: bookings[index]),
-                      ),
-                    ),
+      body: rejected.isEmpty
+          ? const TabStatePlaceholder(
+              icon: Icons.inbox_rounded,
+              color: kPrimaryColor,
+              title: 'No rejected requests',
+              message: 'Requests you reject will show up here for reference.',
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: rejected.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) => _RejectedCard(booking: rejected[index]),
+            ),
     );
   }
 }
 
-/// A single booking card mirroring the customer side's `_RequestCard`: a
-/// colored left rail for at-a-glance status, icon-led info rows, and an
-/// [OpenContainer] container-transform into [BookingDetailScreen].
-class _BookingCard extends StatelessWidget {
+class _RejectedCard extends StatelessWidget {
   final ServiceBooking booking;
 
-  const _BookingCard({required this.booking});
+  const _RejectedCard({required this.booking});
 
   @override
   Widget build(BuildContext context) {
-    final color = statusColor(booking.status);
+    const color = Colors.red;
 
     return OpenContainer(
       closedElevation: 0,
@@ -157,12 +134,12 @@ class _BookingCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(statusIcon(booking.status), size: 13, color: color),
-                                    const SizedBox(width: 4),
-                                    Text(booking.status, style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 11.5)),
+                                    Icon(Icons.cancel_rounded, size: 13, color: color),
+                                    SizedBox(width: 4),
+                                    Text('Rejected', style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 11.5)),
                                   ],
                                 ),
                               ),
@@ -184,15 +161,14 @@ class _BookingCard extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (booking.clientAddressTitle != null)
-                                  _InfoRow(icon: Icons.location_on_rounded, text: booking.clientAddressTitle!),
+                                if (booking.clientAddressTitle != null) _InfoRow(icon: Icons.location_on_rounded, text: booking.clientAddressTitle!),
                                 if (booking.clientAddressTitle != null) const SizedBox(height: 6),
                                 _InfoRow(icon: Icons.payments_rounded, text: 'Final Rs ${booking.finalAmount.toStringAsFixed(0)}'),
                               ],
                             ),
                           ),
                           const SizedBox(height: 10),
-                          StatusChip(label: booking.status, color: color),
+                          const StatusChip(label: 'Rejected', color: color),
                         ],
                       ),
                     ),
@@ -204,7 +180,7 @@ class _BookingCard extends StatelessWidget {
         );
       },
       openBuilder: (context, closeContainer) {
-        return BookingDetailScreen(booking: booking, onClose: closeContainer);
+        return BookingDetailScreen(booking: booking, onClose: closeContainer, readOnly: true);
       },
     );
   }

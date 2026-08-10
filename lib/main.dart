@@ -37,6 +37,7 @@ import 'screens/booking_screen.dart';
 import 'screens/provider/notifications/notifications_screen.dart';
 import 'screens/provider/profile/edit_profile_screen.dart';
 import 'screens/provider/profile/verification_documents_screen.dart';
+import 'screens/provider/jobs/rejected_requests_screen.dart';
 import 'utils/constants.dart';
 import 'utils/dev_http_overrides.dart';
 
@@ -96,6 +97,7 @@ class SahulatApp extends StatelessWidget {
           EditProfileScreen.routeName: (_) => const EditProfileScreen(),
           VerificationDocumentsScreen.routeName: (_) => const VerificationDocumentsScreen(),
           NotificationsScreen.routeName: (_) => const NotificationsScreen(),
+          RejectedRequestsScreen.routeName: (_) => const RejectedRequestsScreen(),
         },
         debugShowCheckedModeBanner: false,
       ),
