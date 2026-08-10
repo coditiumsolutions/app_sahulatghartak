@@ -81,3 +81,12 @@ lib/
 
 - [AGENTS.md](AGENTS.md) — architecture, conventions, and guidance for making changes to this repo
 - [api.txt](api.txt) — source of truth for every backend request/response contract
+
+---
+
+## Credits
+
+**Developed By:**
+
+- Rayder-23
+- Coditium Solutions
