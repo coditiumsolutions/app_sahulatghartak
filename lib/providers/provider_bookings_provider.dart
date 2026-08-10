@@ -58,7 +58,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> respond(ServiceBooking booking, bool accept) async {
+  Future<bool> respond(ServiceBooking booking, bool accept, {String? reason}) async {
     _updatingUid = booking.uid;
     _error = null;
     notifyListeners();
@@ -68,6 +68,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
         bookingUid: booking.uid,
         providerUid: booking.providerUid,
         accept: accept,
+        reason: reason,
       );
       _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
       if (!accept && updated.isRejected) {
@@ -112,7 +113,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateStatus(ServiceBooking booking, String status, {required double customerPaid}) async {
+  Future<bool> updateStatus(ServiceBooking booking, String status, {required double customerPaid, String? reason}) async {
     _updatingUid = booking.uid;
     _error = null;
     notifyListeners();
@@ -131,6 +132,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
         commissionType: booking.commissionType,
         commissionValue: booking.commissionValue,
         status: status,
+        cancelReason: reason,
       );
       _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
       return true;

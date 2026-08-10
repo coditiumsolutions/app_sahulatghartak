@@ -72,6 +72,7 @@ class CustomerServiceRequestApiService {
     required String status,
     double? estimatedBudget,
     String? remarks,
+    String? cancelReason,
   }) async {
     final response = await http.put(
       Uri.parse('$kApiBaseUrl/customer-service-requests/$requestUid'),
@@ -90,16 +91,12 @@ class CustomerServiceRequestApiService {
         'estimatedBudget': estimatedBudget,
         'status': status,
         'remarks': remarks,
+        'cancelReason': cancelReason,
       }),
     );
 
     final json = _decode(response, 'Failed to update service request');
     return CustomerServiceRequest.fromJson(json['data'] as Map<String, dynamic>);
-  }
-
-  Future<void> delete(int requestUid) async {
-    final response = await http.delete(Uri.parse('$kApiBaseUrl/customer-service-requests/$requestUid'));
-    _decode(response, 'Failed to delete service request');
   }
 
   Map<String, dynamic> _decode(http.Response response, String errorPrefix) {

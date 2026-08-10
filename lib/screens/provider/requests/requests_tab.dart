@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 import '../../../models/provider/service_booking.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_bookings_provider.dart';
+import '../../../utils/cancel_reasons.dart';
 import '../../../utils/constants.dart';
-import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/provider/provider_tab_header.dart';
+import '../../../widgets/reason_dialog.dart';
 import '../../../widgets/provider/tab_state_placeholder.dart';
 import '../jobs/booking_detail_screen.dart';
 import '../jobs/rejected_requests_screen.dart';
@@ -47,19 +48,19 @@ class _RequestsTabState extends State<RequestsTab> {
   }
 
   Future<void> _reject(BuildContext context, ServiceBooking booking) async {
-    final confirmed = await showConfirmDialog(
+    final reason = await showReasonDialog(
       context,
       title: 'Reject Booking',
       message: 'Are you sure you want to reject this booking for "${booking.requestTitle}"? This cannot be undone.',
       confirmLabel: 'Yes, Reject',
-      cancelLabel: 'No',
+      reasons: kProviderCancelReasons,
       icon: Icons.cancel_outlined,
       color: Colors.red,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (reason == null || !context.mounted) return;
 
     final provider = context.read<ProviderBookingsProvider>();
-    final success = await provider.respond(booking, false);
+    final success = await provider.respond(booking, false, reason: reason);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(success ? 'Booking rejected' : (provider.error ?? 'Failed to reject booking'))),

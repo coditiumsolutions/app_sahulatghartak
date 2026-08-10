@@ -5,8 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/provider/service_booking.dart';
 import '../../../providers/provider_bookings_provider.dart';
+import '../../../utils/cancel_reasons.dart';
 import '../../../utils/constants.dart';
-import '../../../widgets/confirm_dialog.dart';
+import '../../../widgets/reason_dialog.dart';
 import '../../../widgets/themed_dropdown.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
@@ -79,10 +80,10 @@ class BookingDetailScreen extends StatefulWidget {
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   bool _submitting = false;
 
-  Future<void> _submit(String status) async {
+  Future<void> _submit(String status, {String? reason}) async {
     setState(() => _submitting = true);
     final provider = context.read<ProviderBookingsProvider>();
-    final success = await provider.updateStatus(widget.booking, status, customerPaid: widget.booking.customerPaid);
+    final success = await provider.updateStatus(widget.booking, status, customerPaid: widget.booking.customerPaid, reason: reason);
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -95,10 +96,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _respond(bool accept) async {
+  Future<void> _respond(bool accept, {String? reason}) async {
     setState(() => _submitting = true);
     final provider = context.read<ProviderBookingsProvider>();
-    final success = await provider.respond(widget.booking, accept);
+    final success = await provider.respond(widget.booking, accept, reason: reason);
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -112,31 +113,31 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   }
 
   Future<void> _confirmReject() async {
-    final confirmed = await showConfirmDialog(
+    final reason = await showReasonDialog(
       context,
       title: 'Reject Booking',
       message: 'Are you sure you want to reject this booking for "${widget.booking.requestTitle}"? This cannot be undone.',
       confirmLabel: 'Yes, Reject',
-      cancelLabel: 'No',
+      reasons: kProviderCancelReasons,
       icon: Icons.cancel_outlined,
       color: Colors.red,
     );
-    if (confirmed != true || !mounted) return;
-    await _respond(false);
+    if (reason == null || !mounted) return;
+    await _respond(false, reason: reason);
   }
 
   Future<void> _confirmCancel() async {
-    final confirmed = await showConfirmDialog(
+    final reason = await showReasonDialog(
       context,
       title: 'Cancel Booking',
       message: 'Are you sure you want to cancel this booking for "${widget.booking.requestTitle}"? This cannot be undone.',
       confirmLabel: 'Yes, Cancel',
-      cancelLabel: 'No',
+      reasons: kProviderCancelReasons,
       icon: Icons.cancel_outlined,
       color: Colors.red,
     );
-    if (confirmed != true || !mounted) return;
-    await _submit('Cancelled');
+    if (reason == null || !mounted) return;
+    await _submit('Cancelled', reason: reason);
   }
 
   Future<void> _openCompletionDialog() async {

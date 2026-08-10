@@ -27,6 +27,7 @@ class ServiceBookingApiService {
     required String commissionType,
     required double commissionValue,
     required String status,
+    String? cancelReason,
   }) async {
     final response = await http.put(
       Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid'),
@@ -44,6 +45,7 @@ class ServiceBookingApiService {
         'commissionType': commissionType,
         'commissionValue': commissionValue,
         'status': status,
+        'cancelReason': cancelReason,
       }),
     );
 
@@ -55,6 +57,7 @@ class ServiceBookingApiService {
     required int bookingUid,
     required int providerUid,
     required bool accept,
+    String? reason,
   }) async {
     final response = await http.post(
       Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid/respond'),
@@ -62,6 +65,7 @@ class ServiceBookingApiService {
       body: jsonEncode({
         'providerUid': providerUid,
         'accept': accept,
+        'reason': reason,
       }),
     );
 

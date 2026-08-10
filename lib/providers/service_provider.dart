@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/service.dart';
 
@@ -5,7 +7,11 @@ class ServiceProvider extends ChangeNotifier {
   final List<Service> _services = [];
 
   ServiceProvider() {
-    _loadServices();
+    // Deferred: lazy ChangeNotifierProvider construction can happen mid-build
+    // (first context.watch/read call), and notifyListeners() firing
+    // synchronously from a constructor while a widget's build() is still on
+    // the stack triggers "setState() called during build".
+    scheduleMicrotask(_loadServices);
   }
 
   List<Service> get services => List.unmodifiable(_services);

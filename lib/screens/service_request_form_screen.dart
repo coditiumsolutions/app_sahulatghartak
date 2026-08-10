@@ -64,22 +64,29 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     _category = args.category;
     _accentColor = args.color;
 
-    context.read<ServiceTitleProvider>().loadServiceTitles(_category!.id);
-
     final user = context.read<AuthProvider>().currentUser;
     _contactPersonController.text = user?.username ?? '';
     _contactNoController.text = user?.mobileNo ?? '';
 
-    final clientUid = user?.providerUid;
-    if (clientUid != null) {
-      context.read<ClientAddressProvider>().loadAddresses(clientUid).then((_) {
-        if (!mounted) return;
-        final addresses = context.read<ClientAddressProvider>().addresses;
-        if (addresses.isNotEmpty) {
-          setState(() => _selectedAddress = addresses.first);
-        }
-      });
-    }
+    // didChangeDependencies() runs during the build phase, so calling these
+    // synchronously here would notify listeners (via each provider's
+    // synchronous pre-await notifyListeners()) while the tree is still
+    // building. Defer to after the current frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ServiceTitleProvider>().loadServiceTitles(_category!.id);
+
+      final clientUid = user?.providerUid;
+      if (clientUid != null) {
+        context.read<ClientAddressProvider>().loadAddresses(clientUid).then((_) {
+          if (!mounted) return;
+          final addresses = context.read<ClientAddressProvider>().addresses;
+          if (addresses.isNotEmpty) {
+            setState(() => _selectedAddress = addresses.first);
+          }
+        });
+      }
+    });
   }
 
   bool get _isOtherServiceTitle => _selectedServiceTitle == _otherServiceTitleValue;
@@ -237,8 +244,11 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
                   : null,
             ),
             const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(14)),
+            Material(
+              type: MaterialType.card,
+              color: const Color(0xFFF5F5F7),
+              borderRadius: BorderRadius.circular(14),
+              clipBehavior: Clip.antiAlias,
               child: SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: const Text('Mark as Urgent', style: TextStyle(fontWeight: FontWeight.w600)),

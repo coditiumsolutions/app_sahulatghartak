@@ -5,8 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/customer_service_request.dart';
 import '../providers/customer_service_request_provider.dart';
+import '../utils/cancel_reasons.dart';
 import '../utils/constants.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/reason_dialog.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
 const _brandBlue = Color(0xFF016EE3);
@@ -113,19 +115,19 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final request = _request;
     if (request == null) return;
 
-    final confirmed = await showConfirmDialog(
+    final reason = await showReasonDialog(
       context,
       title: 'Cancel Request',
       message: 'Are you sure you want to cancel "${request.serviceTitle}"?',
       confirmLabel: 'Yes, Cancel',
-      cancelLabel: 'No',
+      reasons: kCustomerCancelReasons,
       icon: Icons.cancel_outlined,
       color: Colors.orange,
     );
-    if (confirmed != true || !mounted) return;
+    if (reason == null || !mounted) return;
 
     final requestProvider = context.read<CustomerServiceRequestProvider>();
-    final success = await requestProvider.cancelRequest(request);
+    final success = await requestProvider.cancelRequest(request, reason: reason);
     if (!mounted) return;
 
     if (success) {

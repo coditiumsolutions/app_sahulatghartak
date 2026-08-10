@@ -16,6 +16,7 @@ class CustomerServiceRequest {
   final double estimatedBudget;
   final String status;
   final String? remarks;
+  final String? cancelReason;
   final DateTime createdOn;
   final int? providerUid;
   final String? providerName;
@@ -42,6 +43,7 @@ class CustomerServiceRequest {
     required this.estimatedBudget,
     required this.status,
     this.remarks,
+    this.cancelReason,
     required this.createdOn,
     this.providerUid,
     this.providerName,
@@ -70,6 +72,7 @@ class CustomerServiceRequest {
       estimatedBudget: (json['estimatedBudget'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? 'Pending',
       remarks: json['remarks'] as String?,
+      cancelReason: json['cancelReason'] as String?,
       createdOn: json['createdOn'] != null ? DateTime.parse(json['createdOn'] as String) : DateTime.now(),
       providerUid: json['providerUid'] as int?,
       providerName: json['providerName'] as String?,

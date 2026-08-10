@@ -20,6 +20,8 @@ class ServiceBooking {
   final double commissionAmount;
   final double providerEarning;
   final String status;
+  final String? rejectReason;
+  final String? cancelReason;
   final String? passcode;
   final DateTime? acceptedOn;
   final DateTime? completedOn;
@@ -55,6 +57,8 @@ class ServiceBooking {
     required this.commissionAmount,
     required this.providerEarning,
     required this.status,
+    this.rejectReason,
+    this.cancelReason,
     this.passcode,
     this.acceptedOn,
     this.completedOn,
@@ -98,6 +102,8 @@ class ServiceBooking {
       'commissionAmount': commissionAmount,
       'providerEarning': providerEarning,
       'status': status,
+      'rejectReason': rejectReason,
+      'cancelReason': cancelReason,
       'passcode': passcode,
       'acceptedOn': acceptedOn?.toIso8601String(),
       'completedOn': completedOn?.toIso8601String(),
@@ -136,6 +142,8 @@ class ServiceBooking {
       commissionAmount: (json['commissionAmount'] as num?)?.toDouble() ?? 0,
       providerEarning: (json['providerEarning'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? 'Pending',
+      rejectReason: json['rejectReason'] as String?,
+      cancelReason: json['cancelReason'] as String?,
       passcode: json['passcode'] as String?,
       acceptedOn: json['acceptedOn'] != null ? DateTime.parse(json['acceptedOn'] as String) : null,
       completedOn: json['completedOn'] != null ? DateTime.parse(json['completedOn'] as String) : null,

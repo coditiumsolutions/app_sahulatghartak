@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/category.dart';
@@ -19,7 +21,11 @@ class CategoryProvider extends ChangeNotifier {
   int _requestId = 0;
 
   CategoryProvider() {
-    fetchCategories();
+    // Deferred: lazy ChangeNotifierProvider construction can happen mid-build
+    // (first context.watch/read call), and notifyListeners() firing
+    // synchronously from a constructor while a widget's build() is still on
+    // the stack triggers "setState() called during build".
+    scheduleMicrotask(fetchCategories);
   }
 
   List<Category> get categories => List.unmodifiable(_categories);

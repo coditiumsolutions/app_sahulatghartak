@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/service_catalog.dart';
@@ -11,7 +13,11 @@ class ServiceCatalogProvider extends ChangeNotifier {
   String? _error;
 
   ServiceCatalogProvider() {
-    fetchServices();
+    // Deferred: lazy ChangeNotifierProvider construction can happen mid-build
+    // (first context.watch/read call), and notifyListeners() firing
+    // synchronously from a constructor while a widget's build() is still on
+    // the stack triggers "setState() called during build".
+    scheduleMicrotask(fetchServices);
   }
 
   List<ServiceCatalog> get services => List.unmodifiable(_services);

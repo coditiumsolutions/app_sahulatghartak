@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/customer_service_request.dart';
 import '../services/customer_service_request_api_service.dart';
+import '../services/deleted_requests_store.dart';
 import '../services/request_passcode_store.dart';
 
 class CustomerServiceRequestProvider extends ChangeNotifier {
   final CustomerServiceRequestApiService _apiService = CustomerServiceRequestApiService();
   final RequestPasscodeStore _passcodeStore = RequestPasscodeStore();
+  final DeletedRequestsStore _deletedStore = DeletedRequestsStore();
+
+  int? _clientUid;
 
   List<CustomerServiceRequest> _requests = [];
   List<CustomerServiceRequest> get requests => _requests;
@@ -27,12 +31,15 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadRequests(int clientUid) async {
+    _clientUid = clientUid;
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _requests = await _apiService.fetchByClient(clientUid);
+      final fetched = await _apiService.fetchByClient(clientUid);
+      final hidden = await _deletedStore.load(clientUid);
+      _requests = fetched.where((r) => !hidden.contains(r.uid)).toList();
       for (final request in _requests) {
         _persistPasscode(request);
       }
@@ -105,7 +112,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     return request;
   }
 
-  Future<bool> cancelRequest(CustomerServiceRequest request) async {
+  Future<bool> cancelRequest(CustomerServiceRequest request, {required String reason}) async {
     _cancellingUid = request.uid;
     _error = null;
     notifyListeners();
@@ -125,6 +132,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
         status: 'Cancelled',
         estimatedBudget: request.estimatedBudget,
         remarks: request.remarks,
+        cancelReason: reason,
       );
       _requests = _requests.map((r) => r.uid == updated.uid ? updated : r).toList();
       return true;
@@ -143,7 +151,9 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _apiService.delete(requestUid);
+      if (_clientUid != null) {
+        await _deletedStore.hide(_clientUid!, requestUid);
+      }
       _requests = _requests.where((r) => r.uid != requestUid).toList();
       return true;
     } catch (e) {
