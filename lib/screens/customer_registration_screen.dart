@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import '../utils/customer_terms_and_conditions.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/terms_and_conditions_section.dart';
 import 'login_screen.dart';
 import 'otp_verification_screen.dart';
 
@@ -25,6 +27,7 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
   String? _selectedGender;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreedToTerms = false;
 
   @override
   void dispose() {
@@ -40,6 +43,10 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
     if (!_formKey.currentState!.validate()) return;
     if (_selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a gender')));
+      return;
+    }
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please agree to the Terms and Conditions')));
       return;
     }
 
@@ -136,8 +143,16 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               ),
               validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
             ),
+            const SizedBox(height: 20),
+            TermsAndConditionsSection(
+              value: _agreedToTerms,
+              onChanged: (v) => setState(() => _agreedToTerms = v),
+              termsTitle: customerTermsAndConditionsTitle,
+              termsBody: customerTermsAndConditionsBody,
+              termsClosing: customerTermsAndConditionsClosing,
+            ),
             const SizedBox(height: 28),
-            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _submit),
+            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _agreedToTerms ? _submit : null),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

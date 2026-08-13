@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import '../utils/provider_terms_and_conditions.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/terms_and_conditions_section.dart';
 import 'category_picker_screen.dart';
 import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
@@ -29,6 +31,7 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   String? _selectedGender;
   Category? _selectedCategory;
   bool _obscurePassword = true;
+  bool _agreedToTerms = false;
 
   @override
   void initState() {
@@ -64,6 +67,10 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
     }
     if (_selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a gender')));
+      return;
+    }
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please agree to the Terms and Conditions')));
       return;
     }
 
@@ -213,8 +220,16 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
               decoration: authFieldDecoration(hint: 'Briefly describe your services'),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
+            const SizedBox(height: 20),
+            TermsAndConditionsSection(
+              value: _agreedToTerms,
+              onChanged: (v) => setState(() => _agreedToTerms = v),
+              termsTitle: providerTermsAndConditionsTitle,
+              termsBody: providerTermsAndConditionsBody,
+              termsClosing: providerTermsAndConditionsClosing,
+            ),
             const SizedBox(height: 28),
-            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _submit),
+            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _agreedToTerms ? _submit : null),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
