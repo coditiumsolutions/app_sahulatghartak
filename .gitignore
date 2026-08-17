@@ -49,3 +49,8 @@ app.*.map.json
 
 # Claude Code local-only settings (machine-specific permissions)
 .claude/settings.local.json
+
+# Release signing (never commit keystore or credentials)
+android/key.properties
+*.jks
+*.keystore
