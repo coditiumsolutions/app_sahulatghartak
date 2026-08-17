@@ -74,6 +74,10 @@ class AuthApiService {
     await _post('verify-otp', {'mobileNo': mobileNo, 'otp': otp});
   }
 
+  Future<void> deleteAccount(String mobileNo, String password) async {
+    await _post('delete-account', {'mobileNo': mobileNo, 'password': password});
+  }
+
   Future<Map<String, dynamic>> _post(String endpoint, Map<String, dynamic> body) async {
     final response = await http.post(
       Uri.parse('$kApiBaseUrl/auth/$endpoint'),

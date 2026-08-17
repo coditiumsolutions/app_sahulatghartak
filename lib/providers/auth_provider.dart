@@ -191,4 +191,24 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+
+  Future<bool> deleteAccount(String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final mobileNo = _currentUser!.mobileNo;
+      await _apiService.deleteAccount(mobileNo, password);
+      await _sessionService.clearSession();
+      _currentUser = null;
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

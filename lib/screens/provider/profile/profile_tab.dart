@@ -10,6 +10,7 @@ import '../../../utils/provider_availability_helper.dart';
 import '../../../utils/provider_routes.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/curved_profile_header.dart';
+import '../../../widgets/delete_account_dialog.dart';
 import '../../../widgets/provider/provider_tab_header.dart' show providerBrandDark, providerBrandBlue, providerBrandAccent;
 import '../../home_screen.dart';
 import '../../landing_screen.dart';
@@ -55,6 +56,21 @@ class _ProfileTabState extends State<ProfileTab> {
     await context.read<AuthProvider>().logout();
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final password = await showDeleteAccountDialog(context);
+    if (password == null || !context.mounted) return;
+
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.deleteAccount(password);
+    if (!context.mounted) return;
+
+    if (success) {
+      Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Failed to delete account')));
+    }
   }
 
   @override
@@ -252,6 +268,16 @@ class _ProfileTabState extends State<ProfileTab> {
                 icon: const Icon(Icons.swap_horiz_rounded),
                 label: const Text('Customers Dashboard'),
                 onPressed: () => Navigator.of(context).pushNamed(HomeScreen.routeName),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(Colors.red),
+                icon: const Icon(Icons.delete_forever_rounded),
+                label: const Text('Delete Account'),
+                onPressed: () => _deleteAccount(context),
               ),
             ),
           ],

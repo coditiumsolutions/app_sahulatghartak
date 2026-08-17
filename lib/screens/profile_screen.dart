@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/curved_profile_header.dart';
+import '../widgets/delete_account_dialog.dart';
 import 'add_address_screen.dart';
 import 'landing_screen.dart';
 import 'provider_dashboard_screen.dart';
@@ -84,6 +85,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await context.read<AuthProvider>().logout();
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final password = await showDeleteAccountDialog(context);
+    if (password == null || !context.mounted) return;
+
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.deleteAccount(password);
+    if (!context.mounted) return;
+
+    if (success) {
+      Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Failed to delete account')));
+    }
   }
 
   @override
@@ -306,6 +322,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.of(context).pushNamed(ProviderRegistrationScreen.routeName),
                   label: const Text('Become a Provider'),
                 ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(Colors.red),
+                icon: const Icon(Icons.delete_forever_rounded),
+                onPressed: () => _deleteAccount(context),
+                label: const Text('Delete Account'),
+              ),
             ],
           ),
         ),
