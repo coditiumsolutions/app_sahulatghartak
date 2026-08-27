@@ -8,17 +8,20 @@ requests, bookings, and their profile. The app is backed by a real ASP.NET Core 
 ## Features
 
 - **Customer**
-  - Mobile-number + OTP registration and login
+  - Mobile-number + OTP registration and login (with Terms & Conditions acceptance)
   - Browse service categories (grouped client-side into Home Maintenance / Specialized
     Services / Property & Legal Services) and submit service requests
   - Manage saved addresses
   - Track submitted service requests
+  - Delete account permanently, in-app (password-confirmed) or via a web page
 - **Provider**
-  - Register/upgrade a customer account to a Provider account
+  - Register/upgrade a customer account to a Provider account (with Terms & Conditions
+    acceptance)
   - OTP-verified registration, followed by profile-photo + CNIC document upload for
     admin verification
   - Dashboard: online/offline availability, incoming requests, real bookings (accept,
     close, cancel), profile, and document re-upload/status
+  - Delete account permanently, in-app (password-confirmed) or via a web page
   - Additional dashboard sections (earnings, wallet, reviews, chat, notifications,
     schedule, support, etc.) are present as UI-complete screens backed by mock data,
     pending backend endpoints
@@ -57,6 +60,7 @@ See `lib/utils/constants.dart` to change the local backend URL.
 | `flutter pub get` | Install dependencies |
 | `flutter run` | Run in debug mode against the local backend |
 | `flutter build apk` | Build a release APK |
+| `flutter build appbundle --release` | Build a signed release App Bundle for Play Console (needs `android/key.properties`, gitignored — see [AGENTS.md](AGENTS.md#quick-start)) |
 | `dart format lib/` | Format code |
 | `flutter analyze` | Static analysis — run after every change |
 | `flutter test` | ⚠️ Currently fails to load; see [AGENTS.md](AGENTS.md#quick-start) |

@@ -10,6 +10,7 @@
 - **Format**: `dart format lib/`
 - **Analyze**: `flutter analyze` (run this after every edit — treat new errors/warnings as blocking; pre-existing `withOpacity` deprecation infos are expected and not worth fixing incidentally)
 - **Test**: `flutter test` — ⚠️ currently **fails to even load**: `test/widget_test.dart` is unmodified Flutter counter-app boilerplate that references a nonexistent `MyApp` class (the real app class is `SahulatApp` in `lib/main.dart`). There is no working test suite in this repo yet. Don't report `flutter test` as passing without first checking whether this has been fixed.
+- **Build a signed release App Bundle**: `flutter build appbundle --release` — signing is configured via `android/app/build.gradle.kts`, which reads `android/key.properties` (gitignored, machine-local, not in this repo) for the release keystore path/alias/passwords. Without that file present, the release build type falls back to unsigned/default config. Every new upload to Google Play Console requires bumping the `+N` build number in `pubspec.yaml`'s `version:` line (e.g. `1.0.0+2` → `1.0.0+3`) — Play Console permanently rejects a reused version code, even from a never-published upload.
 
 List available devices with `flutter devices`. In this environment that typically includes an Android emulator (`emulator-5554`), Windows desktop, Chrome, and Edge.
 
@@ -43,6 +44,7 @@ These are fully wired to the live backend documented in `api.txt`:
 - **Customer Service Requests** — `CustomerServiceRequestProvider` / `CustomerServiceRequestApiService`, `lib/models/customer_service_request.dart` (create/update/cancel/delete a request)
 - **Provider Profile / Availability** — `ProviderDashboardProvider` methods `loadProviderDetail`, `loadIncomingRequests`, `loadAvailabilityStatus`, `setOnline` (`lib/services/provider_profile_api_service.dart`, `provider_availability_api_service.dart`, `provider_service_request_api_service.dart`)
 - **Provider Bookings** — `ProviderBookingsProvider` / `ServiceBookingApiService` (`lib/services/service_booking_api_service.dart`), `lib/models/provider/service_booking.dart` — fetch-by-provider and update (status/amounts) against `/api/service-bookings`. This backs the dashboard's **Jobs tab**, whose widget file is still named `lib/screens/provider/jobs/jobs_tab.dart` but now renders the real `BookingsTab` (not mock data — see below).
+- **Account Deletion** — `AuthProvider.deleteAccount` / `AuthApiService.deleteAccount` (`POST /api/auth/delete-account`, re-verifies password server-side since there's no auth token). `lib/widgets/delete_account_dialog.dart` (`showDeleteAccountDialog`) is a shared password-confirmation dialog invoked from a "Delete Account" button on both `ProfileScreen` (customer) and `lib/screens/provider/profile/profile_tab.dart` (provider); on success it clears the session and returns to the landing screen. See `docs/PRIVACY_POLICY.md` §7 for the corresponding user-facing policy (also documents a required web-based deletion path at `https://sahulatghartak.com/delete-account` for Play Store compliance — that page lives outside this repo).
 
 ### Mocked / placeholder features
 
@@ -70,6 +72,10 @@ Real backend `Category` rows don't have a "main category" grouping concept, so t
 `ProviderDashboardScreen` (`lib/screens/provider_dashboard_screen.dart`) is a 5-tab bottom-nav shell (Dashboard/Requests/Jobs/Earnings/Profile, `lib/screens/provider/dashboard|requests|jobs|earnings|profile/`) — Jobs is the real, API-backed `BookingsTab` described above; Dashboard/Requests/Earnings/Profile's data lists are still mock-backed. The shell also has a drawer (`lib/widgets/provider/provider_app_drawer.dart`) linking to further feature screens under `lib/screens/provider/*` (chat, documents, notifications, reviews, schedule, services, settings, support, wallet, my-quotes) — all mock-backed except the document-verification screen noted above. Route names for these are centralized in `lib/utils/provider_routes.dart` (`ProviderRoutes`).
 
 Customers with `role == 'Provider'` get a "Switch to Provider" button on `ProfileScreen`; Providers get a symmetric "Switch to Customer" button on `lib/screens/provider/profile/profile_tab.dart`. Both use `pushNamed` (not `pushReplacementNamed`) so either dashboard stays on the navigation stack while switching.
+
+### Terms & Conditions (registration)
+
+`lib/widgets/terms_and_conditions_section.dart` (`TermsAndConditionsSection`) is a shared collapsible-text + checkbox widget wired into both `CustomerRegistrationScreen` and `ProviderRegistrationScreen`. Each screen supplies its own title/body/closing text from `lib/utils/customer_terms_and_conditions.dart` / `lib/utils/provider_terms_and_conditions.dart`; the checkbox must be checked before registration can submit.
 
 ## Common Tasks
 
@@ -99,7 +105,7 @@ lib/
 ├── database/             # SQLite (DbHelper) — legacy, used only by BookingProvider
 ├── screens/              # Top-level customer screens (incl. SplashScreen, OtpVerificationScreen, ProviderDocumentUploadScreen); screens/provider/<feature>/ for the Provider Dashboard tabs & drawer pages
 ├── widgets/              # Reusable UI (AuthCardScaffold + auth field helpers, MainNavigationShell + AppBottomNavigation, MainCategoryCard, SubcategoryCard, BannerSlider, FeaturedServicesCarousel, widgets/provider/ for dashboard-specific widgets incl. DocumentImageSlot)
-├── utils/                # constants.dart (colors, kApiBaseUrl, kApiFileBaseUrl), dev_http_overrides.dart, provider_routes.dart, main_categories.dart, category_icons.dart, service_title_suggestions.dart, provider_availability_helper.dart
+├── utils/                # constants.dart (colors, kApiBaseUrl, kApiFileBaseUrl), dev_http_overrides.dart, provider_routes.dart, main_categories.dart, category_icons.dart, service_title_suggestions.dart, provider_availability_helper.dart, customer_terms_and_conditions.dart, provider_terms_and_conditions.dart
 └── main.dart             # App entry point, MultiProvider setup, route table
 ```
 
@@ -129,3 +135,4 @@ All screens use named routes defined in `SahulatApp.routes` (`lib/main.dart`). A
 - **Dart SDK constraint is `>=2.18.0 <3.0.0`** (see `pubspec.yaml`) — Dart records (`(a, b)` tuple syntax) and other Dart 3-only language features are **not available**. Use parallel indexed arrays/lists instead.
 - The existing codebase uses `Color.withOpacity()` throughout (not the newer `withValues()`); match that existing style in new code rather than "fixing" it.
 - Not all "backend-shaped" data is real — check whether a `ProviderDashboardProvider` getter is real-API-backed or `ProviderDashboardRepository` mock-backed (see Architecture Overview above) before assuming it can be wired to a new real endpoint.
+- `docs/PRIVACY_POLICY.md` is the source of truth for what the app claims to collect/share/delete — cross-check it before adding or changing anything touching personal data (new profile fields, new data shared between Customers/Providers, new SDKs), and update it in the same change if the claim would otherwise go stale.
