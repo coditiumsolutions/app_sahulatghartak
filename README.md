@@ -58,7 +58,8 @@ See `lib/utils/constants.dart` to change the local backend URL.
 | Command | Purpose |
 |---|---|
 | `flutter pub get` | Install dependencies |
-| `flutter run` | Run in debug mode against the local backend |
+| `flutter run` | Run in debug mode against the Local Backend |
+| `flutter run --dart-define=USE_PROD=true` | Run in debug mode against the Production Backend |
 | `flutter build apk` | Build a release APK |
 | `flutter build appbundle --release` | Build a signed release App Bundle for Play Console (needs `android/key.properties`, gitignored — see [AGENTS.md](AGENTS.md#quick-start)) |
 | `dart format lib/` | Format code |
