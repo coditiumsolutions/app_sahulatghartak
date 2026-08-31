@@ -33,7 +33,9 @@ ButtonStyle kProminentOutlinedButtonStyle(Color color) => OutlinedButton.styleFr
 final String _devHost =
     !kIsWeb && defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost';
 
-final String kApiBaseUrl = kDebugMode
+const bool _useProdOverride = bool.fromEnvironment('USE_PROD', defaultValue: false);
+
+final String kApiBaseUrl = (kDebugMode && !_useProdOverride)
     ? 'https://$_devHost:7265/api'
     : 'https://sahulatghartak.com/api';
 
