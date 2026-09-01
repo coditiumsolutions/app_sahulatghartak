@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/service_catalog.dart';
 import '../services/service_catalog_api_service.dart';
+import '../utils/api_error.dart';
 
 class ServiceCatalogProvider extends ChangeNotifier {
   final ServiceCatalogApiService _apiService = ServiceCatalogApiService();
@@ -33,7 +34,7 @@ class ServiceCatalogProvider extends ChangeNotifier {
       _services = await _apiService.fetchServices();
       _services.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();

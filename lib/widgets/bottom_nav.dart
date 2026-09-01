@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../screens/service_requests_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
@@ -51,38 +52,49 @@ class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_brandDark, _brandBlue],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _brandDark.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarContrastEnforced: false,
       ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 78,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (var i = 0; i < _icons.length; i++)
-                _NavItem(
-                  icon: _icons[i],
-                  outlineIcon: _outlineIcons[i],
-                  label: _labels[i],
-                  selected: i == currentIndex,
-                  accentColor: _brandAccent,
-                  onTap: () => _handleTap(context, i),
-                ),
-            ],
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_brandDark, _brandBlue],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _brandDark.withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 78,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 0; i < _icons.length; i++)
+                  _NavItem(
+                    icon: _icons[i],
+                    outlineIcon: _outlineIcons[i],
+                    label: _labels[i],
+                    selected: i == currentIndex,
+                    accentColor: _brandAccent,
+                    onTap: () => _handleTap(context, i),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

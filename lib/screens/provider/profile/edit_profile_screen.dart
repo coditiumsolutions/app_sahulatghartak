@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/provider_dashboard_provider.dart';
-import '../../../utils/constants.dart';
+import '../../../widgets/auth_card_scaffold.dart';
+import '../../../widgets/provider/provider_tab_header.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = '/provider/profile/edit';
@@ -17,6 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _cnicController;
   late TextEditingController _experienceController;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final dashboard = context.read<ProviderDashboardProvider>();
     final profile = dashboard.providerDetail;
@@ -46,28 +48,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       cnic: _cnicController.text.trim(),
       experienceYears: int.tryParse(_experienceController.text.trim()) ?? profile.experienceYears,
     );
-    dashboard.updateProviderDetail(updated);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+
+    setState(() => _saving = true);
+    final success = await dashboard.updateProviderDetail(updated);
+    if (!mounted) return;
+    setState(() => _saving = false);
+
+    if (success) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(dashboard.profileError ?? 'Failed to update profile')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile'), backgroundColor: kPrimaryColor),
+      backgroundColor: const Color(0xFFF4F7FB),
+      appBar: ProviderTabHeader(
+        title: 'Edit Profile',
+        subtitle: 'Update your personal details',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()), validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null),
-              const SizedBox(height: 12),
-              TextFormField(controller: _cnicController, decoration: const InputDecoration(labelText: 'CNIC', border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextFormField(controller: _experienceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Experience (years)', border: OutlineInputBorder())),
-              const SizedBox(height: 24),
-              ElevatedButton(onPressed: _save, style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('Save Changes')),
+              authFieldLabel('Full Name'),
+              TextFormField(
+                controller: _nameController,
+                decoration: authFieldDecoration(hint: 'Enter your full name'),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              const SizedBox(height: 20),
+              authFieldLabel('CNIC'),
+              TextFormField(controller: _cnicController, decoration: authFieldDecoration(hint: 'Enter your CNIC')),
+              const SizedBox(height: 20),
+              authFieldLabel('Experience (years)'),
+              TextFormField(
+                controller: _experienceController,
+                keyboardType: TextInputType.number,
+                decoration: authFieldDecoration(hint: 'Enter years of experience'),
+              ),
+              const SizedBox(height: 28),
+              AuthPrimaryButton(label: 'Save Changes', isLoading: _saving, onPressed: _save, color: providerBrandBlue),
             ],
           ),
         ),

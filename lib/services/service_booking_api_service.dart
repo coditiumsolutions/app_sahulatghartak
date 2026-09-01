@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ServiceBookingApiService {
   Future<List<ServiceBooking>> fetchByProvider(int providerUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/service-bookings?providerUid=$providerUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/service-bookings?providerUid=$providerUid')).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to load bookings');
     final List<dynamic> data = json['data'] as List<dynamic>? ?? [];
@@ -47,7 +47,7 @@ class ServiceBookingApiService {
         'status': status,
         'cancelReason': cancelReason,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to update booking');
     return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
@@ -67,7 +67,7 @@ class ServiceBookingApiService {
         'accept': accept,
         'reason': reason,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, accept ? 'Failed to accept booking' : 'Failed to reject booking');
     return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
@@ -89,7 +89,7 @@ class ServiceBookingApiService {
         'actualAmountPaid': actualAmountPaid,
         'paymentMode': paymentMode,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to verify completion');
     return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);

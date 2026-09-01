@@ -9,7 +9,7 @@ class ServiceTitleApiService {
   Future<List<ServiceTitle>> fetchServiceTitles({required int categoryUid}) async {
     final uri = Uri.parse('$kApiBaseUrl/service-titles').replace(queryParameters: {'categoryUid': '$categoryUid'});
 
-    final response = await http.get(uri);
+    final response = await http.get(uri).timeout(kApiTimeout);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load service titles (status ${response.statusCode})');

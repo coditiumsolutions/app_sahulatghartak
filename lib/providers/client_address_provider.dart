@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/client_address.dart';
 import '../services/client_address_api_service.dart';
+import '../utils/api_error.dart';
 
 class ClientAddressProvider extends ChangeNotifier {
   final ClientAddressApiService _apiService = ClientAddressApiService();
@@ -29,7 +30,7 @@ class ClientAddressProvider extends ChangeNotifier {
     try {
       _addresses = await _apiService.fetchByClient(clientUid);
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
     } finally {
       _loading = false;
       notifyListeners();
@@ -62,7 +63,7 @@ class ClientAddressProvider extends ChangeNotifier {
       _addresses = [created, ..._addresses];
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _saving = false;
@@ -98,7 +99,7 @@ class ClientAddressProvider extends ChangeNotifier {
       _addresses = _addresses.map((a) => a.uid == updated.uid ? updated : a).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _saving = false;
@@ -116,7 +117,7 @@ class ClientAddressProvider extends ChangeNotifier {
       _addresses = _addresses.where((a) => a.uid != addressUid).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _deletingUid = null;

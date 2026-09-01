@@ -6,6 +6,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_document_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/provider/document_image_slot.dart';
+import '../../../widgets/provider/provider_tab_header.dart';
 
 /// Lets a provider view their currently uploaded verification documents
 /// (profile photo, CNIC front/back) and replace any of them. Reachable from
@@ -52,12 +53,12 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
               child: Text('Select Image Source', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: kPrimaryColor),
+              leading: const Icon(Icons.photo_camera_outlined, color: providerBrandBlue),
               title: const Text('Take Photo'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: kPrimaryColor),
+              leading: const Icon(Icons.photo_library_outlined, color: providerBrandBlue),
               title: const Text('Choose from Gallery'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
             ),
@@ -97,7 +98,15 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
     final provider = context.watch<ProviderDocumentProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Documents'), backgroundColor: kPrimaryColor),
+      backgroundColor: const Color(0xFFF4F7FB),
+      appBar: ProviderTabHeader(
+        title: 'My Documents',
+        subtitle: provider.isVerified ? 'Verified' : 'Pending verification',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
       body: _providerUid == null
           ? const Center(child: Text('Provider profile not found.'))
           : provider.isLoadingExisting
@@ -188,7 +197,7 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
                             value: provider.uploadProgress > 0 ? provider.uploadProgress : null,
                             minHeight: 8,
                             backgroundColor: const Color(0xFFF5F5F7),
-                            valueColor: const AlwaysStoppedAnimation(kPrimaryColor),
+                            valueColor: const AlwaysStoppedAnimation(providerBrandBlue),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -202,7 +211,7 @@ class _VerificationDocumentsScreenState extends State<VerificationDocumentsScree
                       SizedBox(
                         height: 52,
                         child: ElevatedButton(
-                          style: kProminentFilledButtonStyle(kPrimaryColor),
+                          style: kProminentFilledButtonStyle(providerBrandBlue),
                           onPressed: provider.canUpload && !provider.isUploading ? _save : null,
                           child: provider.isUploading
                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

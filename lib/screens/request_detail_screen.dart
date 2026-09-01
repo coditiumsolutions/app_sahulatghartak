@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/customer_service_request.dart';
 import '../providers/customer_service_request_provider.dart';
+import '../utils/api_error.dart';
 import '../utils/cancel_reasons.dart';
 import '../utils/constants.dart';
 import '../widgets/confirm_dialog.dart';
@@ -105,7 +106,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       setState(() => _request = fetched);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _error = friendlyErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -208,7 +209,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 error: _error,
                 onRetry: _fetch,
                 onClose: widget.onClose)
-            : RefreshIndicator(
+            : SafeArea(
+                top: false,
+                child: RefreshIndicator(
                 onRefresh: _fetch,
                 child: CustomScrollView(
                   slivers: [
@@ -458,6 +461,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
       ),

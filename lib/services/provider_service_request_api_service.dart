@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ProviderServiceRequestApiService {
   Future<List<ServiceRequest>> fetchByProvider(int providerId) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/providers/$providerId/service-requests'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/providers/$providerId/service-requests')).timeout(kApiTimeout);
 
     // 404 means no requests found for this provider - a normal empty state,
     // not a failure.

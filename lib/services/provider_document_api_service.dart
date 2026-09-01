@@ -12,7 +12,7 @@ class ProviderDocumentApiService {
   /// Fetches the provider's currently uploaded documents, if any.
   /// Returns null when the provider hasn't uploaded documents yet (404).
   Future<ProviderDocumentsModel?> fetchDocuments(int providerUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/provider/$providerUid/documents'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/provider/$providerUid/documents')).timeout(kApiTimeout);
 
     Map<String, dynamic> json;
     try {
@@ -78,7 +78,7 @@ class ProviderDocumentApiService {
     http.MultipartRequest request,
     void Function(double progress)? onProgress,
   ) async {
-    if (onProgress == null) return request.send();
+    if (onProgress == null) return request.send().timeout(kApiUploadTimeout);
 
     final total = request.contentLength;
     var bytesSent = 0;
@@ -101,6 +101,6 @@ class ProviderDocumentApiService {
       ..contentLength = total;
     unawaited(progressController.stream.pipe(streamedRequest.sink));
 
-    return http.Client().send(streamedRequest);
+    return http.Client().send(streamedRequest).timeout(kApiUploadTimeout);
   }
 }

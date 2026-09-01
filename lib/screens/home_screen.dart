@@ -187,9 +187,10 @@ class _HomeScreenState extends State<HomeScreen> {
             if (catalogProvider.isLoading)
               const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
             else if (catalogProvider.error != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: Text('Failed to load services: ${catalogProvider.error}', textAlign: TextAlign.center)),
+              _InlineErrorCard(
+                title: 'Couldn\'t load services',
+                message: catalogProvider.error!,
+                onRetry: catalogProvider.fetchServices,
               )
             else
               GridView.builder(
@@ -354,6 +355,42 @@ class _HomeHeader extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Content-sized error card for sections embedded inline within a scrolling
+/// page (unlike [EmptyStatePlaceholder], which needs a bounded-height
+/// ancestor such as a `Scaffold.body` to fill).
+class _InlineErrorCard extends StatelessWidget {
+  final String title;
+  final String message;
+  final VoidCallback onRetry;
+
+  const _InlineErrorCard({required this.title, required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.wifi_off_rounded, size: 36, color: Colors.red.shade300),
+          const SizedBox(height: 10),
+          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800, color: _HomeScreenState._ink)),
+          const SizedBox(height: 6),
+          Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh_rounded, size: 18), label: const Text('Retry')),
+        ],
       ),
     );
   }

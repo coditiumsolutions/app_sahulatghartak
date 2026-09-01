@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/category.dart';
 import '../services/category_api_service.dart';
+import '../utils/api_error.dart';
 
 class CategoryProvider extends ChangeNotifier {
   final CategoryApiService _apiService = CategoryApiService();
@@ -47,7 +48,7 @@ class CategoryProvider extends ChangeNotifier {
       _categories = result;
     } catch (e) {
       if (requestId != _requestId) return;
-      _error = e.toString();
+      _error = friendlyErrorMessage(e);
     } finally {
       if (requestId == _requestId) {
         _isLoading = false;

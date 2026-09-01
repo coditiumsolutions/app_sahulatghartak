@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../utils/provider_terms_and_conditions.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/message_dialog.dart';
 import '../widgets/terms_and_conditions_section.dart';
 import 'category_picker_screen.dart';
 import 'login_screen.dart';
@@ -90,7 +91,13 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful.')));
+      await showMessageDialog(
+        context,
+        title: 'Registration Successful',
+        message: 'Registration successful.',
+        type: MessageDialogType.success,
+      );
+      if (!mounted) return;
       final providerUid = authProvider.currentUser?.providerUid;
       if (providerUid != null) {
         Navigator.of(context).pushReplacementNamed(
@@ -103,7 +110,12 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
         Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Registration failed')));
+      await showMessageDialog(
+        context,
+        title: 'Registration Failed',
+        message: authProvider.error ?? 'Registration failed',
+        type: MessageDialogType.error,
+      );
     }
   }
 

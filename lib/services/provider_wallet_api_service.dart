@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ProviderWalletApiService {
   Future<ProviderWallet> fetchWallet(int providerUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/providers-wallet/$providerUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/providers-wallet/$providerUid')).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to load wallet');
     return ProviderWallet.fromJson(json['data'] as Map<String, dynamic>);

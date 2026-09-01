@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/provider/service_booking.dart';
 import '../services/rejected_bookings_store.dart';
 import '../services/service_booking_api_service.dart';
+import '../utils/api_error.dart';
 
 class ProviderBookingsProvider extends ChangeNotifier {
   final ServiceBookingApiService _apiService = ServiceBookingApiService();
@@ -51,7 +52,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
       _bookings = [...fetched, ...rejected];
       _rejectedSeenCount = await _rejectedStore.loadSeenCount(providerUid);
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
     } finally {
       _loading = false;
       notifyListeners();
@@ -76,7 +77,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
       }
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _updatingUid = null;
@@ -105,7 +106,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
       _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _updatingUid = null;
@@ -137,7 +138,7 @@ class ProviderBookingsProvider extends ChangeNotifier {
       _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _updatingUid = null;

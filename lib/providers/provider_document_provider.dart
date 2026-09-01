@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/provider/provider_documents.dart';
 import '../services/provider_document_api_service.dart';
+import '../utils/api_error.dart';
 import '../utils/constants.dart';
 
 enum ProviderDocumentSlot { profilePhoto, cnicFront, cnicBack }
@@ -80,7 +81,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
       _isVerified = docs?.isVerified ?? false;
       _verificationRemarks = docs?.verificationRemarks;
     } catch (e) {
-      _loadError = e.toString().replaceFirst('Exception: ', '');
+      _loadError = friendlyErrorMessage(e);
     } finally {
       _isLoadingExisting = false;
       notifyListeners();
@@ -196,7 +197,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
       _verificationRemarks = _uploadedDocuments?.verificationRemarks;
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isUploading = false;

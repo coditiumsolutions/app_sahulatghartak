@@ -51,10 +51,10 @@ class AuthData {
     }
   }
 
-  AuthData copyWith({String? mobileNo, int? categoryId, String? categoryName, int? providerUid}) {
+  AuthData copyWith({String? username, String? mobileNo, int? categoryId, String? categoryName, int? providerUid}) {
     return AuthData(
       userId: userId,
-      username: username,
+      username: username ?? this.username,
       mobileNo: mobileNo ?? this.mobileNo,
       role: role,
       token: token,

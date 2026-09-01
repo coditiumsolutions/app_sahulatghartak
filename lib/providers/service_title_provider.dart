@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/service_title.dart';
 import '../services/service_title_api_service.dart';
+import '../utils/api_error.dart';
 
 class ServiceTitleProvider extends ChangeNotifier {
   final ServiceTitleApiService _apiService = ServiceTitleApiService();
@@ -32,7 +33,7 @@ class ServiceTitleProvider extends ChangeNotifier {
       _serviceTitles = result;
     } catch (e) {
       if (requestId != _requestId) return;
-      _error = e.toString();
+      _error = friendlyErrorMessage(e);
     } finally {
       if (requestId == _requestId) {
         _isLoading = false;

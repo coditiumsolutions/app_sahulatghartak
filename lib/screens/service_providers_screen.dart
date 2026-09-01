@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/provider_profile_model.dart';
 import '../services/provider_profile_api_service.dart';
+import '../utils/api_error.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/empty_state_placeholder.dart';
 
 class ServiceProvidersScreen extends StatefulWidget {
   static const routeName = '/service-providers';
@@ -23,8 +25,12 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
     super.didChangeDependencies();
     if (_category == null) {
       _category = ModalRoute.of(context)!.settings.arguments as Category;
-      _providersFuture = _apiService.fetchByCategory(_category!.id);
+      _load();
     }
+  }
+
+  void _load() {
+    setState(() => _providersFuture = _apiService.fetchByCategory(_category!.id));
   }
 
   @override
@@ -39,7 +45,13 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load service providers: ${snapshot.error}', textAlign: TextAlign.center)));
+            return EmptyStatePlaceholder(
+              icon: Icons.wifi_off_rounded,
+              color: Colors.red,
+              title: 'Couldn\'t load service providers',
+              message: friendlyErrorMessage(snapshot.error!),
+              onRetry: _load,
+            );
           }
           final providers = snapshot.data ?? [];
           if (providers.isEmpty) {

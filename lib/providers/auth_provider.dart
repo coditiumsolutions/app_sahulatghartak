@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../models/auth_data.dart';
+import '../models/client_detail.dart';
 import '../models/otp_data.dart';
 import '../services/auth_api_service.dart';
+import '../services/client_profile_api_service.dart';
 import '../services/provider_profile_api_service.dart';
 import '../services/session_service.dart';
+import '../utils/api_error.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthApiService _apiService = AuthApiService();
   final ProviderProfileApiService _providerProfileApiService = ProviderProfileApiService();
+  final ClientProfileApiService _clientProfileApiService = ClientProfileApiService();
   final SessionService _sessionService = SessionService();
 
   AuthData? _currentUser;
@@ -16,6 +20,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isInitialized = false;
   String? _error;
   OtpData? _otpData;
+  ClientDetailModel? _clientDetail;
 
   AuthData? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
@@ -24,6 +29,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   String? get error => _error;
   OtpData? get otpData => _otpData;
+  ClientDetailModel? get clientDetail => _clientDetail;
 
   Future<void> tryAutoLogin() async {
     _currentUser = await _sessionService.getSession();
@@ -51,7 +57,7 @@ class AuthProvider extends ChangeNotifier {
       await _sessionService.saveSession(_currentUser!);
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
@@ -82,7 +88,7 @@ class AuthProvider extends ChangeNotifier {
       );
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
@@ -99,7 +105,7 @@ class AuthProvider extends ChangeNotifier {
       _otpData = await _apiService.sendOtp(mobileNo, otpType: otpType);
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
@@ -116,7 +122,7 @@ class AuthProvider extends ChangeNotifier {
       _otpData = await _apiService.resendOtp(mobileNo, otpType: otpType);
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
@@ -133,7 +139,7 @@ class AuthProvider extends ChangeNotifier {
       await _apiService.verifyOtp(mobileNo, otp);
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
@@ -178,11 +184,61 @@ class AuthProvider extends ChangeNotifier {
       }
       return loggedIn;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> resetPassword(String mobileNo, String otp, String newPassword, String confirmNewPassword) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _apiService.resetPassword(mobileNo, otp, newPassword, confirmNewPassword);
+      return true;
+    } catch (e) {
+      _error = friendlyErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> fetchClientDetail() async {
+    _error = null;
+    try {
+      _clientDetail = await _clientProfileApiService.fetchDetail(_currentUser!.providerUid!);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = friendlyErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateClientDetail({required String fullName, required String cnic, required String gender}) async {
+    _error = null;
+    try {
+      _clientDetail = await _clientProfileApiService.updateDetail(
+        clientUid: _currentUser!.providerUid!,
+        fullName: fullName,
+        cnic: cnic,
+        gender: gender,
+      );
+      _currentUser = _currentUser!.copyWith(username: fullName);
+      await _sessionService.saveSession(_currentUser!);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = friendlyErrorMessage(e);
+      notifyListeners();
+      return false;
     }
   }
 
@@ -204,7 +260,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _isLoading = false;

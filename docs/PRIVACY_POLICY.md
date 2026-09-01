@@ -142,4 +142,4 @@ If you have any questions, concerns, or requests regarding this Privacy Policy o
 **Sahulat Ghar Tak / Coditum Solutions**
 Email: [privacy@sahulatghartak.com](mailto:privacy@sahulatghartak.com)
 
-*(Replace the contact email above with your official support/privacy email before publishing this policy. Host this document at a publicly accessible URL — e.g. https://sahulatghartak.com/privacy-policy — to link from the Google Play Store listing and within the App, and ensure the account-deletion page referenced in Section 7 is live at https://sahulatghartak.com/delete-account before submission.)*
+*(Replace the contact email above with your official support/privacy email before publishing this policy. This policy is now live at [https://sahulatghartak.com/privacy-policy](https://sahulatghartak.com/privacy-policy), and the account-deletion page referenced in Section 7 is now live at [https://sahulatghartak.com/delete-account](https://sahulatghartak.com/delete-account) — both are confirmed reachable, link to the policy from the Google Play Store listing and within the App.)*

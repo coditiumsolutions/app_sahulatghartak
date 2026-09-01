@@ -5,11 +5,14 @@ import '../models/client_address.dart';
 import '../providers/auth_provider.dart';
 import '../providers/client_address_provider.dart';
 import '../utils/constants.dart';
+import '../utils/privacy_policy_launcher.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/curved_profile_header.dart';
 import '../widgets/delete_account_dialog.dart';
+import '../widgets/message_dialog.dart';
 import 'add_address_screen.dart';
+import 'edit_profile_screen.dart';
 import 'landing_screen.dart';
 import 'provider_dashboard_screen.dart';
 import 'provider_registration_screen.dart';
@@ -96,9 +99,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!context.mounted) return;
 
     if (success) {
+      await showMessageDialog(
+        context,
+        title: 'Account Deleted',
+        message: 'Account deleted successfully.',
+        type: MessageDialogType.success,
+      );
+      if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Failed to delete account')));
+      await showMessageDialog(
+        context,
+        title: 'Delete Failed',
+        message: authProvider.error ?? 'Failed to delete account',
+        type: MessageDialogType.error,
+      );
     }
   }
 
@@ -199,6 +214,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ],
                 ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).pushNamed(CustomerEditProfileScreen.routeName),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Edit Profile'),
+                style: OutlinedButton.styleFrom(foregroundColor: _brandBlue, side: BorderSide(color: _brandBlue.withValues(alpha: 0.4))),
               ),
               const SizedBox(height: 28),
               Row(
@@ -328,6 +350,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.delete_forever_rounded),
                 onPressed: () => _deleteAccount(context),
                 label: const Text('Delete Account'),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: TextButton.icon(
+                  icon: Icon(Icons.privacy_tip_outlined, color: Colors.grey[600]),
+                  onPressed: () => openPrivacyPolicy(context),
+                  label: Text('Privacy Policy', style: TextStyle(color: Colors.grey[600])),
+                ),
               ),
             ],
           ),

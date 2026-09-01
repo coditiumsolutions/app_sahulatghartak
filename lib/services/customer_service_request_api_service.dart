@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class CustomerServiceRequestApiService {
   Future<List<CustomerServiceRequest>> fetchByClient(int clientUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/customer-service-requests?clientUid=$clientUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/customer-service-requests?clientUid=$clientUid')).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to load service requests');
     final List<dynamic> data = json['data'] as List<dynamic>? ?? [];
@@ -15,7 +15,7 @@ class CustomerServiceRequestApiService {
   }
 
   Future<CustomerServiceRequest> fetchById(int requestUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/customer-service-requests/$requestUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/customer-service-requests/$requestUid')).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to load service request');
     return CustomerServiceRequest.fromJson(json['data'] as Map<String, dynamic>);
@@ -52,7 +52,7 @@ class CustomerServiceRequestApiService {
         'estimatedBudget': estimatedBudget,
         'remarks': remarks,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to create service request');
     return CustomerServiceRequest.fromJson(json['data'] as Map<String, dynamic>);
@@ -93,7 +93,7 @@ class CustomerServiceRequestApiService {
         'remarks': remarks,
         'cancelReason': cancelReason,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to update service request');
     return CustomerServiceRequest.fromJson(json['data'] as Map<String, dynamic>);

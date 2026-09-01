@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ServiceCatalogApiService {
   Future<List<ServiceCatalog>> fetchServices() async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/services'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/services')).timeout(kApiTimeout);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load services (status ${response.statusCode})');

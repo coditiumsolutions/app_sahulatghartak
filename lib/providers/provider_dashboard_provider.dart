@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/provider_availability_api_service.dart';
 import '../services/provider_profile_api_service.dart';
 import '../services/provider_service_request_api_service.dart';
+import '../utils/api_error.dart';
 import '../models/provider/availability_slot.dart';
 import '../models/provider/availability_status.dart';
 import '../models/provider/provider_detail.dart';
@@ -62,7 +63,7 @@ class ProviderDashboardProvider extends ChangeNotifier {
     try {
       _availabilityStatus = await _availabilityApiService.fetchStatus(providerUid);
     } catch (e) {
-      _availabilityError = e.toString().replaceFirst('Exception: ', '');
+      _availabilityError = friendlyErrorMessage(e);
     } finally {
       _availabilityLoading = false;
       notifyListeners();
@@ -95,7 +96,7 @@ class ProviderDashboardProvider extends ChangeNotifier {
             );
       return true;
     } catch (e) {
-      _availabilityError = e.toString().replaceFirst('Exception: ', '');
+      _availabilityError = friendlyErrorMessage(e);
       return false;
     } finally {
       _availabilityLoading = false;
@@ -120,7 +121,7 @@ class ProviderDashboardProvider extends ChangeNotifier {
     try {
       _incomingRequests = await _serviceRequestApiService.fetchByProvider(providerId);
     } catch (e) {
-      _requestsError = e.toString().replaceFirst('Exception: ', '');
+      _requestsError = friendlyErrorMessage(e);
     } finally {
       _requestsLoading = false;
       notifyListeners();
@@ -294,16 +295,24 @@ class ProviderDashboardProvider extends ChangeNotifier {
     try {
       _providerDetail = await _profileApiService.fetchDetail(providerUid);
     } catch (e) {
-      _profileError = e.toString().replaceFirst('Exception: ', '');
+      _profileError = friendlyErrorMessage(e);
     } finally {
       _profileLoading = false;
       notifyListeners();
     }
   }
 
-  void updateProviderDetail(ProviderDetailModel updated) {
-    _providerDetail = updated;
-    notifyListeners();
+  Future<bool> updateProviderDetail(ProviderDetailModel updated) async {
+    _profileError = null;
+    try {
+      _providerDetail = await _profileApiService.updateDetail(updated);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _profileError = friendlyErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
   }
 
   // Home screen summary counters.

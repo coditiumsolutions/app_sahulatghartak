@@ -1,6 +1,6 @@
 ================================================================================
 SahulatGharTak API Reference
-Version: 3.2 | Last Updated: 2026-08-17
+Version: 3.5 | Last Updated: 2026-09-01
 Database: SahulatAppDB
 Local Base URL:    https://localhost:7265/api/
 Deployed Base URL:  https://sahulatghartak.com/api/
@@ -303,6 +303,87 @@ Notes:
   PaymentLedger, ProviderPayouts, CommissionRules rows.
 
 --------------------------------------------------------------------------------
+POST Reset Password
+--------------------------------------------------------------------------------
+Local:     https://localhost:7265/api/auth/reset-password
+Deployed:  https://sahulatghartak.com/api/auth/reset-password
+
+Request Body:
+{
+  "mobileNo": "03335191392",
+  "otp": "458963",
+  "newPassword": "newSecurePass1",
+  "confirmNewPassword": "newSecurePass1"
+}
+
+Notes:
+- Atomic verify-OTP + set-password in a single call (mirrors Delete Account
+  re-verifying identity in the same call as the sensitive action) — there is no
+  separate "verified" state from a prior call that could be replayed
+- Recommended flow: send-otp (otpType=PasswordReset) -> reset-password
+- Looks up the latest unverified UserOTP row scoped to this mobileNo AND
+  otpType=PasswordReset specifically (does not fall back to the newest
+  unverified OTP of any type, unlike generic Verify OTP)
+- Max 3 invalid attempts (AttemptCount), 5 minute expiry — same OTP
+  infrastructure/limits as Send OTP / Verify OTP
+- On success: UserOTP.IsVerified=true, VerifiedOn set; any other pending
+  PasswordReset OTPs for this mobile number are invalidated so an old code
+  can't be replayed
+- Only updates UsersLogin.PasswordHash — does not affect Clients/Providers
+  rows, IsVerified, IsActive, or anything else
+
+Success (200):
+{
+  "success": true,
+  "message": "Password reset successfully.",
+  "data": {
+    "mobileNo": "03335191392"
+  }
+}
+
+Fail (404 — no OTP request found):
+{
+  "success": false,
+  "message": "No password reset request found for this mobile number. Please request a new OTP.",
+  "data": null
+}
+
+Fail (400 — expired):
+{
+  "success": false,
+  "message": "OTP expired.",
+  "data": null
+}
+
+Fail (400 — invalid OTP):
+{
+  "success": false,
+  "message": "Invalid OTP.",
+  "data": null
+}
+
+Fail (429 — too many attempts):
+{
+  "success": false,
+  "message": "Maximum attempts exceeded.",
+  "data": null
+}
+
+Fail (400 — password mismatch):
+{
+  "success": false,
+  "message": "New password and confirm password do not match.",
+  "data": null
+}
+
+Fail (404 — account not found):
+{
+  "success": false,
+  "message": "Account not found.",
+  "data": null
+}
+
+--------------------------------------------------------------------------------
 POST Send OTP
 --------------------------------------------------------------------------------
 Local:     https://localhost:7265/api/auth/send-otp
@@ -320,6 +401,9 @@ Notes:
 - OTP is 6 digits; ExpiryTime = now + 5 minutes
 - Unverified OTP for same mobile+type is updated (not duplicated)
 - Registration: if mobile already exists and IsVerified=true -> 409
+- PasswordReset: opposite check — account must already exist and be a
+  verified Client/Provider/Staff (UsersLogin.IsVerified=true), otherwise
+  there's nothing to reset -> 404
 - data.otp is controlled by config Otp:IncludeInResponse (true = include code; false = null)
 - TEMPORARY: IncludeInResponse=true on deployed API until a real SMS gateway is wired; then set false
 
@@ -358,6 +442,13 @@ Fail (409):
 {
   "success": false,
   "message": "Mobile number already registered.",
+  "data": null
+}
+
+Fail (404 — PasswordReset, account not found):
+{
+  "success": false,
+  "message": "Account not found.",
   "data": null
 }
 
@@ -927,6 +1018,93 @@ Fail (404):
 {
   "success": false,
   "message": "Provider not found.",
+  "data": null
+}
+
+================================================================================
+CLIENTS DETAIL APIs
+================================================================================
+
+--------------------------------------------------------------------------------
+GET Client Detail (Fetch)
+--------------------------------------------------------------------------------
+Local:     https://localhost:7265/api/clients-detail/{clientUid}
+Deployed:  https://sahulatghartak.com/api/clients-detail/{clientUid}
+
+Example:
+GET https://localhost:7265/api/clients-detail/1
+
+Request Body: none
+
+Success (200):
+{
+  "success": true,
+  "message": "Client detail fetched successfully.",
+  "data": {
+    "uid": 1,
+    "userUid": 1,
+    "mobileNo": "03335191392",
+    "fullName": "Shahid Ghauri",
+    "cnic": "1-1-1",
+    "gender": "Male"
+  }
+}
+
+Fail (404):
+{
+  "success": false,
+  "message": "Client not found.",
+  "data": null
+}
+
+--------------------------------------------------------------------------------
+PUT Client Detail (Edit)
+--------------------------------------------------------------------------------
+Local:     https://localhost:7265/api/clients-detail/{clientUid}
+Deployed:  https://sahulatghartak.com/api/clients-detail/{clientUid}
+
+Example:
+PUT https://localhost:7265/api/clients-detail/1
+
+Request Body:
+{
+  "clientUid": 1,
+  "fullName": "Shahid Ghauri",
+  "cnic": "1-1-1",
+  "gender": "Male"
+}
+
+Notes:
+- clientUid in URL and body must match
+- editable: fullName, cnic, gender only
+- mobileNo is NOT editable via this endpoint — changing it requires OTP re-verification (separate feature, not yet implemented)
+- read-only in response: mobileNo
+
+Success (200):
+{
+  "success": true,
+  "message": "Client detail updated successfully.",
+  "data": {
+    "uid": 1,
+    "userUid": 1,
+    "mobileNo": "03335191392",
+    "fullName": "Shahid Ghauri",
+    "cnic": "1-1-1",
+    "gender": "Male"
+  }
+}
+
+Fail (400):
+{
+  "success": false,
+  "message": "ClientUid in URL and body must match.",
+  "data": null
+}
+
+Fail (404):
+{
+  "success": false,
+  "message": "Client not found.",
   "data": null
 }
 

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/message_dialog.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -108,7 +109,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         SnackBar(content: Text(initial ? 'OTP sent to ${args.mobileNo}' : 'OTP resent to ${args.mobileNo}')),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Failed to send OTP')));
+      await showMessageDialog(
+        context,
+        title: 'Request Failed',
+        message: authProvider.error ?? 'Failed to send OTP',
+        type: MessageDialogType.error,
+      );
     }
   }
 
@@ -128,7 +134,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     if (!verified) {
       setState(() => _verifying = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Verification failed')));
+      await showMessageDialog(
+        context,
+        title: 'Verification Failed',
+        message: authProvider.error ?? 'Verification failed',
+        type: MessageDialogType.error,
+      );
       return;
     }
 
@@ -138,15 +149,33 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       setState(() => _verifying = false);
 
       if (loggedIn) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account verified successfully.')));
+        await showMessageDialog(
+          context,
+          title: 'Account Verified',
+          message: 'Account verified successfully.',
+          type: MessageDialogType.success,
+        );
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(HomeScreen.routeName, (route) => false);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Login failed')));
+        await showMessageDialog(
+          context,
+          title: 'Login Failed',
+          message: authProvider.error ?? 'Login failed',
+          type: MessageDialogType.error,
+        );
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
       }
     } else {
       setState(() => _verifying = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mobile number verified successfully.')));
+      await showMessageDialog(
+        context,
+        title: 'Verified',
+        message: 'Mobile number verified successfully.',
+        type: MessageDialogType.success,
+      );
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     }
   }

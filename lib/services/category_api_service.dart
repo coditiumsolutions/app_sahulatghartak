@@ -11,7 +11,7 @@ class CategoryApiService {
         ? Uri.parse('$kApiBaseUrl/service-categories')
         : Uri.parse('$kApiBaseUrl/service-categories').replace(queryParameters: {'serviceUid': '$serviceUid'});
 
-    final response = await http.get(uri);
+    final response = await http.get(uri).timeout(kApiTimeout);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load categories (status ${response.statusCode})');

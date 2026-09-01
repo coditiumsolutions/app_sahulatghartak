@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ClientAddressApiService {
   Future<List<ClientAddress>> fetchByClient(int clientUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/client-addresses?clientUid=$clientUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/client-addresses?clientUid=$clientUid')).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to load addresses');
     final List<dynamic> data = json['data'] as List<dynamic>? ?? [];
@@ -35,7 +35,7 @@ class ClientAddressApiService {
         'latitude': latitude,
         'longitude': longitude,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to add address');
     return ClientAddress.fromJson(json['data'] as Map<String, dynamic>);
@@ -64,14 +64,14 @@ class ClientAddressApiService {
         'latitude': latitude,
         'longitude': longitude,
       }),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to update address');
     return ClientAddress.fromJson(json['data'] as Map<String, dynamic>);
   }
 
   Future<void> delete(int addressUid) async {
-    final response = await http.delete(Uri.parse('$kApiBaseUrl/client-addresses/$addressUid'));
+    final response = await http.delete(Uri.parse('$kApiBaseUrl/client-addresses/$addressUid')).timeout(kApiTimeout);
     _decode(response, 'Failed to delete address');
   }
 

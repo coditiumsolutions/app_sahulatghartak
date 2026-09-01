@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/category.dart';
 import '../services/category_api_service.dart';
+import '../utils/api_error.dart';
 import '../utils/category_icons.dart';
 import '../utils/service_catalog_style.dart';
 
@@ -64,7 +65,7 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
       setState(() => _categories = categories);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = friendlyErrorMessage(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

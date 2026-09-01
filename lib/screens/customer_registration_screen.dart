@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../utils/customer_terms_and_conditions.dart';
 import '../widgets/auth_card_scaffold.dart';
+import '../widgets/message_dialog.dart';
 import '../widgets/terms_and_conditions_section.dart';
 import 'login_screen.dart';
 import 'otp_verification_screen.dart';
@@ -70,7 +71,12 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
         arguments: OtpVerificationArgs(mobileNo: mobileNo, password: password, otpType: 'Registration'),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Registration failed')));
+      await showMessageDialog(
+        context,
+        title: 'Registration Failed',
+        message: authProvider.error ?? 'Registration failed',
+        type: MessageDialogType.error,
+      );
     }
   }
 

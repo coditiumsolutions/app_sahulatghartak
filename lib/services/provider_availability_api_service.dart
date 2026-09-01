@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 
 class ProviderAvailabilityApiService {
   Future<ProviderAvailabilityStatus?> fetchStatus(int providerUid) async {
-    final response = await http.get(Uri.parse('$kApiBaseUrl/provider-avability-status/$providerUid'));
+    final response = await http.get(Uri.parse('$kApiBaseUrl/provider-avability-status/$providerUid')).timeout(kApiTimeout);
     if (response.statusCode == 404) return null;
 
     final json = _decode(response, 'Failed to load availability status');
@@ -24,7 +24,7 @@ class ProviderAvailabilityApiService {
       Uri.parse('$kApiBaseUrl/provider-avability-status'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(_body(providerUid, isOnline, availableFrom, availableTo)),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to save availability status');
     return ProviderAvailabilityStatus.fromJson(json['data'] as Map<String, dynamic>);
@@ -40,7 +40,7 @@ class ProviderAvailabilityApiService {
       Uri.parse('$kApiBaseUrl/provider-avability-status/$providerUid'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(_body(providerUid, isOnline, availableFrom, availableTo)),
-    );
+    ).timeout(kApiTimeout);
 
     final json = _decode(response, 'Failed to update availability status');
     return ProviderAvailabilityStatus.fromJson(json['data'] as Map<String, dynamic>);

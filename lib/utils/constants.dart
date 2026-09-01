@@ -42,3 +42,12 @@ final String kApiBaseUrl = (kDebugMode && !_useProdOverride)
 /// Server root (no `/api` suffix) for resolving relative file paths returned
 /// by the API, e.g. "uploads/providers/25/profile.jpg".
 final String kApiFileBaseUrl = kApiBaseUrl.substring(0, kApiBaseUrl.length - '/api'.length);
+
+/// Ceiling on how long any single API request may hang before it's treated
+/// as failed, so a stalled server can't leave the UI spinning forever.
+const Duration kApiTimeout = Duration(seconds: 15);
+
+/// Longer ceiling for multipart file uploads (profile photo, CNIC images),
+/// which can legitimately take longer than a plain JSON request on a slow
+/// connection.
+const Duration kApiUploadTimeout = Duration(seconds: 60);

@@ -26,6 +26,8 @@ class AuthCardScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    final effectiveHeaderHeight = headerHeight + (topInset - 20).clamp(0, double.infinity);
     return Scaffold(
       backgroundColor: accentColor,
       body: Stack(
@@ -60,7 +62,7 @@ class AuthCardScaffold extends StatelessWidget {
           ),
           Column(
             children: [
-              const SizedBox(height: headerHeight),
+              SizedBox(height: effectiveHeaderHeight),
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -68,25 +70,28 @@ class AuthCardScaffold extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
                   ),
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(24, avatarRadius + 24, 24, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          subtitle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.black.withValues(alpha: 0.5)),
-                        ),
-                        const SizedBox(height: 32),
-                        child,
-                      ],
+                  child: SafeArea(
+                    top: false,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(24, avatarRadius + 24, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            subtitle,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.black.withValues(alpha: 0.5)),
+                          ),
+                          const SizedBox(height: 32),
+                          child,
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -94,7 +99,7 @@ class AuthCardScaffold extends StatelessWidget {
             ],
           ),
           Positioned(
-            top: headerHeight - avatarRadius,
+            top: effectiveHeaderHeight - avatarRadius,
             left: 0,
             right: 0,
             child: Center(

@@ -78,12 +78,21 @@ class AuthApiService {
     await _post('delete-account', {'mobileNo': mobileNo, 'password': password});
   }
 
+  Future<void> resetPassword(String mobileNo, String otp, String newPassword, String confirmNewPassword) async {
+    await _post('reset-password', {
+      'mobileNo': mobileNo,
+      'otp': otp,
+      'newPassword': newPassword,
+      'confirmNewPassword': confirmNewPassword,
+    });
+  }
+
   Future<Map<String, dynamic>> _post(String endpoint, Map<String, dynamic> body) async {
     final response = await http.post(
       Uri.parse('$kApiBaseUrl/auth/$endpoint'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
-    );
+    ).timeout(kApiTimeout);
 
     Map<String, dynamic> json;
     try {

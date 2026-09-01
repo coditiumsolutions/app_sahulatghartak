@@ -7,10 +7,12 @@ import '../../../providers/provider_dashboard_provider.dart';
 import '../../../providers/provider_document_provider.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/provider_availability_helper.dart';
+import '../../../utils/privacy_policy_launcher.dart';
 import '../../../utils/provider_routes.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/curved_profile_header.dart';
 import '../../../widgets/delete_account_dialog.dart';
+import '../../../widgets/message_dialog.dart';
 import '../../../widgets/provider/provider_tab_header.dart' show providerBrandDark, providerBrandBlue, providerBrandAccent;
 import '../../home_screen.dart';
 import '../../landing_screen.dart';
@@ -67,9 +69,21 @@ class _ProfileTabState extends State<ProfileTab> {
     if (!context.mounted) return;
 
     if (success) {
+      await showMessageDialog(
+        context,
+        title: 'Account Deleted',
+        message: 'Account deleted successfully.',
+        type: MessageDialogType.success,
+      );
+      if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil(LandingScreen.routeName, (route) => false);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error ?? 'Failed to delete account')));
+      await showMessageDialog(
+        context,
+        title: 'Delete Failed',
+        message: authProvider.error ?? 'Failed to delete account',
+        type: MessageDialogType.error,
+      );
     }
   }
 
@@ -278,6 +292,14 @@ class _ProfileTabState extends State<ProfileTab> {
                 icon: const Icon(Icons.delete_forever_rounded),
                 label: const Text('Delete Account'),
                 onPressed: () => _deleteAccount(context),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: TextButton.icon(
+                icon: Icon(Icons.privacy_tip_outlined, color: Colors.grey[600]),
+                onPressed: () => openPrivacyPolicy(context),
+                label: Text('Privacy Policy', style: TextStyle(color: Colors.grey[600])),
               ),
             ),
           ],

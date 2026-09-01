@@ -4,6 +4,7 @@ import '../models/customer_service_request.dart';
 import '../services/customer_service_request_api_service.dart';
 import '../services/deleted_requests_store.dart';
 import '../services/request_passcode_store.dart';
+import '../utils/api_error.dart';
 
 class CustomerServiceRequestProvider extends ChangeNotifier {
   final CustomerServiceRequestApiService _apiService = CustomerServiceRequestApiService();
@@ -44,7 +45,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
         _persistPasscode(request);
       }
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
     } finally {
       _loading = false;
       notifyListeners();
@@ -98,7 +99,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
       _requests = [created, ..._requests];
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _saving = false;
@@ -137,7 +138,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
       _requests = _requests.map((r) => r.uid == updated.uid ? updated : r).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _cancellingUid = null;
@@ -157,7 +158,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
       _requests = _requests.where((r) => r.uid != requestUid).toList();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyErrorMessage(e);
       return false;
     } finally {
       _deletingUid = null;

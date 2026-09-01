@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
@@ -18,11 +19,14 @@ import 'providers/provider_document_provider.dart';
 import 'providers/provider_wallet_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/add_address_screen.dart';
+import 'screens/edit_profile_screen.dart';
 import 'screens/landing_screen.dart';
 import 'screens/customer_registration_screen.dart';
 import 'screens/provider_registration_screen.dart';
 import 'screens/provider_document_upload_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/reset_password_screen.dart';
 import 'screens/otp_verification_screen.dart';
 import 'screens/provider_dashboard_screen.dart';
 import 'screens/home_screen.dart';
@@ -46,6 +50,15 @@ void main() async {
   if (kDebugMode) {
     HttpOverrides.global = DevHttpOverrides();
   }
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarContrastEnforced: false,
+  ));
   runApp(const SahulatApp());
 }
 
@@ -83,11 +96,14 @@ class SahulatApp extends StatelessWidget {
           ProviderRegistrationScreen.routeName: (_) => const ProviderRegistrationScreen(),
           ProviderDocumentUploadScreen.routeName: (_) => const ProviderDocumentUploadScreen(),
           LoginScreen.routeName: (_) => const LoginScreen(),
+          ForgotPasswordScreen.routeName: (_) => const ForgotPasswordScreen(),
+          ResetPasswordScreen.routeName: (_) => const ResetPasswordScreen(),
           OtpVerificationScreen.routeName: (_) => const OtpVerificationScreen(),
           ProviderDashboardScreen.routeName: (_) => const ProviderDashboardScreen(),
           HomeScreen.routeName: (_) => const MainNavigationShell(),
           ProfileScreen.routeName: (_) => const ProfileScreen(),
           AddAddressScreen.routeName: (_) => const AddAddressScreen(),
+          CustomerEditProfileScreen.routeName: (_) => const CustomerEditProfileScreen(),
           ServiceDetailScreen.routeName: (_) => const ServiceDetailScreen(),
           ServiceProvidersScreen.routeName: (_) => const ServiceProvidersScreen(),
           SubCategoriesScreen.routeName: (_) => const SubCategoriesScreen(),
