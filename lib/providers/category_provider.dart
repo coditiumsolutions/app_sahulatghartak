@@ -6,20 +6,19 @@ import '../models/category.dart';
 import '../services/category_api_service.dart';
 import '../utils/api_error.dart';
 
+/// Holds the app-wide, always-unscoped category list (used e.g. for the home
+/// screen's search suggestions). Screens that need categories scoped to a
+/// single service (like [SubCategoriesScreen]) fetch their own copy directly
+/// via [CategoryApiService] instead of sharing this provider — see the note
+/// on [SubCategoriesScreen] for why sharing a single mutable list across
+/// concurrently-fetching screens caused categories from one service to
+/// briefly appear under another.
 class CategoryProvider extends ChangeNotifier {
   final CategoryApiService _apiService = CategoryApiService();
 
   List<Category> _categories = [];
   bool _isLoading = false;
   String? _error;
-
-  // Guards against out-of-order responses: the app-wide initial fetch (no
-  // serviceUid, fired from the constructor) and a screen-scoped fetch (with
-  // serviceUid) can both be in flight at once, and whichever resolves last
-  // used to win — sometimes overwriting a scoped result with the full
-  // unfiltered list. Only the response matching the most recently *started*
-  // call is applied.
-  int _requestId = 0;
 
   CategoryProvider() {
     // Deferred: lazy ChangeNotifierProvider construction can happen mid-build
@@ -33,27 +32,18 @@ class CategoryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  /// Fetches categories. Pass [serviceUid] to scope to a single parent
-  /// service; omit to fetch the full flat list (used e.g. by the provider
-  /// registration category dropdown, which spans all services).
-  Future<void> fetchCategories({int? serviceUid}) async {
-    final requestId = ++_requestId;
+  Future<void> fetchCategories() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _apiService.fetchCategories(serviceUid: serviceUid);
-      if (requestId != _requestId) return;
-      _categories = result;
+      _categories = await _apiService.fetchCategories();
     } catch (e) {
-      if (requestId != _requestId) return;
       _error = friendlyErrorMessage(e);
     } finally {
-      if (requestId == _requestId) {
-        _isLoading = false;
-        notifyListeners();
-      }
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

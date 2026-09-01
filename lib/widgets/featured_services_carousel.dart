@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../models/service.dart';
-import 'service_card.dart';
+import '../models/category.dart';
+import '../utils/category_icons.dart';
+import '../utils/category_images.dart';
 
 class FeaturedServicesCarousel extends StatefulWidget {
-  final List<Service> services;
+  final List<Category> categories;
   final List<Color> cardColors;
-  const FeaturedServicesCarousel({super.key, required this.services, required this.cardColors});
+  final ValueChanged<Category> onTapCategory;
+
+  const FeaturedServicesCarousel({super.key, required this.categories, required this.cardColors, required this.onTapCategory});
 
   @override
   State<FeaturedServicesCarousel> createState() => _FeaturedServicesCarouselState();
@@ -23,8 +26,8 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (widget.services.isEmpty) return;
-      final nextPage = (_currentPage + 1) % widget.services.length;
+      if (widget.categories.isEmpty) return;
+      final nextPage = (_currentPage + 1) % widget.categories.length;
       _controller.animateToPage(nextPage, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     });
   }
@@ -38,19 +41,22 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.services.isEmpty) return const SizedBox.shrink();
+    if (widget.categories.isEmpty) return const SizedBox.shrink();
     return Column(
       children: [
         SizedBox(
           height: 200,
           child: PageView.builder(
             controller: _controller,
-            itemCount: widget.services.length,
+            itemCount: widget.categories.length,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
-              final service = widget.services[index];
+              final category = widget.categories[index];
               final color = widget.cardColors[index % widget.cardColors.length];
-              return Container(
+              final imagePath = getCategoryImage(category.name);
+              return GestureDetector(
+                onTap: () => widget.onTapCategory(category),
+                child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
@@ -74,9 +80,13 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
                           },
                           child: Transform.scale(
                             scale: 1.08,
-                            child: service.imagePath != null
-                                ? Image.asset(service.imagePath!, fit: BoxFit.cover)
-                                : ServiceCard(service: service, backgroundColor: color),
+                            child: imagePath != null
+                                ? Image.asset(imagePath, fit: BoxFit.cover)
+                                : Container(
+                                    color: color.withValues(alpha: 0.12),
+                                    alignment: Alignment.center,
+                                    child: Icon(getCategoryIcon(category.name), size: 64, color: color),
+                                  ),
                           ),
                         ),
                         Positioned(
@@ -92,36 +102,18 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
                                 colors: [Colors.black.withValues(alpha: 0), Colors.black.withValues(alpha: 0.65)],
                               ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    service.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.95),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    'Rs. ${service.startingPrice.toStringAsFixed(0)}',
-                                    style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              category.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
+                ),
               );
             },
           ),
@@ -129,7 +121,7 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.services.length, (index) {
+          children: List.generate(widget.categories.length, (index) {
             final active = index == _currentPage;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 300),

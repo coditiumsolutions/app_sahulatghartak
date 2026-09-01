@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
-import 'providers/service_provider.dart';
-import 'providers/booking_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/service_title_provider.dart';
 import 'providers/service_catalog_provider.dart';
@@ -32,12 +30,10 @@ import 'screens/provider_dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'widgets/main_navigation_shell.dart';
-import 'screens/service_detail_screen.dart';
 import 'screens/service_providers_screen.dart';
 import 'screens/service_request_form_screen.dart';
 import 'screens/service_requests_screen.dart';
 import 'screens/subcategories_screen.dart';
-import 'screens/booking_screen.dart';
 import 'screens/provider/notifications/notifications_screen.dart';
 import 'screens/provider/profile/edit_profile_screen.dart';
 import 'screens/provider/profile/verification_documents_screen.dart';
@@ -70,8 +66,6 @@ class SahulatApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceProvider()),
-        ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => ServiceTitleProvider()),
         ChangeNotifierProvider(create: (_) => ServiceCatalogProvider()),
@@ -104,12 +98,10 @@ class SahulatApp extends StatelessWidget {
           ProfileScreen.routeName: (_) => const ProfileScreen(),
           AddAddressScreen.routeName: (_) => const AddAddressScreen(),
           CustomerEditProfileScreen.routeName: (_) => const CustomerEditProfileScreen(),
-          ServiceDetailScreen.routeName: (_) => const ServiceDetailScreen(),
           ServiceProvidersScreen.routeName: (_) => const ServiceProvidersScreen(),
           SubCategoriesScreen.routeName: (_) => const SubCategoriesScreen(),
           ServiceRequestFormScreen.routeName: (_) => const ServiceRequestFormScreen(),
           ServiceRequestsScreen.routeName: (_) => const ServiceRequestsScreen(),
-          BookingScreen.routeName: (_) => const BookingScreen(),
           EditProfileScreen.routeName: (_) => const EditProfileScreen(),
           VerificationDocumentsScreen.routeName: (_) => const VerificationDocumentsScreen(),
           NotificationsScreen.routeName: (_) => const NotificationsScreen(),

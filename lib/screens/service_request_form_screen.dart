@@ -9,6 +9,7 @@ import '../providers/client_address_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../providers/service_title_provider.dart';
 import '../utils/constants.dart';
+import '../utils/platform_date_picker.dart';
 import '../widgets/auth_card_scaffold.dart';
 import '../widgets/themed_dropdown.dart';
 import 'add_address_screen.dart';
@@ -104,12 +105,12 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final date = await showDatePicker(context: context, initialDate: now, firstDate: now, lastDate: now.add(const Duration(days: 365)));
+    final date = await showPlatformDatePicker(context, initialDate: now, firstDate: now, lastDate: now.add(const Duration(days: 365)));
     if (date != null) setState(() => _selectedDate = date);
   }
 
   Future<void> _pickTime() async {
-    final t = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final t = await showPlatformTimePicker(context, initialTime: TimeOfDay.now());
     if (t != null) setState(() => _selectedTime = t);
   }
 

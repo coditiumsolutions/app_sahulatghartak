@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
+import '../models/category.dart';
 import '../models/service_catalog.dart';
-import '../providers/category_provider.dart';
+import '../services/category_api_service.dart';
+import '../utils/api_error.dart';
 import '../utils/category_icons.dart';
+import '../utils/guest_guard.dart';
 import '../utils/service_catalog_style.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/empty_state_placeholder.dart';
@@ -33,8 +35,14 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
   static const double _avatarRadius = 46;
   static const double _headerHeight = 170;
 
+  final _apiService = CategoryApiService();
+
   ServiceCatalog? _service;
   bool _initialized = false;
+
+  List<Category> _categories = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void didChangeDependencies() {
@@ -43,15 +51,39 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
     _initialized = true;
 
     _service = widget.service ?? ModalRoute.of(context)!.settings.arguments as ServiceCatalog;
-    context.read<CategoryProvider>().fetchCategories(serviceUid: _service!.id);
+    _fetchCategories();
+  }
+
+  // Fetches this screen's own copy of the category list rather than reading
+  // a shared provider. [OpenContainer] (used by [MainCategoryCard]) builds
+  // every card's destination screen up front for the transition, so several
+  // SubCategoriesScreen instances — one per home-screen category — can exist
+  // and fetch concurrently; a shared provider would let whichever request
+  // resolves last overwrite the others' results with the wrong category's
+  // services. Owning the request locally keeps each screen correct
+  // regardless of navigation/transition timing (mirrors CategoryPickerScreen).
+  Future<void> _fetchCategories() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final result = await _apiService.fetchCategories(serviceUid: _service!.id);
+      if (!mounted) return;
+      setState(() => _categories = result);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = friendlyErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final service = _service!;
     final style = styleForServiceName(service.name, 0);
-    final categoryProvider = context.watch<CategoryProvider>();
-    final categories = categoryProvider.categories;
+    final categories = _categories;
 
     return PopScope(
       canPop: widget.onClose == null,
@@ -138,15 +170,15 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                               style: TextStyle(fontSize: 14, color: Colors.black.withValues(alpha: 0.5)),
                             ),
                             Expanded(
-                              child: categoryProvider.isLoading
+                              child: _isLoading
                                   ? const Center(child: CircularProgressIndicator())
-                                  : categoryProvider.error != null
+                                  : _error != null
                                       ? EmptyStatePlaceholder(
                                           icon: Icons.wifi_off_rounded,
                                           color: Colors.red,
                                           title: 'Couldn\'t load services',
-                                          message: categoryProvider.error,
-                                          onRetry: () => categoryProvider.fetchCategories(serviceUid: service.id),
+                                          message: _error,
+                                          onRetry: _fetchCategories,
                                         )
                                       : categories.isEmpty
                                           ? EmptyStatePlaceholder(
@@ -179,7 +211,9 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                                                             icon: getCategoryIcon(category.name),
                                                             color: style.color,
                                                             available: true,
-                                                            onTap: () {
+                                                            onTap: () async {
+                                                              if (!await ensureLoggedIn(context)) return;
+                                                              if (!context.mounted) return;
                                                               Navigator.of(context).pushNamed(
                                                                 ServiceRequestFormScreen.routeName,
                                                                 arguments: ServiceRequestFormArgs(category: category, color: style.color),

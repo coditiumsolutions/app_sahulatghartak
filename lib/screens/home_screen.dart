@@ -4,10 +4,11 @@ import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../providers/category_provider.dart';
 import '../providers/service_catalog_provider.dart';
-import '../providers/service_provider.dart';
 import '../utils/category_icons.dart';
+import '../utils/category_images.dart';
 import '../utils/service_catalog_style.dart';
 import '../utils/service_colors.dart';
+import '../utils/guest_guard.dart';
 import '../widgets/featured_services_carousel.dart';
 import '../widgets/main_category_card.dart';
 import 'service_request_form_screen.dart';
@@ -135,11 +136,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _suggestionsOverlay = null;
   }
 
-  void _onSuggestionTap(Category category) {
+  Future<void> _onSuggestionTap(Category category) async {
     _searchFocusNode.unfocus();
     _removeSuggestionsOverlay();
     _searchController.text = category.name;
     setState(() => _searchQuery = category.name);
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
     final color = styleForServiceName(category.serviceName, 0).color;
     Navigator.of(context).pushNamed(
       ServiceRequestFormScreen.routeName,
@@ -152,9 +155,29 @@ class _HomeScreenState extends State<HomeScreen> {
     _onQueryChanged('');
   }
 
+  /// Picks the carousel's categories, preferring ones with a real photo
+  /// (via [getCategoryImage]) over icon-only ones so a photographed category
+  /// (e.g. Electrician) isn't bumped out by an icon-only one (e.g. Aluminum)
+  /// that merely appears earlier in the backend list.
+  List<Category> _featuredCategories(List<Category> categories) {
+    final withImage = categories.where((c) => getCategoryImage(c.name) != null);
+    final withoutImage = categories.where((c) => getCategoryImage(c.name) == null);
+    return [...withImage, ...withoutImage].take(4).toList();
+  }
+
+  Future<void> _onFeaturedCategoryTap(Category category) async {
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
+    final color = styleForServiceName(category.serviceName, 0).color;
+    Navigator.of(context).pushNamed(
+      ServiceRequestFormScreen.routeName,
+      arguments: ServiceRequestFormArgs(category: category, color: color),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final services = context.watch<ServiceProvider>().services;
+    final categories = context.watch<CategoryProvider>().categories;
     final catalogProvider = context.watch<ServiceCatalogProvider>();
     final catalogServices = catalogProvider.services;
 
@@ -213,7 +236,11 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             const _SectionHeader(title: 'Featured Services'),
             const SizedBox(height: 12),
-            FeaturedServicesCarousel(services: services.take(4).toList(), cardColors: serviceCardColors),
+            FeaturedServicesCarousel(
+              categories: _featuredCategories(categories),
+              cardColors: serviceCardColors,
+              onTapCategory: _onFeaturedCategoryTap,
+            ),
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Customer Reviews'),
             const SizedBox(height: 12),

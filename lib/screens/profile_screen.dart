@@ -12,8 +12,10 @@ import '../widgets/curved_profile_header.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/message_dialog.dart';
 import 'add_address_screen.dart';
+import 'customer_registration_screen.dart';
 import 'edit_profile_screen.dart';
 import 'landing_screen.dart';
+import 'login_screen.dart';
 import 'provider_dashboard_screen.dart';
 import 'provider_registration_screen.dart';
 
@@ -123,7 +125,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final addressState = context.watch<ClientAddressProvider>();
 
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Not logged in')));
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F7FB),
+        bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(currentIndex: 2),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(color: _brandBlue.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.person_outline_rounded, size: 36, color: _brandBlue),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'You\'re browsing as a guest',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF14213D)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Log in or create an account to save addresses, request services, and track your bookings.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.5, color: Colors.grey[600], height: 1.4),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _brandBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
+                      child: const Text('Log In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _brandBlue,
+                        side: BorderSide(color: _brandBlue.withValues(alpha: 0.4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () => Navigator.of(context).pushNamed(CustomerRegistrationScreen.routeName),
+                      child: const Text('Create Account', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return Scaffold(

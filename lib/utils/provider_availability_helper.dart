@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/provider_dashboard_provider.dart';
+import 'platform_date_picker.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
 const _brandBlue = Color(0xFF016EE3);
@@ -91,7 +92,7 @@ Future<List<String>?> _promptAvailabilityTiming(BuildContext context, ProviderDa
                         label: 'Available From',
                         time: start.format(dialogContext),
                         onTap: () async {
-                          final picked = await showTimePicker(context: dialogContext, initialTime: start);
+                          final picked = await showPlatformTimePicker(dialogContext, initialTime: start);
                           if (picked != null) setDialogState(() => start = picked);
                         },
                       ),
@@ -101,7 +102,7 @@ Future<List<String>?> _promptAvailabilityTiming(BuildContext context, ProviderDa
                         label: 'Available To',
                         time: end.format(dialogContext),
                         onTap: () async {
-                          final picked = await showTimePicker(context: dialogContext, initialTime: end);
+                          final picked = await showPlatformTimePicker(dialogContext, initialTime: end);
                           if (picked != null) setDialogState(() => end = picked);
                         },
                       ),

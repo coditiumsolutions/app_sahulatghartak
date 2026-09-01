@@ -8,16 +8,23 @@ enum MessageDialogType { success, error, info }
 
 /// A branded, must-acknowledge dialog for flow-outcome messages (e.g. "Account
 /// not found", "Password reset successfully.") that are too easy to miss as a
-/// [SnackBar]. Visually matches [showConfirmDialog] but resolves only when the
-/// user taps the single action button (`barrierDismissible: false`), so callers
-/// can safely `await` it before navigating.
-Future<void> showMessageDialog(
+/// [SnackBar]. Visually matches [showConfirmDialog].
+///
+/// When [secondaryButtonLabel] is omitted, the dialog can only be dismissed
+/// via the single primary button (`barrierDismissible: false`), so callers
+/// can safely `await` it before navigating. When [secondaryButtonLabel] is
+/// provided, the dialog also gets a dismiss-only action (and becomes
+/// barrier-dismissible) so users aren't forced down the primary path — the
+/// returned future resolves `true` if the primary button was tapped, `false`
+/// if the user dismissed it instead.
+Future<bool> showMessageDialog(
   BuildContext context, {
   required String title,
   required String message,
   MessageDialogType type = MessageDialogType.info,
   String buttonLabel = 'OK',
-}) {
+  String? secondaryButtonLabel,
+}) async {
   Color color;
   IconData icon;
   switch (type) {
@@ -35,9 +42,9 @@ Future<void> showMessageDialog(
       break;
   }
 
-  return showDialog<void>(
+  final result = await showDialog<bool>(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: secondaryButtonLabel != null,
     builder: (dialogContext) => Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 32),
@@ -83,14 +90,20 @@ Future<void> showMessageDialog(
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
                   child: Text(buttonLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
+              if (secondaryButtonLabel != null)
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(secondaryButtonLabel, style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[600])),
+                ),
             ],
           ),
         ),
       ),
     ),
   );
+  return result ?? false;
 }

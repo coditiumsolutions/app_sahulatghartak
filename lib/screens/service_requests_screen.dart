@@ -12,6 +12,7 @@ import '../widgets/bottom_nav.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/empty_state_placeholder.dart';
 import '../widgets/reason_dialog.dart';
+import 'login_screen.dart';
 import 'request_detail_screen.dart';
 
 class ServiceRequestsScreen extends StatefulWidget {
@@ -112,17 +113,27 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthProvider>().isLoggedIn;
     final requestState = context.watch<CustomerServiceRequestProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(128),
-        child: _RequestsBanner(count: requestState.requests.length),
+        child: _RequestsBanner(count: isLoggedIn ? requestState.requests.length : 0),
       ),
       bottomNavigationBar:
           widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
-      body: RefreshIndicator(
+      body: !isLoggedIn
+          ? EmptyStatePlaceholder(
+              icon: Icons.lock_outline_rounded,
+              color: kPrimaryColor,
+              title: 'Log in to see your requests',
+              message: 'Create an account or log in to submit and track service requests.',
+              retryLabel: 'Log In',
+              onRetry: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
+            )
+          : RefreshIndicator(
         onRefresh: () async => _loadRequests(),
         child: requestState.loading
             ? const Center(child: CircularProgressIndicator())

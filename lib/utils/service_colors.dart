@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Shared palette used to give each service a stable, distinct accent color
-/// (e.g. on the featured carousel and the service detail Hero) when no
+/// Shared palette used to give each card a stable, distinct accent color
+/// (e.g. on the home screen's featured categories carousel) when no
 /// specific category color is available.
 const List<Color> serviceCardColors = [
   Color(0xFFFF6B6B),
@@ -13,6 +13,3 @@ const List<Color> serviceCardColors = [
   Color(0xFFBB8FCE),
   Color(0xFF85C1E2),
 ];
-
-/// Deterministic color for a given service id, stable across screens.
-Color colorForServiceId(int id) => serviceCardColors[id % serviceCardColors.length];
