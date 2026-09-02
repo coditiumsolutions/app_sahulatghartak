@@ -20,6 +20,22 @@ List available devices with `flutter devices`. In this environment that typicall
 
 Prefer `r` (hot reload) / `R` (hot restart) on an already-running `flutter run` session over killing and relaunching the app — it's much faster for iterating on UI changes. Only do a full relaunch after a genuine disconnect (e.g. "Lost connection to device", an app crash, or after `adb shell pm clear` on the package, which kills the running process).
 
+## WSL environment notes
+
+This repo lives on the Windows filesystem (`D:\Ry Work [D]\...`) and is normally edited/built from Windows tooling (Android Studio, VS Code, etc.) with `core.autocrlf=true`. WSL's own git previously didn't see that setting, so WSL-side `git diff`/`git status` used to show every tracked file as modified (a CRLF-vs-LF false alarm). **Fixed** by setting `core.autocrlf=true` globally in WSL's own git config too, so both sides agree on line-ending handling — plain `git status`/`git diff`/`git add`/`git commit` from WSL Bash are safe to use directly now.
+
+WSL still can't run `flutter`/`dart` directly — the SDK at `/mnt/d/ryDevelop/flutter` is a Windows-targeted install whose wrapper scripts (`bin/flutter`, `bin/dart`) have CRLF line endings and break under WSL bash, and there's no cached Linux dart-sdk to fall back to. For any `flutter`/`dart` command (`analyze`, `test`, `build`, `pub get`, `run`, etc.), use `powershell.exe` from WSL Bash, which reaches the Windows-native Flutter SDK:
+
+```bash
+powershell.exe -NoProfile -Command "Set-Location -LiteralPath 'D:\Ry Work [D]\Bahria Town\SahulatGharTak App\Flutter App'; flutter analyze lib"
+```
+
+- **Always use `-LiteralPath`, never plain `cd`/`Set-Location <path>`** — the `[D]` in the folder name is treated as a wildcard glob by PowerShell's path resolution and fails to resolve with a bare path argument. This fails *silently*: PowerShell prints an error but keeps going and runs the next command from the wrong directory, so a skipped `-LiteralPath` can look like a successful run against the wrong tree.
+- The locally-running ASP.NET Core API (`https://localhost:7265/api` — see Backend Setup below) is also only reachable from the Windows side, not WSL bash — WSL2 is a separate network namespace, so `curl`/plain `http` calls to it from WSL fail with connection refused even though the API is genuinely running and the Android emulator target (`https://10.0.2.2:7265/api`) works fine. Use `powershell.exe -NoProfile -Command "Invoke-RestMethod -Uri '...' ..."` instead when testing endpoints directly from a shell.
+- For a git commit message with a body (or any `$`/backtick-containing text), don't pass it inline via `powershell.exe -Command` from bash — bash's own `$()`/backtick expansion mangles it before PowerShell ever sees it, and `git commit` still exits 0 with the corrupted message, so the failure is silent. Prefer plain bash `git commit -m "..." -m "..."` now that WSL/Windows git agree (see above); only reach for a PowerShell here-string (`@'...'@`, written to a temp `.ps1` and run with `-File`) if a PowerShell-specific git operation is unavoidable, and verify with `git log -1 --pretty=%B` afterward.
+- Windows PowerShell 5.1 is what's installed (no `pwsh.exe`/PS7) — e.g. `Invoke-RestMethod -SkipCertificateCheck` isn't available; use the classic `ServerCertificateValidationCallback` override to bypass the local dev HTTPS cert instead.
+- A detached long-running process (e.g. `flutter run` left running in the background) must use `Start-Process -PassThru -WindowStyle Hidden`, not `Start-Job` — jobs die when the launching `powershell.exe -Command`/`-File` process exits after each shell call.
+
 ## Backend Setup (required for any live testing)
 
 This app is **not** offline/mocked for its core flows — most screens hit a real backend. To run and manually test features end-to-end you need the ASP.NET Core API running.
