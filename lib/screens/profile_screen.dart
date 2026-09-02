@@ -398,7 +398,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton.icon(
                   style: kProminentFilledButtonStyle(_brandBlue),
                   icon: const Icon(Icons.swap_horiz_rounded),
-                  onPressed: () => Navigator.of(context).pushNamed(ProviderDashboardScreen.routeName),
+                  // pushReplacementNamed, not pushNamed: swapping dashboards
+                  // should never leave a stale customer-dashboard instance
+                  // underneath to pop back into (it wouldn't refresh itself
+                  // on return). Switching back uses the mirrored button on
+                  // the provider side, which rebuilds this screen fresh.
+                  onPressed: () => Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName),
                   label: const Text('Switch to Provider'),
                 )
               else

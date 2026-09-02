@@ -42,11 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       final role = authProvider.role;
-      if (role == 'Provider') {
-        Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
-      } else {
-        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-      }
+      // Clear the whole stack (Landing + Login) instead of just replacing
+      // Login — otherwise LandingScreen remains underneath and a back-press
+      // from the dashboard drops the user onto what looks like a logged-out
+      // screen, even though the session is still active.
+      final target = role == 'Provider' ? ProviderDashboardScreen.routeName : HomeScreen.routeName;
+      Navigator.of(context).pushNamedAndRemoveUntil(target, (route) => false);
     } else {
       await showMessageDialog(
         context,

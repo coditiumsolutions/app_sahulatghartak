@@ -281,7 +281,11 @@ class _ProfileTabState extends State<ProfileTab> {
                 style: kProminentOutlinedButtonStyle(providerBrandBlue),
                 icon: const Icon(Icons.swap_horiz_rounded),
                 label: const Text('Customers Dashboard'),
-                onPressed: () => Navigator.of(context).pushNamed(HomeScreen.routeName),
+                // pushReplacementNamed: don't leave the provider dashboard
+                // on the stack to pop back into with stale data — switching
+                // back the other way uses the mirrored "Switch to Provider"
+                // button, which rebuilds it fresh.
+                onPressed: () => Navigator.of(context).pushReplacementNamed(HomeScreen.routeName),
               ),
             ),
             const SizedBox(height: 12),
