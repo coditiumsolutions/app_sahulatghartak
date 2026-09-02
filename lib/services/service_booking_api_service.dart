@@ -14,6 +14,16 @@ class ServiceBookingApiService {
     return data.map((item) => ServiceBooking.fromJson(item as Map<String, dynamic>)).toList();
   }
 
+  Future<ServiceBooking> fetchById(int bookingUid, {int? providerUid}) async {
+    final uri = Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid').replace(
+      queryParameters: providerUid != null ? {'providerUid': '$providerUid'} : null,
+    );
+    final response = await http.get(uri).timeout(kApiTimeout);
+
+    final json = _decode(response, 'Failed to load booking');
+    return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
   Future<ServiceBooking> updateBooking({
     required int bookingUid,
     required int providerUid,
@@ -70,6 +80,20 @@ class ServiceBookingApiService {
     ).timeout(kApiTimeout);
 
     final json = _decode(response, accept ? 'Failed to accept booking' : 'Failed to reject booking');
+    return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<ServiceBooking> startJob({
+    required int bookingUid,
+    required int providerUid,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$kApiBaseUrl/service-bookings/$bookingUid/start'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'providerUid': providerUid}),
+    ).timeout(kApiTimeout);
+
+    final json = _decode(response, 'Failed to start job');
     return ServiceBooking.fromJson(json['data'] as Map<String, dynamic>);
   }
 

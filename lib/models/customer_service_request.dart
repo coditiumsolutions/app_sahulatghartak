@@ -15,6 +15,15 @@ class CustomerServiceRequest {
   final String contactNo;
   final double estimatedBudget;
   final String status;
+
+  /// Computed, read-only progress-bar stage from the API — one of
+  /// [kRequestStatusSteps]'s values, or `null` when the request/its booking
+  /// is Cancelled. Never derive UI progress from [status] directly; the
+  /// backend keeps `status` coarse (Pending/Assigned/Completed/Cancelled)
+  /// while this field reflects the real granular booking state. See
+  /// docs/status-workflow.md.
+  final String? progressStatus;
+
   final String? remarks;
   final String? cancelReason;
   final DateTime createdOn;
@@ -42,6 +51,7 @@ class CustomerServiceRequest {
     required this.contactNo,
     required this.estimatedBudget,
     required this.status,
+    this.progressStatus,
     this.remarks,
     this.cancelReason,
     required this.createdOn,
@@ -71,6 +81,7 @@ class CustomerServiceRequest {
       contactNo: json['contactNo'] as String? ?? '',
       estimatedBudget: (json['estimatedBudget'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? 'Pending',
+      progressStatus: json['progressStatus'] as String?,
       remarks: json['remarks'] as String?,
       cancelReason: json['cancelReason'] as String?,
       createdOn: json['createdOn'] != null ? DateTime.parse(json['createdOn'] as String) : DateTime.now(),

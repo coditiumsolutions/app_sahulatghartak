@@ -8,10 +8,13 @@ import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/constants.dart';
 import '../utils/cancel_reasons.dart';
+import '../utils/status_progress.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/empty_state_placeholder.dart';
 import '../widgets/reason_dialog.dart';
+import '../widgets/status_filter_tabs.dart';
+import '../widgets/status_progress_bar.dart';
 import 'login_screen.dart';
 import 'request_detail_screen.dart';
 
@@ -29,11 +32,20 @@ class ServiceRequestsScreen extends StatefulWidget {
 }
 
 class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
+  int _selectedTab = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadRequests());
   }
+
+  /// A request is "Completed"/"Cancelled" per its computed `progressStatus`
+  /// (null means cancelled — see docs/status-workflow.md); everything else
+  /// (Requested/Assigned/In Progress) is "Active".
+  bool _isCompletedReq(CustomerServiceRequest r) => r.progressStatus == 'Completed';
+  bool _isCancelledReq(CustomerServiceRequest r) => r.progressStatus == null;
+  bool _isActiveReq(CustomerServiceRequest r) => !_isCompletedReq(r) && !_isCancelledReq(r);
 
   void _loadRequests() {
     final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
@@ -49,14 +61,19 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
 
   bool _canCancel(String status) => status.toLowerCase() == 'pending';
 
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
+  /// Keyed on [CustomerServiceRequest.progressStatus] (or `'Cancelled'` when
+  /// null) — not [CustomerServiceRequest.status], which stays coarse
+  /// server-side. See docs/status-workflow.md.
+  Color _statusColor(String displayStatus) {
+    switch (displayStatus) {
+      case 'Completed':
         return Colors.green;
-      case 'cancelled':
+      case 'Cancelled':
         return Colors.red;
-      case 'inprogress':
+      case 'In Progress':
         return Colors.blue;
+      case 'Assigned':
+        return Colors.deepPurple;
       default:
         return Colors.orange;
     }
@@ -133,62 +150,94 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
               retryLabel: 'Log In',
               onRetry: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
             )
-          : RefreshIndicator(
-        onRefresh: () async => _loadRequests(),
-        child: requestState.loading
-            ? const Center(child: CircularProgressIndicator())
-            : requestState.error != null
-                ? EmptyStatePlaceholder(
-                    icon: Icons.wifi_off_rounded,
-                    color: Colors.red,
-                    title: 'Couldn\'t load requests',
-                    message: requestState.error,
-                    onRetry: _loadRequests,
-                  )
-                : requestState.requests.isEmpty
-                    ? const EmptyStatePlaceholder(
-                        icon: Icons.receipt_long_rounded,
-                        color: kPrimaryColor,
-                        title: 'No service requests yet',
-                        message: 'Requests you submit will show up here so you can track their status.',
-                      )
-                    : ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                        itemCount: requestState.requests.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final request = requestState.requests[index];
-                          final deleting =
-                              requestState.deletingUid == request.uid;
-                          final cancelling =
-                              requestState.cancellingUid == request.uid;
+          : Builder(builder: (context) {
+              final active = requestState.requests.where(_isActiveReq).toList();
+              final completed = requestState.requests.where(_isCompletedReq).toList();
+              final cancelled = requestState.requests.where(_isCancelledReq).toList();
+              final tabLists = [active, completed, cancelled];
+              final displayed = tabLists[_selectedTab];
+              const tabEmptyMessages = [
+                'Active requests you submit will show up here so you can track their status.',
+                'Requests you\'ve completed will show up here.',
+                'Requests you\'ve cancelled will show up here.',
+              ];
 
-                          return _RequestCard(
-                            request: request,
-                            statusColor: _statusColor(request.status),
-                            canCancel: _canCancel(request.status),
-                            canDelete: _canDelete(request.status),
-                            cancelling: cancelling,
-                            deleting: deleting,
-                            onCancel: () => _cancelRequest(request),
-                            onDelete: () => _deleteRequest(request),
-                          );
-                        },
-                      ),
-      ),
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                    child: StatusFilterTabs(
+                      labels: const ['Active', 'Completed', 'Cancelled'],
+                      counts: [active.length, completed.length, cancelled.length],
+                      selectedIndex: _selectedTab,
+                      activeColor: _brandBlue,
+                      onChanged: (i) => setState(() => _selectedTab = i),
+                    ),
+                  ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async => _loadRequests(),
+                      child: requestState.loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : requestState.error != null
+                              ? EmptyStatePlaceholder(
+                                  icon: Icons.wifi_off_rounded,
+                                  color: Colors.red,
+                                  title: 'Couldn\'t load requests',
+                                  message: requestState.error,
+                                  onRetry: _loadRequests,
+                                )
+                              : displayed.isEmpty
+                                  ? EmptyStatePlaceholder(
+                                      icon: Icons.receipt_long_rounded,
+                                      color: kPrimaryColor,
+                                      title: 'No ${const ['active', 'completed', 'cancelled'][_selectedTab]} requests',
+                                      message: tabEmptyMessages[_selectedTab],
+                                    )
+                                  : ListView.separated(
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                                      itemCount: displayed.length,
+                                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final request = displayed[index];
+                                        final deleting =
+                                            requestState.deletingUid == request.uid;
+                                        final cancelling =
+                                            requestState.cancellingUid == request.uid;
+
+                                        return _RequestCard(
+                                          request: request,
+                                          statusColor: _statusColor(request.progressStatus ?? 'Cancelled'),
+                                          canCancel: _canCancel(request.status),
+                                          canDelete: _canDelete(request.status),
+                                          cancelling: cancelling,
+                                          deleting: deleting,
+                                          onCancel: () => _cancelRequest(request),
+                                          onDelete: () => _deleteRequest(request),
+                                        );
+                                      },
+                                    ),
+                    ),
+                  ),
+                ],
+              );
+            }),
     );
   }
 }
 
-IconData _statusIcon(String status) {
-  switch (status.toLowerCase()) {
-    case 'completed':
+/// Keyed on `progressStatus` (or `'Cancelled'`) — see [_statusColor].
+IconData _statusIcon(String displayStatus) {
+  switch (displayStatus) {
+    case 'Completed':
       return Icons.check_circle_rounded;
-    case 'cancelled':
+    case 'Cancelled':
       return Icons.cancel_rounded;
-    case 'inprogress':
+    case 'In Progress':
       return Icons.sync_rounded;
+    case 'Assigned':
+      return Icons.person_pin_circle_rounded;
     default:
       return Icons.hourglass_top_rounded;
   }
@@ -225,6 +274,12 @@ class _RequestCard extends StatelessWidget {
     final normalized = request.status.toLowerCase();
     return normalized == 'completed' || normalized == 'cancelled';
   }
+
+  /// The granular, computed progress label (`'Requested'`/`'Assigned'`/
+  /// `'In Progress'`/`'Completed'`/`'Cancelled'`) — shown instead of the raw
+  /// (coarse) [CustomerServiceRequest.status] wherever the UI needs to
+  /// signal where the job actually stands. See docs/status-workflow.md.
+  String get _displayStatus => request.progressStatus ?? 'Cancelled';
 
   @override
   Widget build(BuildContext context) {
@@ -301,10 +356,10 @@ class _RequestCard extends StatelessWidget {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(_statusIcon(request.status),
+                                    Icon(_statusIcon(_displayStatus),
                                         size: 13, color: statusColor),
                                     const SizedBox(width: 4),
-                                    Text(request.status,
+                                    Text(_displayStatus,
                                         style: TextStyle(
                                             color: statusColor,
                                             fontWeight: FontWeight.w700,
@@ -379,6 +434,15 @@ class _RequestCard extends StatelessWidget {
                                 ],
                               ],
                             ),
+                          ),
+                          const SizedBox(height: 12),
+                          StatusProgressBar(
+                            steps: kRequestStatusSteps,
+                            currentStep: requestProgressStep(request.progressStatus),
+                            activeColor: statusColor,
+                            terminalLabel: isRequestCancelled(request.progressStatus) ? 'Cancelled' : null,
+                            terminalColor: Colors.red,
+                            compact: true,
                           ),
                           const SizedBox(height: 10),
                           Row(

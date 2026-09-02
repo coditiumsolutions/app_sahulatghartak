@@ -6,9 +6,12 @@ import '../../../models/provider/service_booking.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/provider_bookings_provider.dart';
 import '../../../utils/constants.dart';
+import '../../../utils/status_progress.dart';
 import '../../../widgets/provider/provider_tab_header.dart';
 import '../../../widgets/provider/status_chip.dart';
 import '../../../widgets/provider/tab_state_placeholder.dart';
+import '../../../widgets/status_filter_tabs.dart';
+import '../../../widgets/status_progress_bar.dart';
 import 'booking_detail_screen.dart';
 
 class BookingsTab extends StatefulWidget {
@@ -19,6 +22,8 @@ class BookingsTab extends StatefulWidget {
 }
 
 class _BookingsTabState extends State<BookingsTab> {
+  int _selectedTab = 0;
+
   @override
   void initState() {
     super.initState();
@@ -32,12 +37,26 @@ class _BookingsTabState extends State<BookingsTab> {
     }
   }
 
+  bool _isActiveBooking(ServiceBooking b) => b.status == 'Pending' || b.status == 'Accepted' || b.status == 'In Progress';
+  bool _isCompletedBooking(ServiceBooking b) => b.status == 'Completed' || b.status == 'Closed';
+  bool _isCancelledBooking(ServiceBooking b) => b.status == 'Cancelled';
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProviderBookingsProvider>();
     // Rejected bookings move to a separate read-only history screen instead
     // of cluttering the active bookings list.
     final bookings = provider.bookings.where((b) => !b.isRejected).toList();
+    final active = bookings.where(_isActiveBooking).toList();
+    final completed = bookings.where(_isCompletedBooking).toList();
+    final cancelled = bookings.where(_isCancelledBooking).toList();
+    final tabLists = [active, completed, cancelled];
+    final displayed = tabLists[_selectedTab];
+    const tabEmptyMessages = [
+      'Bookings appear here once you accept a service request from a customer.',
+      'Bookings you\'ve completed will show up here.',
+      'Bookings you\'ve cancelled will show up here.',
+    ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
@@ -68,15 +87,38 @@ class _BookingsTabState extends State<BookingsTab> {
                         message: 'Bookings appear here once you accept a service request from a customer.',
                       ),
                     )
-                  : RefreshIndicator(
-                      onRefresh: () async => _loadBookings(),
-                      child: ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
-                        itemCount: bookings.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) => _BookingCard(booking: bookings[index]),
-                      ),
+                  : Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                          child: StatusFilterTabs(
+                            labels: const ['Active', 'Completed', 'Cancelled'],
+                            counts: [active.length, completed.length, cancelled.length],
+                            selectedIndex: _selectedTab,
+                            activeColor: providerBrandBlue,
+                            onChanged: (i) => setState(() => _selectedTab = i),
+                          ),
+                        ),
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () async => _loadBookings(),
+                            child: displayed.isEmpty
+                                ? TabStatePlaceholder(
+                                    icon: Icons.work_outline_rounded,
+                                    color: kPrimaryColor,
+                                    title: 'No ${const ['active', 'completed', 'cancelled'][_selectedTab]} bookings',
+                                    message: tabEmptyMessages[_selectedTab],
+                                  )
+                                : ListView.separated(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                                    itemCount: displayed.length,
+                                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                    itemBuilder: (context, index) => _BookingCard(booking: displayed[index]),
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
     );
   }
@@ -190,6 +232,15 @@ class _BookingCard extends StatelessWidget {
                                 _InfoRow(icon: Icons.payments_rounded, text: 'Final Rs ${booking.finalAmount.toStringAsFixed(0)}'),
                               ],
                             ),
+                          ),
+                          const SizedBox(height: 12),
+                          StatusProgressBar(
+                            steps: kBookingStatusSteps,
+                            currentStep: bookingStatusStep(booking.status),
+                            activeColor: color,
+                            terminalLabel: isBookingStatusTerminal(booking.status) ? booking.status : null,
+                            terminalColor: Colors.red,
+                            compact: true,
                           ),
                           const SizedBox(height: 10),
                           StatusChip(label: booking.status, color: color),

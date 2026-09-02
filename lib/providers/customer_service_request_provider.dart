@@ -107,9 +107,18 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetches a single request fresh from the API and merges it into
+  /// [requests] (if present there), so any screen watching this provider —
+  /// not just the caller — sees the update immediately. Without this, a
+  /// detail screen's own pull-to-refresh would only ever update its local
+  /// copy, leaving the main list showing stale data until its own refresh.
   Future<CustomerServiceRequest> fetchRequestById(int requestUid) async {
     final request = await _apiService.fetchById(requestUid);
     _persistPasscode(request);
+    if (_requests.any((r) => r.uid == request.uid)) {
+      _requests = _requests.map((r) => r.uid == request.uid ? request : r).toList();
+      notifyListeners();
+    }
     return request;
   }
 

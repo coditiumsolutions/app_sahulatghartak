@@ -7,7 +7,9 @@ import '../../../models/provider/service_booking.dart';
 import '../../../providers/provider_bookings_provider.dart';
 import '../../../utils/cancel_reasons.dart';
 import '../../../utils/constants.dart';
+import '../../../utils/status_progress.dart';
 import '../../../widgets/reason_dialog.dart';
+import '../../../widgets/status_progress_bar.dart';
 import '../../../widgets/themed_dropdown.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
@@ -80,10 +82,30 @@ class BookingDetailScreen extends StatefulWidget {
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   bool _submitting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Background refresh, even though we already have widget.booking as a
+    // snapshot from the list — the list itself may be stale (loaded once,
+    // no polling). Merges into ProviderBookingsProvider.bookings on success,
+    // so this screen (via context.watch in build) and the list both pick it
+    // up. Best-effort: on failure we just keep showing the cached snapshot.
+    context.read<ProviderBookingsProvider>().fetchBookingById(widget.booking.uid, widget.booking.providerUid).catchError((_) => widget.booking);
+  }
+
+  /// The freshest known copy of this booking — from the shared provider
+  /// list if present there (kept current by every action below plus the
+  /// background refresh in [initState]), falling back to the snapshot this
+  /// screen was opened with (e.g. read-only/rejected bookings, which aren't
+  /// kept in the main list).
+  ServiceBooking get _currentBooking =>
+      context.read<ProviderBookingsProvider>().bookings.firstWhere((b) => b.uid == widget.booking.uid, orElse: () => widget.booking);
+
   Future<void> _submit(String status, {String? reason}) async {
     setState(() => _submitting = true);
     final provider = context.read<ProviderBookingsProvider>();
-    final success = await provider.updateStatus(widget.booking, status, customerPaid: widget.booking.customerPaid, reason: reason);
+    final booking = _currentBooking;
+    final success = await provider.updateStatus(booking, status, customerPaid: booking.customerPaid, reason: reason);
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -96,10 +118,26 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _startJob() async {
+    setState(() => _submitting = true);
+    final provider = context.read<ProviderBookingsProvider>();
+    final success = await provider.startJob(_currentBooking);
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final message = success ? 'Job started' : (provider.error ?? 'Failed to start job');
+    if (success) {
+      (widget.onClose ?? () => Navigator.of(context).maybePop())();
+    } else {
+      setState(() => _submitting = false);
+    }
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _respond(bool accept, {String? reason}) async {
     setState(() => _submitting = true);
     final provider = context.read<ProviderBookingsProvider>();
-    final success = await provider.respond(widget.booking, accept, reason: reason);
+    final success = await provider.respond(_currentBooking, accept, reason: reason);
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -116,7 +154,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     final reason = await showReasonDialog(
       context,
       title: 'Reject Booking',
-      message: 'Are you sure you want to reject this booking for "${widget.booking.requestTitle}"? This cannot be undone.',
+      message: 'Are you sure you want to reject this booking for "${_currentBooking.requestTitle}"? This cannot be undone.',
       confirmLabel: 'Yes, Reject',
       reasons: kProviderCancelReasons,
       icon: Icons.cancel_outlined,
@@ -130,7 +168,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     final reason = await showReasonDialog(
       context,
       title: 'Cancel Booking',
-      message: 'Are you sure you want to cancel this booking for "${widget.booking.requestTitle}"? This cannot be undone.',
+      message: 'Are you sure you want to cancel this booking for "${_currentBooking.requestTitle}"? This cannot be undone.',
       confirmLabel: 'Yes, Cancel',
       reasons: kProviderCancelReasons,
       icon: Icons.cancel_outlined,
@@ -144,7 +182,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     final provider = context.read<ProviderBookingsProvider>();
     final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => _CompletionDialog(booking: widget.booking, provider: provider),
+      builder: (dialogContext) => _CompletionDialog(booking: _currentBooking, provider: provider),
     );
     if (result == true && mounted) {
       (widget.onClose ?? () => Navigator.of(context).maybePop())();
@@ -153,8 +191,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final booking = widget.booking;
+    final booking = context.watch<ProviderBookingsProvider>().bookings.firstWhere((b) => b.uid == widget.booking.uid, orElse: () => widget.booking);
     final isPending = !widget.readOnly && booking.status == 'Pending';
+    final isAccepted = !widget.readOnly && booking.status == 'Accepted';
     final canComplete = !widget.readOnly && (booking.status == 'Accepted' || booking.status == 'In Progress');
 
     return PopScope(
@@ -173,6 +212,23 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: statusColor(booking.status).withValues(alpha: 0.35), width: 1.2),
+                      ),
+                      child: StatusProgressBar(
+                        steps: kBookingStatusSteps,
+                        currentStep: bookingStatusStep(booking.status),
+                        activeColor: statusColor(booking.status),
+                        terminalLabel: isBookingStatusTerminal(booking.status) ? '${booking.status} Booking' : null,
+                        terminalColor: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                     _SectionCard(
                       title: 'Client',
                       icon: Icons.person_rounded,
@@ -238,13 +294,26 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     _SectionCard(
                       title: 'Booking Info',
                       icon: Icons.info_outline_rounded,
+                      compact: true,
                       children: [
-                        _DetailRow(label: 'Booking ID', value: '#${booking.uid}', icon: Icons.tag_rounded),
-                        _DetailRow(label: 'Created On', value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.createdOn), icon: Icons.schedule_rounded),
+                        _DetailRow(label: 'Booking ID', value: '#${booking.uid}', icon: Icons.tag_rounded, compact: true),
+                        _DetailRow(
+                            label: 'Created On',
+                            value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.createdOn),
+                            icon: Icons.schedule_rounded,
+                            compact: true),
                         if (booking.acceptedOn != null)
-                          _DetailRow(label: 'Accepted On', value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.acceptedOn!), icon: Icons.thumb_up_rounded),
+                          _DetailRow(
+                              label: 'Accepted On',
+                              value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.acceptedOn!),
+                              icon: Icons.thumb_up_rounded,
+                              compact: true),
                         if (booking.completedOn != null)
-                          _DetailRow(label: 'Completed On', value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.completedOn!), icon: Icons.check_circle_rounded),
+                          _DetailRow(
+                              label: 'Completed On',
+                              value: DateFormat('dd MMM yyyy, hh:mm a').format(booking.completedOn!),
+                              icon: Icons.check_circle_rounded,
+                              compact: true),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -266,6 +335,29 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               child: _submitting
                                   ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                   : const Text('Accept'),
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (isAccepted)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: kProminentOutlinedButtonStyle(Colors.red),
+                              onPressed: _submitting ? null : _confirmCancel,
+                              child: const Text('Cancel Booking'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: kProminentFilledButtonStyle(kAccentColor),
+                              onPressed: _submitting ? null : _startJob,
+                              icon: _submitting
+                                  ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Icon(Icons.play_arrow_rounded, size: 18),
+                              label: Text(_submitting ? 'Starting…' : 'Start Job'),
                             ),
                           ),
                         ],
@@ -400,8 +492,9 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
+  final bool compact;
 
-  const _SectionCard({required this.title, required this.icon, required this.children});
+  const _SectionCard({required this.title, required this.icon, required this.children, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -412,19 +505,23 @@ class _SectionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
       ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      padding: EdgeInsets.fromLTRB(compact ? 14 : 16, compact ? 10 : 14, compact ? 14 : 16, compact ? 4 : 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 17, color: _brandBlue),
-              const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: Color(0xFF1A2233))),
+              Icon(icon, size: compact ? 14 : 17, color: compact ? Colors.grey[500] : _brandBlue),
+              SizedBox(width: compact ? 6 : 8),
+              Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: compact ? 12 : 14.5,
+                      color: compact ? Colors.grey[600] : const Color(0xFF1A2233))),
             ],
           ),
-          const SizedBox(height: 6),
-          const Divider(height: 14),
+          SizedBox(height: compact ? 4 : 6),
+          Divider(height: compact ? 10 : 14),
           ...children,
         ],
       ),
@@ -438,36 +535,38 @@ class _DetailRow extends StatelessWidget {
   final Widget? valueWidget;
   final IconData icon;
   final bool muted;
+  final bool compact;
 
-  const _DetailRow({required this.label, this.value, this.valueWidget, required this.icon, this.muted = false});
+  const _DetailRow({required this.label, this.value, this.valueWidget, required this.icon, this.muted = false, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
+    final boxSize = compact ? 22.0 : 30.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: compact ? 5 : 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: boxSize,
+            height: boxSize,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: const Color(0xFFF6F8FC), borderRadius: BorderRadius.circular(9)),
-            child: Icon(icon, size: 15, color: kPrimaryColor),
+            decoration: BoxDecoration(color: const Color(0xFFF6F8FC), borderRadius: BorderRadius.circular(compact ? 6 : 9)),
+            child: Icon(icon, size: compact ? 11 : 15, color: kPrimaryColor),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 11.5, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
+                Text(label, style: TextStyle(color: Colors.grey[500], fontSize: compact ? 10 : 11.5, fontWeight: FontWeight.w600)),
+                SizedBox(height: compact ? 1 : 2),
                 valueWidget ??
                     Text(
                       value ?? '',
                       style: TextStyle(
                         color: muted ? Colors.grey[400] : const Color(0xFF1A2233),
-                        fontSize: 14,
+                        fontSize: compact ? 12 : 14,
                         fontWeight: FontWeight.w600,
                         fontStyle: muted ? FontStyle.italic : FontStyle.normal,
                       ),
@@ -515,8 +614,8 @@ class _CompletionDialogState extends State<_CompletionDialog> {
   Future<void> _submit() async {
     final passcode = _passcodeController.text.trim();
     final amount = double.tryParse(_amountController.text.trim());
-    if (passcode.isEmpty || amount == null) {
-      setState(() => _error = 'Enter a valid passcode and amount.');
+    if (passcode.isEmpty || amount == null || amount <= 0) {
+      setState(() => _error = 'Enter a valid passcode and an amount greater than 0 to close this job.');
       return;
     }
 
@@ -606,10 +705,13 @@ class _CompletionDialogState extends State<_CompletionDialog> {
                         keyboardType: TextInputType.number,
                         maxLength: 4,
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 4),
-                        decoration: _dialogFieldDecoration(hint: '••••'),
+                        decoration: _dialogFieldDecoration(
+                          hint: '••••',
+                          hintStyle: TextStyle(color: Colors.grey.shade300, fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 4),
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      const _FieldLabel(icon: Icons.payments_rounded, text: 'Amount collected (Rs)'),
+                      const _FieldLabel(icon: Icons.payments_rounded, text: 'Amount collected (Rs) *'),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _amountController,
@@ -685,9 +787,10 @@ class _CompletionDialogState extends State<_CompletionDialog> {
   }
 }
 
-InputDecoration _dialogFieldDecoration({String? hint}) {
+InputDecoration _dialogFieldDecoration({String? hint, TextStyle? hintStyle}) {
   return InputDecoration(
     hintText: hint,
+    hintStyle: hintStyle,
     isDense: true,
     filled: true,
     fillColor: const Color(0xFFF6F8FC),

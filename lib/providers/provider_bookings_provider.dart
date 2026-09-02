@@ -59,6 +59,20 @@ class ProviderBookingsProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetches a single booking fresh from the API and merges it into
+  /// [bookings] (if present there), so the list and any other open screen
+  /// watching this provider stay in sync — mirrors
+  /// `CustomerServiceRequestProvider.fetchRequestById`'s fix for the same
+  /// "detail page refreshed, list still stale" gap.
+  Future<ServiceBooking> fetchBookingById(int bookingUid, int providerUid) async {
+    final booking = await _apiService.fetchById(bookingUid, providerUid: providerUid);
+    if (_bookings.any((b) => b.uid == booking.uid)) {
+      _bookings = _bookings.map((b) => b.uid == booking.uid ? booking : b).toList();
+      notifyListeners();
+    }
+    return booking;
+  }
+
   Future<bool> respond(ServiceBooking booking, bool accept, {String? reason}) async {
     _updatingUid = booking.uid;
     _error = null;
@@ -75,6 +89,24 @@ class ProviderBookingsProvider extends ChangeNotifier {
       if (!accept && updated.isRejected) {
         await _rejectedStore.add(booking.providerUid, updated);
       }
+      return true;
+    } catch (e) {
+      _error = friendlyErrorMessage(e);
+      return false;
+    } finally {
+      _updatingUid = null;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> startJob(ServiceBooking booking) async {
+    _updatingUid = booking.uid;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updated = await _apiService.startJob(bookingUid: booking.uid, providerUid: booking.providerUid);
+      _bookings = _bookings.map((b) => b.uid == updated.uid ? updated : b).toList();
       return true;
     } catch (e) {
       _error = friendlyErrorMessage(e);

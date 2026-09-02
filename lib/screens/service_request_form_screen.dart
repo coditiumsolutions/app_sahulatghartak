@@ -55,6 +55,10 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   bool _isUrgent = false;
   bool _initialized = false;
 
+  String _ownContactPerson = '';
+  String _ownContactNo = '';
+  bool _useOwnContact = true;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -66,8 +70,10 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
     _accentColor = args.color;
 
     final user = context.read<AuthProvider>().currentUser;
-    _contactPersonController.text = user?.username ?? '';
-    _contactNoController.text = user?.mobileNo ?? '';
+    _ownContactPerson = user?.username ?? '';
+    _ownContactNo = user?.mobileNo ?? '';
+    _contactPersonController.text = _ownContactPerson;
+    _contactNoController.text = _ownContactNo;
 
     // didChangeDependencies() runs during the build phase, so calling these
     // synchronously here would notify listeners (via each provider's
@@ -115,6 +121,19 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
   }
 
   String _formatTime(TimeOfDay t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  void _toggleUseOwnContact(bool value) {
+    setState(() {
+      _useOwnContact = value;
+      if (value) {
+        _contactPersonController.text = _ownContactPerson;
+        _contactNoController.text = _ownContactNo;
+      } else {
+        _contactPersonController.clear();
+        _contactNoController.clear();
+      }
+    });
+  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -259,16 +278,44 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            authFieldLabel('Contact Person'),
+            authFieldLabel('On-site Contact'),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Who should the provider reach out to for this job?',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ),
+            Material(
+              type: MaterialType.card,
+              color: const Color(0xFFF5F5F7),
+              borderRadius: BorderRadius.circular(14),
+              clipBehavior: Clip.antiAlias,
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: const Text('Same as my account', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  _useOwnContact ? 'Provider will contact you: $_ownContactPerson, $_ownContactNo' : 'Enter a different contact below',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                value: _useOwnContact,
+                activeThumbColor: _accentColor,
+                onChanged: _toggleUseOwnContact,
+              ),
+            ),
+            const SizedBox(height: 14),
+            authFieldLabel('On-site Contact Person'),
             TextFormField(
               controller: _contactPersonController,
+              enabled: !_useOwnContact,
               decoration: authFieldDecoration(hint: 'Enter contact person name'),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
-            authFieldLabel('Contact Number'),
+            authFieldLabel('On-site Contact Number'),
             TextFormField(
               controller: _contactNoController,
+              enabled: !_useOwnContact,
               keyboardType: TextInputType.phone,
               decoration: authFieldDecoration(hint: 'Enter contact number'),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,

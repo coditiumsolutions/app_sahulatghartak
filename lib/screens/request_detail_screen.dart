@@ -8,34 +8,44 @@ import '../providers/customer_service_request_provider.dart';
 import '../utils/api_error.dart';
 import '../utils/cancel_reasons.dart';
 import '../utils/constants.dart';
+import '../utils/status_progress.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/reason_dialog.dart';
+import '../widgets/status_progress_bar.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
 const _brandBlue = Color(0xFF016EE3);
 const _brandAccent = Color(0xFF4FC3F7);
 
-Color _statusColor(String status) {
-  switch (status.toLowerCase()) {
-    case 'completed':
+/// Keyed on [CustomerServiceRequest.progressStatus] (pass
+/// `request.progressStatus ?? 'Cancelled'`) — not [CustomerServiceRequest.status],
+/// which stays coarse server-side. See docs/status-workflow.md.
+Color _statusColor(String displayStatus) {
+  switch (displayStatus) {
+    case 'Completed':
       return Colors.green;
-    case 'cancelled':
+    case 'Cancelled':
       return Colors.red;
-    case 'inprogress':
+    case 'In Progress':
       return Colors.blue;
+    case 'Assigned':
+      return Colors.deepPurple;
     default:
       return Colors.orange;
   }
 }
 
-IconData _statusIcon(String status) {
-  switch (status.toLowerCase()) {
-    case 'completed':
+/// Keyed on `progressStatus` (or `'Cancelled'`) — see [_statusColor].
+IconData _statusIcon(String displayStatus) {
+  switch (displayStatus) {
+    case 'Completed':
       return Icons.check_circle_rounded;
-    case 'cancelled':
+    case 'Cancelled':
       return Icons.cancel_rounded;
-    case 'inprogress':
+    case 'In Progress':
       return Icons.sync_rounded;
+    case 'Assigned':
+      return Icons.person_pin_circle_rounded;
     default:
       return Icons.hourglass_top_rounded;
   }
@@ -46,6 +56,26 @@ bool _canCancel(String status) => status.toLowerCase() == 'pending';
 bool _canDelete(String status) {
   final normalized = status.toLowerCase();
   return normalized == 'cancelled' || normalized == 'completed';
+}
+
+void _showEnlargedPhoto(BuildContext context, String imageUrl) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (_) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: InteractiveViewer(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(imageUrl, fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 Future<void> _callNumber(BuildContext context, String mobileNo) async {
@@ -87,9 +117,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   void initState() {
     super.initState();
     _request = widget.request;
-    if (_request == null) {
-      _fetch();
-    }
+    // Always fetch fresh in the background, even when opened with an
+    // already-known [widget.request] snapshot from the list — the list
+    // itself may be stale (loaded once, no polling), and this keeps the
+    // detail page from showing outdated status. Safe to call unconditionally:
+    // _loading only drives the full-screen loading state when _request is
+    // still null, so this is silent when a snapshot is already on screen.
+    _fetch();
   }
 
   Future<void> _fetch() async {
@@ -222,9 +256,27 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: _statusColor(request.progressStatus ?? 'Cancelled').withValues(alpha: 0.35), width: 1.2),
+                              ),
+                              child: StatusProgressBar(
+                                steps: kRequestStatusSteps,
+                                currentStep: requestProgressStep(request.progressStatus),
+                                activeColor: _statusColor(request.progressStatus ?? 'Cancelled'),
+                                terminalLabel: isRequestCancelled(request.progressStatus) ? 'Request Cancelled' : null,
+                                terminalColor: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
                             _SectionCard(
                               title: 'Service Details',
                               icon: Icons.build_rounded,
+                              accentColor: _brandBlue,
                               children: [
                                 _DetailRow(
                                     label: 'Category',
@@ -265,6 +317,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             _SectionCard(
                               title: 'Schedule & Location',
                               icon: Icons.event_note_rounded,
+                              accentColor: Colors.teal,
                               children: [
                                 _DetailRow(
                                   label: 'Preferred Date',
@@ -293,6 +346,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               _SectionCard(
                                 title: 'Provider Details',
                                 icon: Icons.engineering_rounded,
+                                accentColor: Colors.deepPurple,
                                 children: [
                                   if (request.providerName != null)
                                     _DetailRow(
@@ -300,15 +354,20 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                       icon: Icons.badge_rounded,
                                       valueWidget: Row(
                                         children: [
-                                          CircleAvatar(
-                                            radius: 16,
-                                            backgroundColor: const Color(0xFFF6F8FC),
-                                            backgroundImage: request.providerProfilePhotoPath != null
-                                                ? NetworkImage('$kApiFileBaseUrl/${request.providerProfilePhotoPath!}')
-                                                : null,
-                                            child: request.providerProfilePhotoPath == null
-                                                ? Icon(Icons.person_rounded, size: 18, color: kPrimaryColor)
-                                                : null,
+                                          GestureDetector(
+                                            onTap: request.providerProfilePhotoPath == null
+                                                ? null
+                                                : () => _showEnlargedPhoto(context, '$kApiFileBaseUrl/${request.providerProfilePhotoPath!}'),
+                                            child: CircleAvatar(
+                                              radius: 16,
+                                              backgroundColor: const Color(0xFFF6F8FC),
+                                              backgroundImage: request.providerProfilePhotoPath != null
+                                                  ? NetworkImage('$kApiFileBaseUrl/${request.providerProfilePhotoPath!}')
+                                                  : null,
+                                              child: request.providerProfilePhotoPath == null
+                                                  ? Icon(Icons.person_rounded, size: 18, color: kPrimaryColor)
+                                                  : null,
+                                            ),
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(
@@ -322,7 +381,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                     ),
                                   if (request.providerMobileNo != null)
                                     _DetailRow(
-                                      label: 'Contact Number',
+                                      label: 'Mobile No',
                                       icon: Icons.phone_rounded,
                                       valueWidget: Row(
                                         children: [
@@ -341,9 +400,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                         ],
                                       ),
                                     ),
-                                  _DetailRow(label: 'Provider ID', value: '#${request.providerUid}', icon: Icons.badge_outlined),
                                   if (request.providerCnic != null)
                                     _DetailRow(label: 'CNIC No', value: request.providerCnic!, icon: Icons.credit_card_rounded),
+                                  // Provider location intentionally omitted here until the location
+                                  // system is overhauled — there is no providerLocation field yet.
                                   const SizedBox(height: 4),
                                   SizedBox(
                                     width: double.infinity,
@@ -367,6 +427,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             _SectionCard(
                               title: 'Contact Information',
                               icon: Icons.person_rounded,
+                              accentColor: Colors.orange,
+                              subtitle: Text(
+                                'You entered this manually when submitting the request — it may differ from your account details.',
+                                style: TextStyle(fontSize: 11, color: Colors.grey[500], fontStyle: FontStyle.italic, height: 1.3),
+                              ),
                               children: [
                                 _DetailRow(
                                     label: 'Contact Person',
@@ -382,6 +447,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             _SectionCard(
                               title: 'Budget & Remarks',
                               icon: Icons.payments_rounded,
+                              accentColor: Colors.green,
                               children: [
                                 _DetailRow(
                                   label: 'Estimated Budget',
@@ -407,16 +473,20 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             _SectionCard(
                               title: 'Request Info',
                               icon: Icons.info_outline_rounded,
+                              accentColor: Colors.grey.shade400,
+                              compact: true,
                               children: [
                                 _DetailRow(
                                     label: 'Request ID',
                                     value: '#${request.uid}',
-                                    icon: Icons.tag_rounded),
+                                    icon: Icons.tag_rounded,
+                                    compact: true),
                                 _DetailRow(
                                   label: 'Requested On',
                                   value: DateFormat('dd MMM yyyy, hh:mm a')
                                       .format(request.createdOn),
                                   icon: Icons.schedule_rounded,
+                                  compact: true,
                                 ),
                               ],
                             ),
@@ -534,7 +604,8 @@ class _DetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _statusColor(request.status);
+    final displayStatus = request.progressStatus ?? 'Cancelled';
+    final statusColor = _statusColor(displayStatus);
 
     return SliverAppBar(
       pinned: true,
@@ -608,10 +679,10 @@ class _DetailHeader extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(_statusIcon(request.status),
+                                Icon(_statusIcon(displayStatus),
                                     size: 12, color: Colors.white),
                                 const SizedBox(width: 4),
-                                Text(request.status,
+                                Text(displayStatus,
                                     style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
@@ -639,13 +710,27 @@ class _DetailHeader extends StatelessWidget {
 
 /// A titled white card grouping related [_DetailRow]s — keeps room for more
 /// sections (e.g. assigned provider, timeline) to be appended later.
+///
+/// [accentColor] outlines the whole card and tints the header icon so
+/// sections are easy to tell apart at a glance. [compact] shrinks the
+/// title/icon and is used for lower-priority sections (e.g. Request Info)
+/// that don't need full emphasis.
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
+  final Color accentColor;
+  final bool compact;
+  final Widget? subtitle;
 
-  const _SectionCard(
-      {required this.title, required this.icon, required this.children});
+  const _SectionCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+    this.accentColor = _brandBlue,
+    this.compact = false,
+    this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -654,30 +739,29 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-              color: _brandDark.withValues(alpha: 0.06),
-              blurRadius: 18,
-              offset: const Offset(0, 6))
-        ],
+        border: Border.all(color: accentColor.withValues(alpha: 0.55), width: 1.2),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      padding: EdgeInsets.fromLTRB(compact ? 14 : 16, compact ? 10 : 14, compact ? 14 : 16, compact ? 4 : 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 17, color: _brandBlue),
-              const SizedBox(width: 8),
+              Icon(icon, size: compact ? 14 : 17, color: accentColor),
+              SizedBox(width: compact ? 6 : 8),
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 14.5,
-                      color: Color(0xFF1A2233))),
+                      fontSize: compact ? 12 : 14.5,
+                      color: compact ? Colors.grey[600] : const Color(0xFF1A2233))),
             ],
           ),
-          const SizedBox(height: 6),
-          const Divider(height: 14),
+          if (subtitle != null) ...[
+            const SizedBox(height: 3),
+            subtitle!,
+          ],
+          SizedBox(height: compact ? 4 : 6),
+          Divider(height: compact ? 10 : 14),
           ...children,
         ],
       ),
@@ -691,31 +775,34 @@ class _DetailRow extends StatelessWidget {
   final Widget? valueWidget;
   final IconData icon;
   final bool muted;
+  final bool compact;
 
   const _DetailRow(
       {required this.label,
       this.value,
       this.valueWidget,
       required this.icon,
-      this.muted = false});
+      this.muted = false,
+      this.compact = false});
 
   @override
   Widget build(BuildContext context) {
+    final boxSize = compact ? 22.0 : 30.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: compact ? 5 : 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: boxSize,
+            height: boxSize,
             alignment: Alignment.center,
             decoration: BoxDecoration(
                 color: const Color(0xFFF6F8FC),
-                borderRadius: BorderRadius.circular(9)),
-            child: Icon(icon, size: 15, color: kPrimaryColor),
+                borderRadius: BorderRadius.circular(compact ? 6 : 9)),
+            child: Icon(icon, size: compact ? 11 : 15, color: kPrimaryColor),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,16 +810,16 @@ class _DetailRow extends StatelessWidget {
                 Text(label,
                     style: TextStyle(
                         color: Colors.grey[500],
-                        fontSize: 11.5,
+                        fontSize: compact ? 10 : 11.5,
                         fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
+                SizedBox(height: compact ? 1 : 2),
                 valueWidget ??
                     Text(
                       value ?? '',
                       style: TextStyle(
                         color:
                             muted ? Colors.grey[400] : const Color(0xFF1A2233),
-                        fontSize: 14,
+                        fontSize: compact ? 12 : 14,
                         fontWeight: FontWeight.w600,
                         fontStyle: muted ? FontStyle.italic : FontStyle.normal,
                       ),
