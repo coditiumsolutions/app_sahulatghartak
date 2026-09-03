@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../utils/category_icons.dart';
 import '../utils/category_images.dart';
+import '../utils/motion.dart';
 
 class FeaturedServicesCarousel extends StatefulWidget {
   final List<Category> categories;
@@ -124,8 +125,8 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
           children: List.generate(widget.categories.length, (index) {
             final active = index == _currentPage;
             return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
+              duration: kSlowAnimDuration,
+              curve: kStandardCurve,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: active ? 22 : 8,
               height: 8,

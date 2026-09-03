@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../utils/motion.dart';
+
 /// Gradient pill-dock bottom navigation for the provider dashboard's 5 tabs,
 /// matching the customer side's [AppBottomNavigation] visual language
 /// (brand gradient background, glowing pill behind the active icon).
@@ -116,8 +118,8 @@ class _ProviderNavItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
+                duration: kMediumAnimDuration,
+                curve: kEmphasizedCurve,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: selected ? accentColor.withValues(alpha: 0.18) : Colors.transparent,
@@ -133,7 +135,7 @@ class _ProviderNavItem extends StatelessWidget {
                       : null,
                 ),
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
+                  duration: kQuickAnimDuration,
                   transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
                   child: Icon(
                     selected ? icon : outlineIcon,
@@ -145,7 +147,7 @@ class _ProviderNavItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
+                duration: kQuickAnimDuration,
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

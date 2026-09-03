@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../utils/motion.dart';
 import 'home_screen.dart';
 import 'landing_screen.dart';
 import 'provider_dashboard_screen.dart';
@@ -73,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 8),
               Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
             ],
-          ).animate().fade().scale(),
+          ).animate().fade(duration: kSlowAnimDuration, curve: kStandardCurve).scale(duration: kSlowAnimDuration, curve: kStandardCurve),
         ),
       ),
     );

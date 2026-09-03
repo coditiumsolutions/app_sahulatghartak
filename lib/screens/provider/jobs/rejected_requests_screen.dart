@@ -74,10 +74,10 @@ class _RejectedCard extends StatelessWidget {
     return OpenContainer(
       closedElevation: 0,
       openElevation: 0,
-      closedColor: Colors.transparent,
+      closedColor: const Color(0xFFF4F7FB),
       openColor: const Color(0xFFF4F7FB),
       closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      transitionDuration: const Duration(milliseconds: 420),
+      transitionDuration: const Duration(milliseconds: 280),
       closedBuilder: (context, openContainer) {
         return Container(
           decoration: BoxDecoration(

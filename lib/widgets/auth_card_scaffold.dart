@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/constants.dart';
+import '../utils/motion.dart';
 
 /// Shared visual shell for auth screens (login/registration): a colored
 /// header with decorative circles, an avatar badge straddling a white
@@ -206,7 +207,8 @@ class _GenderOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: kQuickAnimDuration,
+        curve: kStandardCurve,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: selected ? kPrimaryColor : const Color(0xFFF5F5F7),

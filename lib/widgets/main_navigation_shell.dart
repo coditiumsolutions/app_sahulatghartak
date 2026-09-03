@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/service_requests_screen.dart';
+import '../utils/motion.dart';
 import 'bottom_nav.dart';
-
-const _tabTransitionDuration = Duration(milliseconds: 250);
 
 /// Hosts the three primary customer tabs (Home, Requests, Profile) behind a
 /// single [Scaffold] and bottom navigation bar, switching between them with
@@ -35,7 +34,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: _tabTransitionDuration,
+        duration: kMediumAnimDuration,
         switchInCurve: Curves.fastOutSlowIn,
         switchOutCurve: Curves.fastOutSlowIn,
         transitionBuilder: (child, animation) {

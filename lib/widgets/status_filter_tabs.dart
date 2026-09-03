@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/motion.dart';
+
 /// A 3-way segmented pill selector ("Active" / "Completed" / "Cancelled")
 /// used to split the customer requests and provider bookings lists instead
 /// of showing every status in one long scroll. Purely a client-side filter
@@ -37,8 +39,8 @@ class StatusFilterTabs extends StatelessWidget {
           return Stack(
             children: [
               AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
+                duration: kSlowAnimDuration,
+                curve: kEmphasizedCurve,
                 top: 0,
                 bottom: 0,
                 left: segmentWidth * selectedIndex,
@@ -63,8 +65,8 @@ class StatusFilterTabs extends StatelessWidget {
                       onTap: () => onChanged(i),
                       child: Center(
                         child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOut,
+                          duration: kMediumAnimDuration,
+                          curve: kStandardCurve,
                           style: TextStyle(
                             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                             fontSize: 12.5,

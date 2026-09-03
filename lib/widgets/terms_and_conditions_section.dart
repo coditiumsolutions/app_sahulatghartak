@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/constants.dart';
+import '../utils/motion.dart';
 
 class TermsAndConditionsSection extends StatefulWidget {
   final bool value;
@@ -49,7 +50,8 @@ class _TermsAndConditionsSectionState extends State<TermsAndConditionsSection> {
                     ),
                     AnimatedRotation(
                       turns: _expanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: kQuickAnimDuration,
+                      curve: kStandardCurve,
                       child: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
                     ),
                   ],
@@ -88,7 +90,8 @@ class _TermsAndConditionsSectionState extends State<TermsAndConditionsSection> {
                 ),
               ),
               crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
+              duration: kQuickAnimDuration,
+              sizeCurve: kStandardCurve,
             ),
             InkWell(
               borderRadius: BorderRadius.circular(14),

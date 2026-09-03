@@ -9,6 +9,7 @@ import '../utils/category_images.dart';
 import '../utils/service_catalog_style.dart';
 import '../utils/service_colors.dart';
 import '../utils/guest_guard.dart';
+import '../utils/motion.dart';
 import '../widgets/featured_services_carousel.dart';
 import '../widgets/main_category_card.dart';
 import 'service_request_form_screen.dart';
@@ -607,8 +608,8 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
         child: TweenAnimationBuilder<double>(
           key: ValueKey(matches.length),
           tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
+          duration: kQuickAnimDuration,
+          curve: kStandardCurve,
           builder: (context, t, child) {
             return Opacity(
               opacity: t,

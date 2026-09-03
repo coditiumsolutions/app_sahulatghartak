@@ -211,6 +211,7 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                                                             icon: getCategoryIcon(category.name),
                                                             color: style.color,
                                                             available: true,
+                                                            index: index,
                                                             onTap: () async {
                                                               if (!await ensureLoggedIn(context)) return;
                                                               if (!context.mounted) return;

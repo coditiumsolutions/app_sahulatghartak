@@ -11,6 +11,7 @@ class SubCategoryCard extends StatelessWidget {
   final Color color;
   final bool available;
   final VoidCallback onTap;
+  final int index;
 
   const SubCategoryCard({
     super.key,
@@ -19,6 +20,7 @@ class SubCategoryCard extends StatelessWidget {
     required this.color,
     required this.available,
     required this.onTap,
+    this.index = 0,
   });
 
   @override
@@ -28,6 +30,7 @@ class SubCategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Animate(
+        delay: Duration(milliseconds: 60 * index),
         effects: const [ScaleEffect(duration: Duration(milliseconds: 300)), FadeEffect()],
         child: AspectRatio(
           aspectRatio: 1,

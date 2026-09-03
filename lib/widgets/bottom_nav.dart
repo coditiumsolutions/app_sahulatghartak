@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../screens/service_requests_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
+import '../utils/motion.dart';
 
 class AppBottomNavigation extends StatelessWidget implements PreferredSizeWidget {
   final int currentIndex;
@@ -136,8 +137,8 @@ class _NavItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
+                duration: kMediumAnimDuration,
+                curve: kEmphasizedCurve,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
                 decoration: BoxDecoration(
                   color: selected ? accentColor.withValues(alpha: 0.18) : Colors.transparent,
@@ -153,7 +154,7 @@ class _NavItem extends StatelessWidget {
                       : null,
                 ),
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
+                  duration: kQuickAnimDuration,
                   transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
                   child: Icon(
                     selected ? icon : outlineIcon,
@@ -165,7 +166,7 @@ class _NavItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
+                duration: kQuickAnimDuration,
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
