@@ -31,7 +31,7 @@ class MainCategoryCard extends StatelessWidget {
           closedColor: const Color(0xFFF4F7FB),
           openColor: style.color,
           closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 380),
           closedBuilder: (context, openContainer) {
             return GestureDetector(
               onTap: openContainer,
