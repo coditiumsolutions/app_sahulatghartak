@@ -36,10 +36,11 @@ class StatusFilterTabs extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final segmentWidth = constraints.maxWidth / labels.length;
+          final reduceMotion = prefersReducedMotion(context);
           return Stack(
             children: [
               AnimatedPositioned(
-                duration: kSlowAnimDuration,
+                duration: reduceMotion ? Duration.zero : kMediumAnimDuration,
                 curve: kEmphasizedCurve,
                 top: 0,
                 bottom: 0,
@@ -65,7 +66,7 @@ class StatusFilterTabs extends StatelessWidget {
                       onTap: () => onChanged(i),
                       child: Center(
                         child: AnimatedDefaultTextStyle(
-                          duration: kMediumAnimDuration,
+                          duration: reduceMotion ? Duration.zero : kMediumAnimDuration,
                           curve: kStandardCurve,
                           style: TextStyle(
                             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,

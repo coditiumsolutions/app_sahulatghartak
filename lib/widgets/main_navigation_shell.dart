@@ -34,7 +34,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: kMediumAnimDuration,
+        duration: prefersReducedMotion(context) ? Duration.zero : kMediumAnimDuration,
         switchInCurve: Curves.fastOutSlowIn,
         switchOutCurve: Curves.fastOutSlowIn,
         transitionBuilder: (child, animation) {

@@ -46,6 +46,26 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(36),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 8))],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(36),
+            child: Image.asset('assets/icon/app_icon.png', width: 168, height: 168),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text('Sahulat Ghar Tak', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
+      ],
+    );
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -56,25 +76,9 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         ),
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(36),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 8))],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(36),
-                  child: Image.asset('assets/icon/app_icon.png', width: 168, height: 168),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('Sahulat Ghar Tak', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
-            ],
-          ).animate().fade(duration: kSlowAnimDuration, curve: kStandardCurve).scale(duration: kSlowAnimDuration, curve: kStandardCurve),
+          child: prefersReducedMotion(context)
+              ? content
+              : content.animate().fade(duration: kSlowAnimDuration, curve: kStandardCurve).scale(duration: kSlowAnimDuration, curve: kStandardCurve),
         ),
       ),
     );

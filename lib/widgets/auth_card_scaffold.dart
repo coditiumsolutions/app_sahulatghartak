@@ -207,7 +207,7 @@ class _GenderOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: kQuickAnimDuration,
+        duration: prefersReducedMotion(context) ? Duration.zero : kQuickAnimDuration,
         curve: kStandardCurve,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(

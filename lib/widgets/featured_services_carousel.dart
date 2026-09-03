@@ -22,15 +22,22 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
   final PageController _controller = PageController();
   Timer? _timer;
   int _currentPage = 0;
+  bool _reduceMotion = false;
 
   @override
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (widget.categories.isEmpty) return;
+      if (widget.categories.isEmpty || _reduceMotion) return;
       final nextPage = (_currentPage + 1) % widget.categories.length;
-      _controller.animateToPage(nextPage, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+      _controller.animateToPage(nextPage, duration: kSlowAnimDuration, curve: kEmphasizedCurve);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = prefersReducedMotion(context);
   }
 
   @override
@@ -125,7 +132,7 @@ class _FeaturedServicesCarouselState extends State<FeaturedServicesCarousel> {
           children: List.generate(widget.categories.length, (index) {
             final active = index == _currentPage;
             return AnimatedContainer(
-              duration: kSlowAnimDuration,
+              duration: _reduceMotion ? Duration.zero : kMediumAnimDuration,
               curve: kStandardCurve,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: active ? 22 : 8,

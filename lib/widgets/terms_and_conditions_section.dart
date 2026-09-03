@@ -28,6 +28,7 @@ class _TermsAndConditionsSectionState extends State<TermsAndConditionsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = prefersReducedMotion(context);
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F7),
@@ -50,7 +51,7 @@ class _TermsAndConditionsSectionState extends State<TermsAndConditionsSection> {
                     ),
                     AnimatedRotation(
                       turns: _expanded ? 0.5 : 0,
-                      duration: kQuickAnimDuration,
+                      duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
                       curve: kStandardCurve,
                       child: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
                     ),
@@ -90,7 +91,9 @@ class _TermsAndConditionsSectionState extends State<TermsAndConditionsSection> {
                 ),
               ),
               crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-              duration: kQuickAnimDuration,
+              duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
+              firstCurve: kStandardCurve,
+              secondCurve: kStandardCurve,
               sizeCurve: kStandardCurve,
             ),
             InkWell(

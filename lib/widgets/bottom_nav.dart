@@ -124,6 +124,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = prefersReducedMotion(context);
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -137,7 +138,7 @@ class _NavItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedContainer(
-                duration: kMediumAnimDuration,
+                duration: reduceMotion ? Duration.zero : kMediumAnimDuration,
                 curve: kEmphasizedCurve,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
                 decoration: BoxDecoration(
@@ -154,8 +155,11 @@ class _NavItem extends StatelessWidget {
                       : null,
                 ),
                 child: AnimatedSwitcher(
-                  duration: kQuickAnimDuration,
-                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                  duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
+                  transitionBuilder: (child, anim) => ScaleTransition(
+                    scale: Tween<double>(begin: 0.9, end: 1.0).animate(anim),
+                    child: FadeTransition(opacity: anim, child: child),
+                  ),
                   child: Icon(
                     selected ? icon : outlineIcon,
                     key: ValueKey<bool>(selected),
@@ -166,7 +170,7 @@ class _NavItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
-                duration: kQuickAnimDuration,
+                duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

@@ -105,6 +105,7 @@ class _ProviderNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = prefersReducedMotion(context);
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -118,7 +119,7 @@ class _ProviderNavItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedContainer(
-                duration: kMediumAnimDuration,
+                duration: reduceMotion ? Duration.zero : kMediumAnimDuration,
                 curve: kEmphasizedCurve,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -135,8 +136,11 @@ class _ProviderNavItem extends StatelessWidget {
                       : null,
                 ),
                 child: AnimatedSwitcher(
-                  duration: kQuickAnimDuration,
-                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                  duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
+                  transitionBuilder: (child, anim) => ScaleTransition(
+                    scale: Tween<double>(begin: 0.9, end: 1.0).animate(anim),
+                    child: FadeTransition(opacity: anim, child: child),
+                  ),
                   child: Icon(
                     selected ? icon : outlineIcon,
                     key: ValueKey<bool>(selected),
@@ -147,7 +151,7 @@ class _ProviderNavItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
-                duration: kQuickAnimDuration,
+                duration: reduceMotion ? Duration.zero : kQuickAnimDuration,
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

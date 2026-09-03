@@ -608,7 +608,7 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
         child: TweenAnimationBuilder<double>(
           key: ValueKey(matches.length),
           tween: Tween(begin: 0, end: 1),
-          duration: kQuickAnimDuration,
+          duration: prefersReducedMotion(context) ? Duration.zero : kQuickAnimDuration,
           curve: kStandardCurve,
           builder: (context, t, child) {
             return Opacity(
