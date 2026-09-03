@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/repositories/customer_service_request_repository.dart';
 import '../models/customer_service_request.dart';
-import '../services/customer_service_request_api_service.dart';
-import '../services/deleted_requests_store.dart';
-import '../services/request_passcode_store.dart';
 import '../utils/api_error.dart';
 
 class CustomerServiceRequestProvider extends ChangeNotifier {
-  final CustomerServiceRequestApiService _apiService = CustomerServiceRequestApiService();
-  final RequestPasscodeStore _passcodeStore = RequestPasscodeStore();
-  final DeletedRequestsStore _deletedStore = DeletedRequestsStore();
+  CustomerServiceRequestProvider({required CustomerServiceRequestRepository repository}) : _repository = repository;
+
+  final CustomerServiceRequestRepository _repository;
 
   int? _clientUid;
 
@@ -38,12 +36,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final fetched = await _apiService.fetchByClient(clientUid);
-      final hidden = await _deletedStore.load(clientUid);
-      _requests = fetched.where((r) => !hidden.contains(r.uid)).toList();
-      for (final request in _requests) {
-        _persistPasscode(request);
-      }
+      _requests = await _repository.fetchByClient(clientUid);
     } catch (e) {
       _error = friendlyErrorMessage(e);
     } finally {
@@ -52,16 +45,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     }
   }
 
-  void _persistPasscode(CustomerServiceRequest request) {
-    if (request.passcode != null) {
-      _passcodeStore.save(request.uid, request.passcode!);
-    }
-  }
-
-  /// Falls back to the on-device copy saved the last time this request's
-  /// passcode was received from the API — keeps "Show Passcode" working
-  /// even if the request is later refetched without a live connection.
-  Future<String?> getStoredPasscode(int requestUid) => _passcodeStore.load(requestUid);
+  Future<String?> getStoredPasscode(int requestUid) => _repository.getStoredPasscode(requestUid);
 
   Future<bool> createRequest({
     required int clientUid,
@@ -82,7 +66,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final created = await _apiService.create(
+      final created = await _repository.create(
         clientUid: clientUid,
         categoryUid: categoryUid,
         clientAddressUid: clientAddressUid,
@@ -107,14 +91,49 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     }
   }
 
+  CustomerServiceRequest? _selectedRequest;
+  CustomerServiceRequest? get selectedRequest => _selectedRequest;
+
+  bool _detailLoading = false;
+  bool get detailLoading => _detailLoading;
+
+  String? _detailError;
+  String? get detailError => _detailError;
+
+  /// Detail-screen selection state (architecture-audit.md §6 Task 7): fetches
+  /// [requestUid], exposes it via [selectedRequest] while also merging it
+  /// into [requests], so a future detail-screen split (Phase 3) can render
+  /// from this ViewModel alone instead of seeding itself from a
+  /// navigation-argument copy or keeping its own local `State`. Call
+  /// [clearSelection] from the screen's `dispose()`.
+  Future<void> selectRequest(int requestUid) async {
+    _detailLoading = true;
+    _detailError = null;
+    notifyListeners();
+
+    try {
+      _selectedRequest = await fetchRequestById(requestUid);
+    } catch (e) {
+      _detailError = friendlyErrorMessage(e);
+    } finally {
+      _detailLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void clearSelection() {
+    _selectedRequest = null;
+    _detailLoading = false;
+    _detailError = null;
+  }
+
   /// Fetches a single request fresh from the API and merges it into
   /// [requests] (if present there), so any screen watching this provider —
   /// not just the caller — sees the update immediately. Without this, a
   /// detail screen's own pull-to-refresh would only ever update its local
   /// copy, leaving the main list showing stale data until its own refresh.
   Future<CustomerServiceRequest> fetchRequestById(int requestUid) async {
-    final request = await _apiService.fetchById(requestUid);
-    _persistPasscode(request);
+    final request = await _repository.fetchById(requestUid);
     if (_requests.any((r) => r.uid == request.uid)) {
       _requests = _requests.map((r) => r.uid == request.uid ? request : r).toList();
       notifyListeners();
@@ -128,22 +147,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final updated = await _apiService.updateStatus(
-        requestUid: request.uid,
-        categoryUid: request.categoryUid,
-        clientAddressUid: request.clientAddressUid,
-        serviceTitle: request.serviceTitle,
-        serviceDescription: request.serviceDescription,
-        preferredServiceDate: request.preferredServiceDate,
-        preferredServiceTime: request.preferredServiceTime,
-        isUrgent: request.isUrgent,
-        contactPerson: request.contactPerson,
-        contactNo: request.contactNo,
-        status: 'Cancelled',
-        estimatedBudget: request.estimatedBudget,
-        remarks: request.remarks,
-        cancelReason: reason,
-      );
+      final updated = await _repository.cancel(request, reason: reason);
       _requests = _requests.map((r) => r.uid == updated.uid ? updated : r).toList();
       return true;
     } catch (e) {
@@ -162,7 +166,7 @@ class CustomerServiceRequestProvider extends ChangeNotifier {
 
     try {
       if (_clientUid != null) {
-        await _deletedStore.hide(_clientUid!, requestUid);
+        await _repository.hide(_clientUid!, requestUid);
       }
       _requests = _requests.where((r) => r.uid != requestUid).toList();
       return true;

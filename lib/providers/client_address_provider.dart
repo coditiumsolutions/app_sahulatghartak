@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/repositories/client_address_repository.dart';
 import '../models/client_address.dart';
-import '../services/client_address_api_service.dart';
 import '../utils/api_error.dart';
 
 class ClientAddressProvider extends ChangeNotifier {
-  final ClientAddressApiService _apiService = ClientAddressApiService();
+  ClientAddressProvider({required ClientAddressRepository repository}) : _repository = repository;
+
+  final ClientAddressRepository _repository;
 
   List<ClientAddress> _addresses = [];
   List<ClientAddress> get addresses => _addresses;
@@ -28,7 +30,7 @@ class ClientAddressProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _addresses = await _apiService.fetchByClient(clientUid);
+      _addresses = await _repository.fetchByClient(clientUid);
     } catch (e) {
       _error = friendlyErrorMessage(e);
     } finally {
@@ -51,7 +53,7 @@ class ClientAddressProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final created = await _apiService.create(
+      final created = await _repository.create(
         clientUid: clientUid,
         addressTitle: addressTitle,
         fullAddress: fullAddress,
@@ -86,7 +88,7 @@ class ClientAddressProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final updated = await _apiService.update(
+      final updated = await _repository.update(
         addressUid: addressUid,
         clientUid: clientUid,
         addressTitle: addressTitle,
@@ -113,7 +115,7 @@ class ClientAddressProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _apiService.delete(addressUid);
+      await _repository.delete(addressUid);
       _addresses = _addresses.where((a) => a.uid != addressUid).toList();
       return true;
     } catch (e) {

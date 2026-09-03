@@ -5,6 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'data/repositories/category_repository.dart';
+import 'data/repositories/client_address_repository.dart';
+import 'data/repositories/customer_service_request_repository.dart';
+import 'data/repositories/provider_bookings_repository.dart';
+import 'data/repositories/provider_dashboard_repository.dart';
+import 'data/repositories/provider_document_repository.dart';
+import 'data/repositories/provider_wallet_repository.dart';
+import 'data/repositories/service_catalog_repository.dart';
+import 'data/repositories/service_title_repository.dart';
 import 'providers/auth_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/service_title_provider.dart';
@@ -66,15 +75,15 @@ class SahulatApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceTitleProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceCatalogProvider()),
-        ChangeNotifierProvider(create: (_) => ProviderDashboardProvider()),
-        ChangeNotifierProvider(create: (_) => ProviderBookingsProvider()),
-        ChangeNotifierProvider(create: (_) => ClientAddressProvider()),
-        ChangeNotifierProvider(create: (_) => CustomerServiceRequestProvider()),
-        ChangeNotifierProvider(create: (_) => ProviderDocumentProvider()),
-        ChangeNotifierProvider(create: (_) => ProviderWalletProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider(repository: CategoryRepository())),
+        ChangeNotifierProvider(create: (_) => ServiceTitleProvider(repository: ServiceTitleRepository())),
+        ChangeNotifierProvider(create: (_) => ServiceCatalogProvider(repository: ServiceCatalogRepository())),
+        ChangeNotifierProvider(create: (_) => ProviderDashboardProvider(repository: ProviderDashboardRepository())),
+        ChangeNotifierProvider(create: (_) => ProviderBookingsProvider(repository: ProviderBookingsRepository())),
+        ChangeNotifierProvider(create: (_) => ClientAddressProvider(repository: ClientAddressRepository())),
+        ChangeNotifierProvider(create: (_) => CustomerServiceRequestProvider(repository: CustomerServiceRequestRepository())),
+        ChangeNotifierProvider(create: (_) => ProviderDocumentProvider(repository: ProviderDocumentRepository())),
+        ChangeNotifierProvider(create: (_) => ProviderWalletProvider(repository: ProviderWalletRepository())),
       ],
       child: MaterialApp(
         title: 'Sahulat Ghar Tak',

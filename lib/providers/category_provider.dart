@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/repositories/category_repository.dart';
 import '../models/category.dart';
-import '../services/category_api_service.dart';
 import '../utils/api_error.dart';
 
 /// Holds the app-wide, always-unscoped category list (used e.g. for the home
@@ -14,19 +14,19 @@ import '../utils/api_error.dart';
 /// concurrently-fetching screens caused categories from one service to
 /// briefly appear under another.
 class CategoryProvider extends ChangeNotifier {
-  final CategoryApiService _apiService = CategoryApiService();
-
-  List<Category> _categories = [];
-  bool _isLoading = false;
-  String? _error;
-
-  CategoryProvider() {
+  CategoryProvider({required CategoryRepository repository}) : _repository = repository {
     // Deferred: lazy ChangeNotifierProvider construction can happen mid-build
     // (first context.watch/read call), and notifyListeners() firing
     // synchronously from a constructor while a widget's build() is still on
     // the stack triggers "setState() called during build".
     scheduleMicrotask(fetchCategories);
   }
+
+  final CategoryRepository _repository;
+
+  List<Category> _categories = [];
+  bool _isLoading = false;
+  String? _error;
 
   List<Category> get categories => List.unmodifiable(_categories);
   bool get isLoading => _isLoading;
@@ -38,7 +38,7 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _categories = await _apiService.fetchCategories();
+      _categories = await _repository.fetchCategories();
     } catch (e) {
       _error = friendlyErrorMessage(e);
     } finally {

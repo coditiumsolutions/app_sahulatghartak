@@ -2,19 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
+import '../data/repositories/provider_document_repository.dart';
 import '../models/provider/provider_documents.dart';
-import '../services/provider_document_api_service.dart';
 import '../utils/api_error.dart';
-import '../utils/constants.dart';
 
 enum ProviderDocumentSlot { profilePhoto, cnicFront, cnicBack }
 
 class ProviderDocumentProvider extends ChangeNotifier {
-  final ProviderDocumentApiService _apiService = ProviderDocumentApiService();
+  ProviderDocumentProvider({required ProviderDocumentRepository repository}) : _repository = repository;
+
+  final ProviderDocumentRepository _repository;
   final ImagePicker _picker = ImagePicker();
 
   // Profile photo is a portrait selfie-style shot; CNIC images need a higher
@@ -74,10 +73,10 @@ class ProviderDocumentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final docs = await _apiService.fetchDocuments(providerUid);
-      _profilePhotoUrl = _resolveUrl(docs?.profilePhotoPath);
-      _cnicFrontUrl = _resolveUrl(docs?.cnicFrontImagePath);
-      _cnicBackUrl = _resolveUrl(docs?.cnicBackImagePath);
+      final docs = await _repository.fetchDocuments(providerUid);
+      _profilePhotoUrl = _repository.resolveUrl(docs?.profilePhotoPath);
+      _cnicFrontUrl = _repository.resolveUrl(docs?.cnicFrontImagePath);
+      _cnicBackUrl = _repository.resolveUrl(docs?.cnicBackImagePath);
       _isVerified = docs?.isVerified ?? false;
       _verificationRemarks = docs?.verificationRemarks;
     } catch (e) {
@@ -87,8 +86,6 @@ class ProviderDocumentProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  String? _resolveUrl(String? relativePath) => relativePath == null ? null : '$kApiFileBaseUrl/$relativePath';
 
   Future<void> pickImage(ProviderDocumentSlot slot, ImageSource source) async {
     final isCnic = slot != ProviderDocumentSlot.profilePhoto;
@@ -175,7 +172,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
       final cnicFrontFile = await _resolveFile(_cnicFront, _cnicFrontUrl);
       final cnicBackFile = await _resolveFile(_cnicBack, _cnicBackUrl);
 
-      _uploadedDocuments = await _apiService.uploadDocuments(
+      _uploadedDocuments = await _repository.upload(
         providerUid: providerUid,
         profilePhoto: profileFile,
         cnicFront: cnicFrontFile,
@@ -190,9 +187,9 @@ class ProviderDocumentProvider extends ChangeNotifier {
       _profilePhoto = null;
       _cnicFront = null;
       _cnicBack = null;
-      _profilePhotoUrl = _resolveUrl(_uploadedDocuments?.profilePhotoPath);
-      _cnicFrontUrl = _resolveUrl(_uploadedDocuments?.cnicFrontImagePath);
-      _cnicBackUrl = _resolveUrl(_uploadedDocuments?.cnicBackImagePath);
+      _profilePhotoUrl = _repository.resolveUrl(_uploadedDocuments?.profilePhotoPath);
+      _cnicFrontUrl = _repository.resolveUrl(_uploadedDocuments?.cnicFrontImagePath);
+      _cnicBackUrl = _repository.resolveUrl(_uploadedDocuments?.cnicBackImagePath);
       _isVerified = _uploadedDocuments?.isVerified ?? false;
       _verificationRemarks = _uploadedDocuments?.verificationRemarks;
       return true;
@@ -210,17 +207,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
     if (remoteUrl == null) {
       throw Exception('Please add your profile photo and both CNIC images before uploading.');
     }
-
-    final response = await http.get(Uri.parse(remoteUrl));
-    if (response.statusCode != 200) {
-      throw Exception('Could not load the existing image. Please pick it again.');
-    }
-
-    final dir = await getTemporaryDirectory();
-    final fileName = '${DateTime.now().microsecondsSinceEpoch}_${remoteUrl.split('/').last}';
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(response.bodyBytes);
-    return file;
+    return _repository.downloadToTempFile(remoteUrl);
   }
 
   void reset() {

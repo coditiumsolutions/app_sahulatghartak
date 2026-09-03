@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/repositories/provider_wallet_repository.dart';
 import '../models/provider/provider_wallet.dart';
-import '../services/provider_wallet_api_service.dart';
 import '../utils/api_error.dart';
 
 class ProviderWalletProvider extends ChangeNotifier {
-  final ProviderWalletApiService _apiService = ProviderWalletApiService();
+  ProviderWalletProvider({required ProviderWalletRepository repository}) : _repository = repository;
+
+  final ProviderWalletRepository _repository;
 
   ProviderWallet? _wallet;
   ProviderWallet? get wallet => _wallet;
@@ -22,7 +24,7 @@ class ProviderWalletProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _wallet = await _apiService.fetchWallet(providerUid);
+      _wallet = await _repository.fetchWallet(providerUid);
     } catch (e) {
       _error = friendlyErrorMessage(e);
     } finally {

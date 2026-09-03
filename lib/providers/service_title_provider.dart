@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/repositories/service_title_repository.dart';
 import '../models/service_title.dart';
-import '../services/service_title_api_service.dart';
 import '../utils/api_error.dart';
 
 class ServiceTitleProvider extends ChangeNotifier {
-  final ServiceTitleApiService _apiService = ServiceTitleApiService();
+  ServiceTitleProvider({required ServiceTitleRepository repository}) : _repository = repository;
+
+  final ServiceTitleRepository _repository;
 
   List<ServiceTitle> _serviceTitles = [];
   bool _isLoading = false;
@@ -28,7 +30,7 @@ class ServiceTitleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _apiService.fetchServiceTitles(categoryUid: categoryUid);
+      final result = await _repository.fetchServiceTitles(categoryUid);
       if (requestId != _requestId) return;
       _serviceTitles = result;
     } catch (e) {
