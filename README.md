@@ -3,7 +3,8 @@
 A Flutter home services marketplace mobile app. Customers browse service categories, submit
 service requests, and manage addresses; verified Providers get a dashboard for incoming
 requests, bookings, and their profile. The app is backed by a real ASP.NET Core REST API
-(`SahulatAppDB`) — most screens are wired to live endpoints rather than mock data.
+(`SahulatAppDB`) — every screen is wired to live endpoints except the Provider
+notifications page, which is still a placeholder.
 
 ## Features
 
@@ -11,8 +12,8 @@ requests, bookings, and their profile. The app is backed by a real ASP.NET Core 
   - Mobile-number + OTP registration and login (with Terms & Conditions acceptance)
   - OTP-based Forgot Password / Reset Password flow
   - Browse without an account — login is only required when submitting a service request
-  - Browse service categories (grouped client-side into Home Maintenance / Specialized
-    Services / Property & Legal Services) and submit service requests
+  - Browse the backend service catalog (Services → Categories → suggested service
+    titles) and submit service requests
   - Manage saved addresses and edit profile details
   - Track submitted service requests
   - Delete account permanently, in-app (password-confirmed) or via a web page
@@ -22,15 +23,15 @@ requests, bookings, and their profile. The app is backed by a real ASP.NET Core 
   - OTP-verified registration, followed by profile-photo + CNIC document upload for
     admin verification
   - OTP-based Forgot Password / Reset Password flow
-  - Dashboard: online/offline availability, incoming requests, real bookings (accept,
-    close, cancel), profile with editing, and document re-upload/status
+  - 5-tab dashboard — Home, Requests, Jobs, Wallet, Profile — all backed by live
+    endpoints: online/offline availability, incoming requests, bookings (accept,
+    reject, close, cancel), wallet balance/transactions, profile editing, and
+    document re-upload/verification status
   - Delete account permanently, in-app (password-confirmed) or via a web page
-  - Additional dashboard sections (earnings, wallet, reviews, chat, notifications,
-    schedule, support, etc.) are present as UI-complete screens backed by mock data,
-    pending backend endpoints
+  - Notifications is the one remaining placeholder screen, pending a backend endpoint
 
-See [AGENTS.md](AGENTS.md) for a detailed breakdown of which features are real vs. mocked,
-architecture notes, and conventions for extending the app.
+See [AGENTS.md](AGENTS.md) for architecture notes, the feature-by-feature breakdown,
+and conventions for extending the app.
 
 ## Getting Started
 
@@ -66,21 +67,23 @@ See `lib/utils/constants.dart` to change the local backend URL.
 | `flutter build apk` (or `scripts\build_apk.bat`) | Build a release APK |
 | `flutter build appbundle --release` (or `scripts\build_signed_bundle.bat`) | Build a signed release App Bundle for Play Console (needs `android/key.properties`, gitignored — see [AGENTS.md](AGENTS.md#quick-start)) |
 | `dart format lib/` | Format code |
-| `flutter analyze` | Static analysis — run after every change |
-| `flutter test` | Runs the widget smoke test + contact-field-mapping regression suite |
+| `flutter analyze lib test` | Static analysis — run after every change (13 pre-existing `info` lints are the baseline) |
+| `flutter test` | Runs the test suite (17 tests across 5 files) |
 
 ## Project structure
 
 ```
 lib/
-├── models/        # Data classes (Category, ClientAddress, CustomerServiceRequest, AuthData, OtpData, ...)
-│   └── provider/   # Provider-dashboard models (ServiceBooking, ProviderDocuments, ServiceRequest, ...)
+├── models/        # Data classes (Category, ServiceCatalog, ServiceTitle, ClientAddress, CustomerServiceRequest, AuthData, OtpData, ...)
+│   └── provider/  # Provider-dashboard models (ServiceBooking, ProviderDetail, ProviderDocuments, ProviderWallet, ...)
 ├── providers/     # ChangeNotifier state management (one per feature area)
-├── services/      # HTTP API clients, one per backend resource
-├── repositories/  # Mock/dummy data for not-yet-built backend features
+├── data/
+│   └── repositories/  # One repository per provider — the single data source each ViewModel talks to
+├── domain/        # Reserved for domain models / use cases (currently empty)
+├── services/      # HTTP API clients, one per backend resource, plus secure-storage/session helpers
 ├── screens/       # Top-level customer screens; screens/provider/<feature>/ for the Provider Dashboard
 ├── widgets/       # Reusable UI components
-├── utils/         # Constants, routing helpers, category matching helpers
+├── utils/         # Constants, routing helpers, theming and icon/image matching helpers
 └── main.dart      # App entry point, provider setup, route table
 ```
 
@@ -88,6 +91,8 @@ lib/
 
 - [AGENTS.md](AGENTS.md) — architecture, conventions, and guidance for making changes to this repo
 - [api.txt](api.txt) — source of truth for every backend request/response contract
+- [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) — what the app collects, shares, and deletes
+- [docs/APP_STORE_AUDIT_REPORT.md](docs/APP_STORE_AUDIT_REPORT.md) — Play Store / App Store compliance status
 
 ---
 
