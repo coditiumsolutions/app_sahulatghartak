@@ -3,7 +3,7 @@ description: A professional home services marketplace mobile application.
 # Author: Rayder-23
 # Team: Coditum Solutions
 publish_to: 'none'
-version: 1.0.1+4
+version: 1.0.0+1 # Reset for Apple App Store submission
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
