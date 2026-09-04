@@ -20,7 +20,6 @@ class AuthApiService {
     required String mobileNo,
     required String password,
     required String confirmPassword,
-    required String cnic,
     required String gender,
   }) async {
     final json = await _post('register-client', {
@@ -28,7 +27,6 @@ class AuthApiService {
       'password': password,
       'confirmPassword': confirmPassword,
       'fullName': fullName,
-      'cnic': cnic,
       'gender': gender,
     });
     return json['message'] as String? ?? 'Registration successful.';

@@ -10,6 +10,7 @@ import '../widgets/auth_card_scaffold.dart';
 import '../widgets/message_dialog.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'provider_dashboard_screen.dart';
 
 class OtpVerificationArgs {
   final String mobileNo;
@@ -156,7 +157,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           type: MessageDialogType.success,
         );
         if (!mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(HomeScreen.routeName, (route) => false);
+        final target = authProvider.role == 'Provider' ? ProviderDashboardScreen.routeName : HomeScreen.routeName;
+        Navigator.of(context).pushNamedAndRemoveUntil(target, (route) => false);
       } else {
         await showMessageDialog(
           context,

@@ -236,22 +236,22 @@ class _IncomingRequestCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (booking.clientAddressTitle != null) ...[
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_rounded, size: 16, color: kPrimaryColor),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    booking.clientAddressTitle!,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: Color(0xFF3A4658), fontSize: 13, fontWeight: FontWeight.w500),
-                                  ),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_rounded, size: 16, color: kPrimaryColor),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  [booking.clientAddressTitle, booking.clientFullAddress, booking.clientArea, booking.clientCity]
+                                      .whereType<String>()
+                                      .join(', '),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Color(0xFF3A4658), fontSize: 13, fontWeight: FontWeight.w500),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                          ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               const Icon(Icons.payments_rounded, size: 16, color: kPrimaryColor),

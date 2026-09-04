@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _error;
+  bool _isUnverified = false;
   OtpData? _otpData;
   ClientDetailModel? _clientDetail;
 
@@ -28,6 +29,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
+  bool get isUnverified => _isUnverified;
   OtpData? get otpData => _otpData;
   ClientDetailModel? get clientDetail => _clientDetail;
 
@@ -40,6 +42,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login(String mobileNo, String password) async {
     _isLoading = true;
     _error = null;
+    _isUnverified = false;
     notifyListeners();
 
     try {
@@ -58,6 +61,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = friendlyErrorMessage(e);
+      _isUnverified = _error!.toLowerCase().contains('not verified');
       return false;
     } finally {
       _isLoading = false;
@@ -70,7 +74,6 @@ class AuthProvider extends ChangeNotifier {
     required String mobileNo,
     required String password,
     required String confirmPassword,
-    required String cnic,
     required String gender,
   }) async {
     _isLoading = true;
@@ -83,7 +86,6 @@ class AuthProvider extends ChangeNotifier {
         mobileNo: mobileNo,
         password: password,
         confirmPassword: confirmPassword,
-        cnic: cnic,
         gender: gender,
       );
       return true;

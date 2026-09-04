@@ -255,12 +255,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               ],
                             ),
                           ),
-                        if (booking.clientFullAddress != null)
-                          _DetailRow(
-                            label: booking.clientAddressTitle ?? 'Job Site',
-                            icon: Icons.location_on_rounded,
-                            value: [booking.clientFullAddress, booking.clientArea, booking.clientCity].whereType<String>().join(', '),
-                          ),
+                        _DetailRow(
+                          label: booking.clientAddressTitle ?? 'Job Site',
+                          icon: Icons.location_on_rounded,
+                          value: [booking.clientFullAddress, booking.clientArea, booking.clientCity].whereType<String>().join(', '),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 14),

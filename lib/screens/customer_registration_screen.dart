@@ -24,7 +24,6 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _cnicController = TextEditingController();
   String? _selectedGender;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -36,7 +35,6 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _cnicController.dispose();
     super.dispose();
   }
 
@@ -59,7 +57,6 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
       mobileNo: mobileNo,
       password: password,
       confirmPassword: _confirmPasswordController.text,
-      cnic: _cnicController.text.trim(),
       gender: _selectedGender!,
     );
 
@@ -105,13 +102,6 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               decoration: authFieldDecoration(hint: 'Enter your mobile number'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 20),
-            authFieldLabel('CNIC'),
-            TextFormField(
-              controller: _cnicController,
-              decoration: authFieldDecoration(hint: 'Enter your CNIC'),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),

@@ -8,6 +8,7 @@ import '../widgets/message_dialog.dart';
 import 'customer_registration_screen.dart';
 import 'forgot_password_screen.dart';
 import 'home_screen.dart';
+import 'otp_verification_screen.dart';
 import 'provider_dashboard_screen.dart';
 import 'provider_registration_screen.dart';
 
@@ -48,6 +49,15 @@ class _LoginScreenState extends State<LoginScreen> {
       // screen, even though the session is still active.
       final target = role == 'Provider' ? ProviderDashboardScreen.routeName : HomeScreen.routeName;
       Navigator.of(context).pushNamedAndRemoveUntil(target, (route) => false);
+    } else if (authProvider.isUnverified) {
+      Navigator.of(context).pushNamed(
+        OtpVerificationScreen.routeName,
+        arguments: OtpVerificationArgs(
+          mobileNo: _mobileNoController.text.trim(),
+          password: _passwordController.text,
+          otpType: 'Registration',
+        ),
+      );
     } else {
       await showMessageDialog(
         context,
