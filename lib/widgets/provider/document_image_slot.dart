@@ -50,12 +50,17 @@ class DocumentImageSlot extends StatelessWidget {
                     Positioned(
                       top: 6,
                       right: 6,
-                      child: GestureDetector(
-                        onTap: onRemove,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                          child: const Icon(Icons.close, color: Colors.white, size: 18),
+                      child: Material(
+                        color: Colors.black54,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          onTap: onRemove,
+                          customBorder: const CircleBorder(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(Icons.close,
+                                color: Colors.white, size: 18),
+                          ),
                         ),
                       ),
                     ),
@@ -69,13 +74,20 @@ class DocumentImageSlot extends StatelessWidget {
                         networkUrl!,
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, progress) =>
-                            progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            progress == null
+                                ? child
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2)),
                         errorBuilder: (context, error, stackTrace) => Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.broken_image_outlined, color: Colors.black38, size: 28),
+                            Icon(Icons.broken_image_outlined,
+                                color: Colors.black38, size: 28),
                             SizedBox(height: 6),
-                            Text('Could not load image', style: TextStyle(color: Colors.black45, fontSize: 12)),
+                            Text('Could not load image',
+                                style: TextStyle(
+                                    color: Colors.black45, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -89,7 +101,10 @@ class DocumentImageSlot extends StatelessWidget {
                           child: const Text(
                             'Tap to change',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -100,7 +115,9 @@ class DocumentImageSlot extends StatelessWidget {
                     children: [
                       Icon(placeholderIcon, color: Colors.black38, size: 32),
                       const SizedBox(height: 8),
-                      Text(label, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+                      Text(label,
+                          style: const TextStyle(
+                              color: Colors.black54, fontSize: 13)),
                     ],
                   ),
       ),

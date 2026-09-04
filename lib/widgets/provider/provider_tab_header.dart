@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../decorative_glow_circle.dart';
+
 const providerBrandDark = Color(0xFF0A4FA8);
 const providerBrandBlue = Color(0xFF016EE3);
 const providerBrandAccent = Color(0xFF4FC3F7);
@@ -37,20 +39,12 @@ class ProviderTabHeader extends StatelessWidget implements PreferredSizeWidget {
             Positioned(
               top: -40,
               right: -30,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: providerBrandAccent.withValues(alpha: 0.14)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 150, color: providerBrandAccent.withValues(alpha: 0.14)),
             ),
-            Positioned(
+            const Positioned(
               bottom: -60,
               left: -30,
-              child: Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 130, color: Color.fromRGBO(255, 255, 255, 0.06)),
             ),
             SafeArea(
               bottom: false,

@@ -32,7 +32,9 @@ class StatusFilterTabs extends StatelessWidget {
     return Container(
       height: 44,
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: const Color(0xFFEAEFF6), borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(
+          color: const Color(0xFFEAEFF6),
+          borderRadius: BorderRadius.circular(14)),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final segmentWidth = constraints.maxWidth / labels.length;
@@ -51,7 +53,12 @@ class StatusFilterTabs extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(11),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 6, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2))
+                    ],
                   ),
                 ),
               ),
@@ -61,22 +68,27 @@ class StatusFilterTabs extends StatelessWidget {
                   return SizedBox(
                     width: segmentWidth,
                     height: double.infinity,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => onChanged(i),
-                      child: Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: reduceMotion ? Duration.zero : kMediumAnimDuration,
-                          curve: kStandardCurve,
-                          style: TextStyle(
-                            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                            fontSize: 12.5,
-                            color: selected ? activeColor : Colors.grey[600],
-                          ),
-                          child: Text(
-                            '${labels[i]} (${counts[i]})',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => onChanged(i),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: reduceMotion
+                                ? Duration.zero
+                                : kMediumAnimDuration,
+                            curve: kStandardCurve,
+                            style: TextStyle(
+                              fontWeight:
+                                  selected ? FontWeight.w800 : FontWeight.w600,
+                              fontSize: 12.5,
+                              color: selected ? activeColor : Colors.grey[600],
+                            ),
+                            child: Text(
+                              '${labels[i]} (${counts[i]})',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ),

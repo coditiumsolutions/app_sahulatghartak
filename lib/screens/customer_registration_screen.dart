@@ -15,10 +15,12 @@ class CustomerRegistrationScreen extends StatefulWidget {
   const CustomerRegistrationScreen({super.key});
 
   @override
-  State<CustomerRegistrationScreen> createState() => _CustomerRegistrationScreenState();
+  State<CustomerRegistrationScreen> createState() =>
+      _CustomerRegistrationScreenState();
 }
 
-class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen> {
+class _CustomerRegistrationScreenState
+    extends State<CustomerRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -41,11 +43,13 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a gender')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a gender')));
       return;
     }
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please agree to the Terms and Conditions')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please agree to the Terms and Conditions')));
       return;
     }
 
@@ -65,7 +69,8 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
     if (success) {
       Navigator.of(context).pushReplacementNamed(
         OtpVerificationScreen.routeName,
-        arguments: OtpVerificationArgs(mobileNo: mobileNo, password: password, otpType: 'Registration'),
+        arguments: OtpVerificationArgs(
+            mobileNo: mobileNo, password: password, otpType: 'Registration'),
       );
     } else {
       await showMessageDialog(
@@ -94,7 +99,8 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
             TextFormField(
               controller: _fullNameController,
               decoration: authFieldDecoration(hint: 'Enter your full name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Mobile Number'),
@@ -102,7 +108,8 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               decoration: authFieldDecoration(hint: 'Enter your mobile number'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Gender'),
@@ -119,11 +126,17 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               decoration: authFieldDecoration(
                 hint: 'Enter your password',
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.black45),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
+              validator: (v) =>
+                  (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Confirm Password'),
@@ -133,11 +146,18 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               decoration: authFieldDecoration(
                 hint: 'Re-enter your password',
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
-                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                  icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.black45),
+                  onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword),
                 ),
               ),
-              validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
+              validator: (v) => (v != _passwordController.text)
+                  ? 'Passwords do not match'
+                  : null,
             ),
             const SizedBox(height: 20),
             TermsAndConditionsSection(
@@ -148,15 +168,23 @@ class _CustomerRegistrationScreenState extends State<CustomerRegistrationScreen>
               termsClosing: customerTermsAndConditionsClosing,
             ),
             const SizedBox(height: 28),
-            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _agreedToTerms ? _submit : null),
+            AuthPrimaryButton(
+                label: 'Register',
+                isLoading: isLoading,
+                onPressed: _agreedToTerms ? _submit : null),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Already have an account? ', style: TextStyle(color: Colors.black54)),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName, arguments: 'Customer'),
-                  child: const Text('Login', style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                const Text('Already have an account? ',
+                    style: TextStyle(color: Colors.black54)),
+                InkWell(
+                  onTap: () => Navigator.of(context).pushReplacementNamed(
+                      LoginScreen.routeName,
+                      arguments: 'Customer'),
+                  child: const Text('Login',
+                      style: TextStyle(
+                          color: kPrimaryColor, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

@@ -37,7 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.login(_mobileNoController.text.trim(), _passwordController.text);
+    final success = await authProvider.login(
+        _mobileNoController.text.trim(), _passwordController.text);
 
     if (!mounted) return;
 
@@ -47,7 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // Login — otherwise LandingScreen remains underneath and a back-press
       // from the dashboard drops the user onto what looks like a logged-out
       // screen, even though the session is still active.
-      final target = role == 'Provider' ? ProviderDashboardScreen.routeName : HomeScreen.routeName;
+      final target = role == 'Provider'
+          ? ProviderDashboardScreen.routeName
+          : HomeScreen.routeName;
       Navigator.of(context).pushNamedAndRemoveUntil(target, (route) => false);
     } else if (authProvider.isUnverified) {
       Navigator.of(context).pushNamed(
@@ -86,7 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _mobileNoController,
               keyboardType: TextInputType.phone,
               decoration: authFieldDecoration(hint: 'Enter your mobile number'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Password'),
@@ -96,8 +100,13 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: authFieldDecoration(
                 hint: 'Enter your password',
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.black45),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
@@ -105,22 +114,31 @@ class _LoginScreenState extends State<LoginScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => Navigator.of(context).pushNamed(ForgotPasswordScreen.routeName),
-                child: const Text('Forgot password?', style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w600)),
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(ForgotPasswordScreen.routeName),
+                child: const Text('Forgot password?',
+                    style: TextStyle(
+                        color: kPrimaryColor, fontWeight: FontWeight.w600)),
               ),
             ),
             const SizedBox(height: 12),
-            AuthPrimaryButton(label: 'Login', isLoading: isLoading, onPressed: _submit),
+            AuthPrimaryButton(
+                label: 'Login', isLoading: isLoading, onPressed: _submit),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Not register yet? ", style: TextStyle(color: Colors.black54)),
-                GestureDetector(
+                const Text("Not register yet? ",
+                    style: TextStyle(color: Colors.black54)),
+                InkWell(
                   onTap: () => Navigator.of(context).pushReplacementNamed(
-                    expectedRole == 'Provider' ? ProviderRegistrationScreen.routeName : CustomerRegistrationScreen.routeName,
+                    expectedRole == 'Provider'
+                        ? ProviderRegistrationScreen.routeName
+                        : CustomerRegistrationScreen.routeName,
                   ),
-                  child: const Text('Create account', style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                  child: const Text('Create account',
+                      style: TextStyle(
+                          color: kPrimaryColor, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

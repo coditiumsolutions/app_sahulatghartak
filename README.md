@@ -37,7 +37,7 @@ and conventions for extending the app.
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart `>=2.18.0 <3.0.0`, see `pubspec.yaml`)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart `>=3.0.0 <4.0.0`, see `pubspec.yaml`)
 - A running instance of the companion ASP.NET Core API (`SahulatAppDB`) for any live testing —
   the app has no offline fallback for auth, categories, addresses, or service requests
 

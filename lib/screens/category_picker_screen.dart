@@ -5,6 +5,7 @@ import '../services/category_api_service.dart';
 import '../utils/api_error.dart';
 import '../utils/category_icons.dart';
 import '../utils/service_catalog_style.dart';
+import '../widgets/decorative_glow_circle.dart';
 
 // Shared brand gradient used across the app's other branded headers (home
 // screen, service request detail) — kept local since it's just a palette,
@@ -164,20 +165,12 @@ class _PickerHeader extends StatelessWidget {
             Positioned(
               top: -30,
               right: -20,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.14)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 110, color: _brandAccent.withValues(alpha: 0.14)),
             ),
-            Positioned(
+            const Positioned(
               bottom: -40,
               left: -16,
-              child: Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 90, color: Color.fromRGBO(255, 255, 255, 0.06)),
             ),
             SafeArea(
               bottom: false,

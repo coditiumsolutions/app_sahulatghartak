@@ -18,10 +18,12 @@ class ProviderRegistrationScreen extends StatefulWidget {
   const ProviderRegistrationScreen({super.key});
 
   @override
-  State<ProviderRegistrationScreen> createState() => _ProviderRegistrationScreenState();
+  State<ProviderRegistrationScreen> createState() =>
+      _ProviderRegistrationScreenState();
 }
 
-class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen> {
+class _ProviderRegistrationScreenState
+    extends State<ProviderRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -55,7 +57,9 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
 
   Future<void> _pickCategory() async {
     final result = await Navigator.of(context).push<Category>(
-      MaterialPageRoute(builder: (_) => CategoryPickerScreen(selectedCategoryId: _selectedCategory?.id)),
+      MaterialPageRoute(
+          builder: (_) =>
+              CategoryPickerScreen(selectedCategoryId: _selectedCategory?.id)),
     );
     if (result != null) setState(() => _selectedCategory = result);
   }
@@ -63,15 +67,18 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a category')));
       return;
     }
     if (_selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a gender')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a gender')));
       return;
     }
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please agree to the Terms and Conditions')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please agree to the Terms and Conditions')));
       return;
     }
 
@@ -107,7 +114,8 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       } else {
         // Fallback: providerUid should always be present after a successful registration,
         // but don't strand the user on this screen if it's ever missing.
-        Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
+        Navigator.of(context)
+            .pushReplacementNamed(ProviderDashboardScreen.routeName);
       }
     } else {
       await showMessageDialog(
@@ -136,7 +144,8 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             TextFormField(
               controller: _fullNameController,
               decoration: authFieldDecoration(hint: 'Enter your full name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Mobile Number'),
@@ -145,8 +154,10 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
               readOnly: true,
               enabled: false,
               keyboardType: TextInputType.phone,
-              decoration: authFieldDecoration(hint: 'Enter your mobile number').copyWith(
-                suffixIcon: const Icon(Icons.lock_outline, color: Colors.black38, size: 18),
+              decoration: authFieldDecoration(hint: 'Enter your mobile number')
+                  .copyWith(
+                suffixIcon: const Icon(Icons.lock_outline,
+                    color: Colors.black38, size: 18),
                 fillColor: const Color(0xFFEDEDEF),
               ),
             ),
@@ -155,7 +166,8 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             TextFormField(
               controller: _cnicController,
               decoration: authFieldDecoration(hint: 'Enter your CNIC'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Gender'),
@@ -172,11 +184,17 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
               decoration: authFieldDecoration(
                 hint: 'Enter your existing account password',
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.black45),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.black45),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
+              validator: (v) =>
+                  (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
             ),
             const SizedBox(height: 20),
             authFieldLabel('Category'),
@@ -194,16 +212,23 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
                       },
                       borderRadius: BorderRadius.circular(14),
                       child: InputDecorator(
-                        decoration: authFieldDecoration(hint: 'Select your category').copyWith(
+                        decoration:
+                            authFieldDecoration(hint: 'Select your category')
+                                .copyWith(
                           errorText: state.errorText,
-                          suffixIcon: const Icon(Icons.chevron_right_rounded, color: Colors.black38),
+                          suffixIcon: const Icon(Icons.chevron_right_rounded,
+                              color: Colors.black38),
                         ),
                         child: Text(
                           _selectedCategory?.name ?? 'Select your category',
                           style: TextStyle(
                             fontSize: 15,
-                            color: _selectedCategory == null ? Colors.grey.shade600 : Colors.black87,
-                            fontWeight: _selectedCategory == null ? FontWeight.normal : FontWeight.w600,
+                            color: _selectedCategory == null
+                                ? Colors.grey.shade600
+                                : Colors.black87,
+                            fontWeight: _selectedCategory == null
+                                ? FontWeight.normal
+                                : FontWeight.w600,
                           ),
                         ),
                       ),
@@ -217,10 +242,13 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             TextFormField(
               controller: _experienceController,
               keyboardType: TextInputType.number,
-              decoration: authFieldDecoration(hint: 'Enter years of experience'),
+              decoration:
+                  authFieldDecoration(hint: 'Enter years of experience'),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
-                if (int.tryParse(v.trim()) == null) return 'Enter a valid number';
+                if (int.tryParse(v.trim()) == null) {
+                  return 'Enter a valid number';
+                }
                 return null;
               },
             ),
@@ -229,8 +257,10 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
             TextFormField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: authFieldDecoration(hint: 'Briefly describe your services'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              decoration:
+                  authFieldDecoration(hint: 'Briefly describe your services'),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             TermsAndConditionsSection(
@@ -241,15 +271,23 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
               termsClosing: providerTermsAndConditionsClosing,
             ),
             const SizedBox(height: 28),
-            AuthPrimaryButton(label: 'Register', isLoading: isLoading, onPressed: _agreedToTerms ? _submit : null),
+            AuthPrimaryButton(
+                label: 'Register',
+                isLoading: isLoading,
+                onPressed: _agreedToTerms ? _submit : null),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Already have an account? ', style: TextStyle(color: Colors.black54)),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName, arguments: 'Provider'),
-                  child: const Text('Login', style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                const Text('Already have an account? ',
+                    style: TextStyle(color: Colors.black54)),
+                InkWell(
+                  onTap: () => Navigator.of(context).pushReplacementNamed(
+                      LoginScreen.routeName,
+                      arguments: 'Provider'),
+                  child: const Text('Login',
+                      style: TextStyle(
+                          color: kPrimaryColor, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

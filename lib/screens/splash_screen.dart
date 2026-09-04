@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../utils/breakpoints.dart';
 import '../utils/motion.dart';
 import 'home_screen.dart';
 import 'landing_screen.dart';
@@ -46,6 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final logoSize = appLogoSize(context);
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -56,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(36),
-            child: Image.asset('assets/icon/app_icon.png', width: 168, height: 168),
+            child: Image.asset('assets/icon/app_icon.png', width: logoSize, height: logoSize),
           ),
         ),
         const SizedBox(height: 24),

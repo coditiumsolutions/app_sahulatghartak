@@ -33,29 +33,33 @@ class MainCategoryCard extends StatelessWidget {
           closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           transitionDuration: const Duration(milliseconds: 380),
           closedBuilder: (context, openContainer) {
-            return GestureDetector(
-              onTap: openContainer,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: style.color.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: style.color.withValues(alpha: 0.4)),
-                  boxShadow: [BoxShadow(color: style.color.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 6))],
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(style.icon, size: 42, color: style.color),
-                    const SizedBox(height: 8),
-                    Text(
-                      service.name,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                    ),
-                  ],
+            return Material(
+              color: style.color.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                onTap: openContainer,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: style.color.withValues(alpha: 0.4)),
+                    boxShadow: [BoxShadow(color: style.color.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 6))],
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(style.icon, size: 42, color: style.color),
+                      const SizedBox(height: 8),
+                      Text(
+                        service.name,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

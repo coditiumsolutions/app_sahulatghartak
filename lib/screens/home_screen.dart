@@ -8,8 +8,10 @@ import '../utils/category_icons.dart';
 import '../utils/category_images.dart';
 import '../utils/service_catalog_style.dart';
 import '../utils/service_colors.dart';
+import '../utils/breakpoints.dart';
 import '../utils/guest_guard.dart';
 import '../utils/motion.dart';
+import '../widgets/decorative_glow_circle.dart';
 import '../widgets/featured_services_carousel.dart';
 import '../widgets/main_category_card.dart';
 import 'service_request_form_screen.dart';
@@ -107,7 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _updateSuggestionsOverlay() {
-    final shouldShow = _searchFocusNode.hasFocus && _searchQuery.trim().isNotEmpty;
+    final shouldShow =
+        _searchFocusNode.hasFocus && _searchQuery.trim().isNotEmpty;
 
     if (!shouldShow) {
       _removeSuggestionsOverlay();
@@ -122,7 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _suggestionsOverlay = OverlayEntry(
         builder: (context) => _SearchSuggestionsOverlay(
           link: _searchLink,
-          matches: _matchingCategories(context.read<CategoryProvider>().categories),
+          matches:
+              _matchingCategories(context.read<CategoryProvider>().categories),
           onTap: _onSuggestionTap,
         ),
       );
@@ -162,7 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
   /// that merely appears earlier in the backend list.
   List<Category> _featuredCategories(List<Category> categories) {
     final withImage = categories.where((c) => getCategoryImage(c.name) != null);
-    final withoutImage = categories.where((c) => getCategoryImage(c.name) == null);
+    final withoutImage =
+        categories.where((c) => getCategoryImage(c.name) == null);
     return [...withImage, ...withoutImage].take(4).toList();
   }
 
@@ -184,7 +189,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Keep the overlay's suggestion list in sync as services load/change.
     if (_suggestionsOverlay != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _updateSuggestionsOverlay());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _updateSuggestionsOverlay());
     }
 
     return Scaffold(
@@ -203,51 +209,59 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: widget.embedded ? null : const AppBottomNavigation(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _SectionHeader(title: 'Services'),
-            const SizedBox(height: 12),
-            if (catalogProvider.isLoading)
-              const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
-            else if (catalogProvider.error != null)
-              _InlineErrorCard(
-                title: 'Couldn\'t load services',
-                message: catalogProvider.error!,
-                onRetry: catalogProvider.fetchServices,
-              )
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.3,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const _SectionHeader(title: 'Services'),
+                const SizedBox(height: 12),
+                if (catalogProvider.isLoading)
+                  const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: CircularProgressIndicator()))
+                else if (catalogProvider.error != null)
+                  _InlineErrorCard(
+                    title: 'Couldn\'t load services',
+                    message: catalogProvider.error!,
+                    onRetry: catalogProvider.fetchServices,
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200,
+                      childAspectRatio: 1.3,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                    ),
+                    itemCount: catalogServices.length,
+                    itemBuilder: (context, index) {
+                      final service = catalogServices[index];
+                      return MainCategoryCard(service: service, index: index);
+                    },
+                  ),
+                const SizedBox(height: 16),
+                const _SectionFade(),
+                const SizedBox(height: 12),
+                const _SectionHeader(title: 'Featured Services'),
+                const SizedBox(height: 12),
+                FeaturedServicesCarousel(
+                  categories: _featuredCategories(categories),
+                  cardColors: serviceCardColors,
+                  onTapCategory: _onFeaturedCategoryTap,
                 ),
-                itemCount: catalogServices.length,
-                itemBuilder: (context, index) {
-                  final service = catalogServices[index];
-                  return MainCategoryCard(service: service, index: index);
-                },
-              ),
-            const SizedBox(height: 16),
-            const _SectionFade(),
-            const SizedBox(height: 12),
-            const _SectionHeader(title: 'Featured Services'),
-            const SizedBox(height: 12),
-            FeaturedServicesCarousel(
-              categories: _featuredCategories(categories),
-              cardColors: serviceCardColors,
-              onTapCategory: _onFeaturedCategoryTap,
+                const SizedBox(height: 24),
+                const _SectionHeader(title: 'Customer Reviews'),
+                const SizedBox(height: 12),
+                const _ReviewsList(),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 24),
-            const _SectionHeader(title: 'Customer Reviews'),
-            const SizedBox(height: 12),
-            const _ReviewsList(),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
       ),
     );
@@ -286,30 +300,29 @@ class _HomeHeader extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [_brandDark, _brandBlue],
         ),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
-        boxShadow: [BoxShadow(color: Color(0x330A4FA8), blurRadius: 20, offset: Offset(0, 8))],
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x330A4FA8), blurRadius: 20, offset: Offset(0, 8))
+        ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
+        borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
         child: Stack(
           children: [
             Positioned(
               top: -40,
               right: -30,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.14)),
-              ),
+              child: DecorativeGlowCircle(
+                  baseSize: 150, color: _brandAccent.withValues(alpha: 0.14)),
             ),
             Positioned(
               bottom: -60,
               left: -30,
-              child: Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
-              ),
+              child: DecorativeGlowCircle(
+                  baseSize: 130, color: Colors.white.withValues(alpha: 0.06)),
             ),
             SafeArea(
               bottom: false,
@@ -335,12 +348,19 @@ class _HomeHeader extends StatelessWidget {
                             children: [
                               Text(
                                 'Sahulat Ghar Tak',
-                                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.2),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.2),
                               ),
                               SizedBox(height: 2),
                               Text(
                                 'Quality Services Delivered to Your Doorstep',
-                                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -354,7 +374,12 @@ class _HomeHeader extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 14, offset: const Offset(0, 6))],
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6))
+                          ],
                         ),
                         child: TextField(
                           controller: controller,
@@ -364,15 +389,18 @@ class _HomeHeader extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: 'Search services...',
                             hintStyle: TextStyle(color: Colors.grey.shade500),
-                            prefixIcon: Icon(Icons.search_rounded, color: _brandBlue),
+                            prefixIcon:
+                                Icon(Icons.search_rounded, color: _brandBlue),
                             suffixIcon: query.isEmpty
                                 ? null
                                 : IconButton(
-                                    icon: Icon(Icons.close_rounded, color: Colors.grey.shade500, size: 20),
+                                    icon: Icon(Icons.close_rounded,
+                                        color: Colors.grey.shade500, size: 20),
                                     onPressed: onClear,
                                   ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
                       ),
@@ -396,7 +424,8 @@ class _InlineErrorCard extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _InlineErrorCard({required this.title, required this.message, required this.onRetry});
+  const _InlineErrorCard(
+      {required this.title, required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -406,18 +435,31 @@ class _InlineErrorCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.wifi_off_rounded, size: 36, color: Colors.red.shade300),
           const SizedBox(height: 10),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800, color: _HomeScreenState._ink)),
+          Text(title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w800, color: _HomeScreenState._ink)),
           const SizedBox(height: 6),
-          Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+          Text(message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 13)),
           const SizedBox(height: 14),
-          OutlinedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh_rounded, size: 18), label: const Text('Retry')),
+          OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Retry')),
         ],
       ),
     );
@@ -435,12 +477,18 @@ class _SectionHeader extends StatelessWidget {
         Container(
           width: 4,
           height: 18,
-          decoration: BoxDecoration(color: _HomeScreenState._brandBlue, borderRadius: BorderRadius.circular(2)),
+          decoration: BoxDecoration(
+              color: _HomeScreenState._brandBlue,
+              borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _HomeScreenState._ink, letterSpacing: -0.2),
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: _HomeScreenState._ink,
+              letterSpacing: -0.2),
         ),
       ],
     );
@@ -457,7 +505,11 @@ class _SectionFade extends StatelessWidget {
       height: 1,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.transparent, _HomeScreenState._brandBlue.withValues(alpha: 0.18), Colors.transparent],
+          colors: [
+            Colors.transparent,
+            _HomeScreenState._brandBlue.withValues(alpha: 0.18),
+            Colors.transparent
+          ],
         ),
       ),
     );
@@ -473,9 +525,18 @@ class _Review {
 }
 
 const List<_Review> _reviews = [
-  _Review('Ayesha Khan', 'Excellent service, arrived on time and did a fantastic job!', 5, Color(0xFF45B7D1)),
-  _Review('Bilal Ahmed', 'Very satisfied with the plumbing work, will definitely use again.', 5, Color(0xFF4ECDC4)),
-  _Review('Sana Malik', 'Professional and quick. Fixed my AC in under an hour.', 4, Color(0xFFBB8FCE)),
+  _Review(
+      'Ayesha Khan',
+      'Excellent service, arrived on time and did a fantastic job!',
+      5,
+      Color(0xFF45B7D1)),
+  _Review(
+      'Bilal Ahmed',
+      'Very satisfied with the plumbing work, will definitely use again.',
+      5,
+      Color(0xFF4ECDC4)),
+  _Review('Sana Malik', 'Professional and quick. Fixed my AC in under an hour.',
+      4, Color(0xFFBB8FCE)),
 ];
 
 class _ReviewsList extends StatefulWidget {
@@ -516,7 +577,8 @@ class _ReviewsListState extends State<_ReviewsList> {
       child: ListView.separated(
         controller: _controller,
         scrollDirection: Axis.horizontal,
-        physics: const PageScrollPhysics().applyTo(const BouncingScrollPhysics()),
+        physics:
+            const PageScrollPhysics().applyTo(const BouncingScrollPhysics()),
         itemCount: _reviews.length,
         separatorBuilder: (_, __) => const SizedBox(width: _spacing),
         itemBuilder: (context, index) {
@@ -525,58 +587,73 @@ class _ReviewsListState extends State<_ReviewsList> {
           return Transform.scale(
             scale: scale,
             child: Container(
-            width: _cardWidth,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [BoxShadow(color: _HomeScreenState._brandDark.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 6))],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: review.color.withValues(alpha: 0.2),
-                      child: Text(
-                        review.name[0],
-                        style: TextStyle(color: review.color, fontWeight: FontWeight.w800),
+              width: _cardWidth,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                      color:
+                          _HomeScreenState._brandDark.withValues(alpha: 0.06),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6))
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: review.color.withValues(alpha: 0.2),
+                        child: Text(
+                          review.name[0],
+                          style: TextStyle(
+                              color: review.color, fontWeight: FontWeight.w800),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        review.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w700, color: _HomeScreenState._ink, fontSize: 14),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          review.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: _HomeScreenState._ink,
+                              fontSize: 14),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: List.generate(5, (i) {
-                    return Icon(
-                      i < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
-                      size: 16,
-                      color: const Color(0xFFFFB020),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Text(
-                    review.comment,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.black.withValues(alpha: 0.6), fontSize: 13, height: 1.35),
+                    ],
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: List.generate(5, (i) {
+                      return Icon(
+                        i < review.rating
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        size: 16,
+                        color: const Color(0xFFFFB020),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Text(
+                      review.comment,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          fontSize: 13,
+                          height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -593,14 +670,16 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
   final List<Category> matches;
   final ValueChanged<Category> onTap;
 
-  const _SearchSuggestionsOverlay({required this.link, required this.matches, required this.onTap});
+  const _SearchSuggestionsOverlay(
+      {required this.link, required this.matches, required this.onTap});
 
   static const _ink = _HomeScreenState._ink;
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
     return Positioned(
-      width: MediaQuery.of(context).size.width - 40,
+      width: (width - 40).clamp(0.0, kOverlayMaxWidth),
       child: CompositedTransformFollower(
         link: link,
         showWhenUnlinked: false,
@@ -608,12 +687,15 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
         child: TweenAnimationBuilder<double>(
           key: ValueKey(matches.length),
           tween: Tween(begin: 0, end: 1),
-          duration: prefersReducedMotion(context) ? Duration.zero : kQuickAnimDuration,
+          duration: prefersReducedMotion(context)
+              ? Duration.zero
+              : kQuickAnimDuration,
           curve: kStandardCurve,
           builder: (context, t, child) {
             return Opacity(
               opacity: t,
-              child: Transform.translate(offset: Offset(0, (1 - t) * -8), child: child),
+              child: Transform.translate(
+                  offset: Offset(0, (1 - t) * -8), child: child),
             );
           },
           child: Material(
@@ -622,8 +704,12 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
             shadowColor: Colors.black.withValues(alpha: 0.25),
             child: matches.isEmpty
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                    child: Text('No services found', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 16),
+                    child: Text('No services found',
+                        style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500)),
                   )
                 : ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 320),
@@ -634,17 +720,25 @@ class _SearchSuggestionsOverlay extends StatelessWidget {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final category = matches[index];
-                        final tint = styleForServiceName(category.serviceName, 0).color;
+                        final tint =
+                            styleForServiceName(category.serviceName, 0).color;
                         return ListTile(
                           dense: true,
                           leading: Container(
                             width: 36,
                             height: 36,
-                            decoration: BoxDecoration(color: tint.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                            child: Icon(getCategoryIcon(category.name), color: tint, size: 18),
+                            decoration: BoxDecoration(
+                                color: tint.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Icon(getCategoryIcon(category.name),
+                                color: tint, size: 18),
                           ),
-                          title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w700, color: _ink)),
-                          subtitle: Text(category.serviceName, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          title: Text(category.name,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700, color: _ink)),
+                          subtitle: Text(category.serviceName,
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 12)),
                           onTap: () => onTap(category),
                         );
                       },

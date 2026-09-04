@@ -6,11 +6,13 @@ import 'package:provider/provider.dart';
 import '../models/customer_service_request.dart';
 import '../providers/auth_provider.dart';
 import '../providers/customer_service_request_provider.dart';
+import '../utils/breakpoints.dart';
 import '../utils/constants.dart';
 import '../utils/cancel_reasons.dart';
 import '../utils/status_progress.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/decorative_glow_circle.dart';
 import '../widgets/empty_state_placeholder.dart';
 import '../widgets/reason_dialog.dart';
 import '../widgets/status_filter_tabs.dart';
@@ -43,9 +45,11 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
   /// A request is "Completed"/"Cancelled" per its computed `progressStatus`
   /// (null means cancelled — see docs/status-workflow.md); everything else
   /// (Requested/Assigned/In Progress) is "Active".
-  bool _isCompletedReq(CustomerServiceRequest r) => r.progressStatus == 'Completed';
+  bool _isCompletedReq(CustomerServiceRequest r) =>
+      r.progressStatus == 'Completed';
   bool _isCancelledReq(CustomerServiceRequest r) => r.progressStatus == null;
-  bool _isActiveReq(CustomerServiceRequest r) => !_isCompletedReq(r) && !_isCancelledReq(r);
+  bool _isActiveReq(CustomerServiceRequest r) =>
+      !_isCompletedReq(r) && !_isCancelledReq(r);
 
   void _loadRequests() {
     final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
@@ -83,7 +87,8 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: 'Delete Request',
-      message: 'Are you sure you want to delete "${request.serviceTitle}"? This cannot be undone.',
+      message:
+          'Are you sure you want to delete "${request.serviceTitle}"? This cannot be undone.',
       confirmLabel: 'Delete',
       icon: Icons.delete_outline_rounded,
       color: Colors.red,
@@ -114,7 +119,8 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     if (reason == null || !mounted) return;
 
     final requestProvider = context.read<CustomerServiceRequestProvider>();
-    final success = await requestProvider.cancelRequest(request, reason: reason);
+    final success =
+        await requestProvider.cancelRequest(request, reason: reason);
     if (!mounted) return;
 
     final message = success
@@ -137,7 +143,8 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(128),
-        child: _RequestsBanner(count: isLoggedIn ? requestState.requests.length : 0),
+        child: _RequestsBanner(
+            count: isLoggedIn ? requestState.requests.length : 0),
       ),
       bottomNavigationBar:
           widget.embedded ? null : const AppBottomNavigation(currentIndex: 1),
@@ -146,14 +153,18 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
               icon: Icons.lock_outline_rounded,
               color: kPrimaryColor,
               title: 'Log in to see your requests',
-              message: 'Create an account or log in to submit and track service requests.',
+              message:
+                  'Create an account or log in to submit and track service requests.',
               retryLabel: 'Log In',
-              onRetry: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
+              onRetry: () =>
+                  Navigator.of(context).pushNamed(LoginScreen.routeName),
             )
           : Builder(builder: (context) {
               final active = requestState.requests.where(_isActiveReq).toList();
-              final completed = requestState.requests.where(_isCompletedReq).toList();
-              final cancelled = requestState.requests.where(_isCancelledReq).toList();
+              final completed =
+                  requestState.requests.where(_isCompletedReq).toList();
+              final cancelled =
+                  requestState.requests.where(_isCancelledReq).toList();
               final tabLists = [active, completed, cancelled];
               final displayed = tabLists[_selectedTab];
               const tabEmptyMessages = [
@@ -162,65 +173,90 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
                 'Requests you\'ve cancelled will show up here.',
               ];
 
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-                    child: StatusFilterTabs(
-                      labels: const ['Active', 'Completed', 'Cancelled'],
-                      counts: [active.length, completed.length, cancelled.length],
-                      selectedIndex: _selectedTab,
-                      activeColor: _brandBlue,
-                      onChanged: (i) => setState(() => _selectedTab = i),
-                    ),
-                  ),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async => _loadRequests(),
-                      child: requestState.loading
-                          ? const Center(child: CircularProgressIndicator())
-                          : requestState.error != null
-                              ? EmptyStatePlaceholder(
-                                  icon: Icons.wifi_off_rounded,
-                                  color: Colors.red,
-                                  title: 'Couldn\'t load requests',
-                                  message: requestState.error,
-                                  onRetry: _loadRequests,
-                                )
-                              : displayed.isEmpty
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                        child: StatusFilterTabs(
+                          labels: const ['Active', 'Completed', 'Cancelled'],
+                          counts: [
+                            active.length,
+                            completed.length,
+                            cancelled.length
+                          ],
+                          selectedIndex: _selectedTab,
+                          activeColor: _brandBlue,
+                          onChanged: (i) => setState(() => _selectedTab = i),
+                        ),
+                      ),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () async => _loadRequests(),
+                          child: requestState.loading
+                              ? const Center(child: CircularProgressIndicator())
+                              : requestState.error != null
                                   ? EmptyStatePlaceholder(
-                                      icon: Icons.receipt_long_rounded,
-                                      color: kPrimaryColor,
-                                      title: 'No ${const ['active', 'completed', 'cancelled'][_selectedTab]} requests',
-                                      message: tabEmptyMessages[_selectedTab],
+                                      icon: Icons.wifi_off_rounded,
+                                      color: Colors.red,
+                                      title: 'Couldn\'t load requests',
+                                      message: requestState.error,
+                                      onRetry: _loadRequests,
                                     )
-                                  : ListView.separated(
-                                      physics: const AlwaysScrollableScrollPhysics(),
-                                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                                      itemCount: displayed.length,
-                                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                      itemBuilder: (context, index) {
-                                        final request = displayed[index];
-                                        final deleting =
-                                            requestState.deletingUid == request.uid;
-                                        final cancelling =
-                                            requestState.cancellingUid == request.uid;
+                                  : displayed.isEmpty
+                                      ? EmptyStatePlaceholder(
+                                          icon: Icons.receipt_long_rounded,
+                                          color: kPrimaryColor,
+                                          title: 'No ${const [
+                                            'active',
+                                            'completed',
+                                            'cancelled'
+                                          ][_selectedTab]} requests',
+                                          message:
+                                              tabEmptyMessages[_selectedTab],
+                                        )
+                                      : ListView.separated(
+                                          physics:
+                                              const AlwaysScrollableScrollPhysics(),
+                                          padding: const EdgeInsets.fromLTRB(
+                                              16, 12, 16, 16),
+                                          itemCount: displayed.length,
+                                          separatorBuilder: (_, __) =>
+                                              const SizedBox(height: 12),
+                                          itemBuilder: (context, index) {
+                                            final request = displayed[index];
+                                            final deleting =
+                                                requestState.deletingUid ==
+                                                    request.uid;
+                                            final cancelling =
+                                                requestState.cancellingUid ==
+                                                    request.uid;
 
-                                        return _RequestCard(
-                                          request: request,
-                                          statusColor: _statusColor(request.progressStatus ?? 'Cancelled'),
-                                          canCancel: _canCancel(request.status),
-                                          canDelete: _canDelete(request.status),
-                                          cancelling: cancelling,
-                                          deleting: deleting,
-                                          onCancel: () => _cancelRequest(request),
-                                          onDelete: () => _deleteRequest(request),
-                                        );
-                                      },
-                                    ),
-                    ),
+                                            return _RequestCard(
+                                              request: request,
+                                              statusColor: _statusColor(
+                                                  request.progressStatus ??
+                                                      'Cancelled'),
+                                              canCancel:
+                                                  _canCancel(request.status),
+                                              canDelete:
+                                                  _canDelete(request.status),
+                                              cancelling: cancelling,
+                                              deleting: deleting,
+                                              onCancel: () =>
+                                                  _cancelRequest(request),
+                                              onDelete: () =>
+                                                  _deleteRequest(request),
+                                            );
+                                          },
+                                        ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               );
             }),
     );
@@ -438,9 +474,13 @@ class _RequestCard extends StatelessWidget {
                           const SizedBox(height: 12),
                           StatusProgressBar(
                             steps: kRequestStatusSteps,
-                            currentStep: requestProgressStep(request.progressStatus),
+                            currentStep:
+                                requestProgressStep(request.progressStatus),
                             activeColor: statusColor,
-                            terminalLabel: isRequestCancelled(request.progressStatus) ? 'Cancelled' : null,
+                            terminalLabel:
+                                isRequestCancelled(request.progressStatus)
+                                    ? 'Cancelled'
+                                    : null,
                             terminalColor: Colors.red,
                             compact: true,
                           ),
@@ -562,7 +602,8 @@ class _RequestCard extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
                   child: Row(
                     children: [
-                      Icon(_statusIcon(request.status), size: 16, color: statusColor),
+                      Icon(_statusIcon(request.status),
+                          size: 16, color: statusColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -595,12 +636,14 @@ class _RequestCard extends StatelessWidget {
                                 child: SizedBox(
                                     height: 16,
                                     width: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2)),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2)),
                               )
                             : IconButton(
                                 onPressed: onDelete,
                                 visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.delete_outline_rounded, size: 19, color: Colors.red),
+                                icon: const Icon(Icons.delete_outline_rounded,
+                                    size: 19, color: Colors.red),
                                 tooltip: 'Delete',
                               ),
                     ],
@@ -678,24 +721,14 @@ class _RequestsBanner extends StatelessWidget {
             Positioned(
               top: -40,
               right: -30,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _brandAccent.withValues(alpha: 0.14)),
-              ),
+              child: DecorativeGlowCircle(
+                  baseSize: 140, color: _brandAccent.withValues(alpha: 0.14)),
             ),
             Positioned(
               bottom: -50,
               left: -20,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.06)),
-              ),
+              child: DecorativeGlowCircle(
+                  baseSize: 120, color: Colors.white.withValues(alpha: 0.06)),
             ),
             Positioned.fill(
               child: SafeArea(

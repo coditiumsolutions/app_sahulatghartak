@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/breakpoints.dart';
+import '../widgets/decorative_glow_circle.dart';
 import 'customer_registration_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
@@ -14,6 +16,7 @@ class LandingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoSize = appLogoSize(context);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -28,29 +31,17 @@ class LandingScreen extends StatelessWidget {
             Positioned(
               top: -70,
               left: -50,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.12)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 180, color: _brandAccent.withValues(alpha: 0.12)),
             ),
-            Positioned(
+            const Positioned(
               top: -30,
               right: -60,
-              child: Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.06)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 160, color: Color.fromRGBO(255, 255, 255, 0.06)),
             ),
             Positioned(
               bottom: -80,
               right: -70,
-              child: Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _brandAccent.withValues(alpha: 0.08)),
-              ),
+              child: DecorativeGlowCircle(baseSize: 220, color: _brandAccent.withValues(alpha: 0.08)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -64,7 +55,7 @@ class LandingScreen extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(36),
-                      child: Image.asset('assets/icon/app_icon.png', width: 168, height: 168),
+                      child: Image.asset('assets/icon/app_icon.png', width: logoSize, height: logoSize),
                     ),
                   ),
                   const SizedBox(height: 24),

@@ -6,10 +6,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/customer_service_request.dart';
 import '../providers/customer_service_request_provider.dart';
 import '../utils/api_error.dart';
+import '../utils/breakpoints.dart';
 import '../utils/cancel_reasons.dart';
 import '../utils/constants.dart';
 import '../utils/status_progress.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/decorative_glow_circle.dart';
 import '../widgets/reason_dialog.dart';
 import '../widgets/status_progress_bar.dart';
 
@@ -82,7 +84,8 @@ Future<void> _callNumber(BuildContext context, String mobileNo) async {
   final uri = Uri(scheme: 'tel', path: mobileNo);
   final launched = await launchUrl(uri);
   if (!launched && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not start a call.')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Could not start a call.')));
   }
 }
 
@@ -162,16 +165,21 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (reason == null || !mounted) return;
 
     final requestProvider = context.read<CustomerServiceRequestProvider>();
-    final success = await requestProvider.cancelRequest(request, reason: reason);
+    final success =
+        await requestProvider.cancelRequest(request, reason: reason);
     if (!mounted) return;
 
     if (success) {
-      final updated = requestProvider.requests.firstWhere((r) => r.uid == request.uid, orElse: () => request);
+      final updated = requestProvider.requests
+          .firstWhere((r) => r.uid == request.uid, orElse: () => request);
       setState(() => _request = updated);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'Request cancelled' : (requestProvider.error ?? 'Failed to cancel request'))),
+      SnackBar(
+          content: Text(success
+              ? 'Request cancelled'
+              : (requestProvider.error ?? 'Failed to cancel request'))),
     );
   }
 
@@ -180,7 +188,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (request == null) return;
 
     var passcode = request.passcode;
-    passcode ??= await context.read<CustomerServiceRequestProvider>().getStoredPasscode(request.uid);
+    passcode ??= await context
+        .read<CustomerServiceRequestProvider>()
+        .getStoredPasscode(request.uid);
     if (!mounted) return;
 
     if (passcode == null) {
@@ -203,7 +213,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final confirmed = await showConfirmDialog(
       context,
       title: 'Delete Request',
-      message: 'Are you sure you want to delete "${request.serviceTitle}"? This cannot be undone.',
+      message:
+          'Are you sure you want to delete "${request.serviceTitle}"? This cannot be undone.',
       confirmLabel: 'Delete',
       icon: Icons.delete_outline_rounded,
       color: Colors.red,
@@ -215,11 +226,12 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request deleted')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Request deleted')));
       (widget.onClose ?? () => Navigator.of(context).maybePop())();
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(requestProvider.error ?? 'Failed to delete request')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(requestProvider.error ?? 'Failed to delete request')));
     }
   }
 
@@ -227,7 +239,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   Widget build(BuildContext context) {
     final request = _request;
     final requestState = context.watch<CustomerServiceRequestProvider>();
-    final cancelling = request != null && requestState.cancellingUid == request.uid;
+    final cancelling =
+        request != null && requestState.cancellingUid == request.uid;
     final deleting = request != null && requestState.deletingUid == request.uid;
 
     return PopScope(
@@ -246,292 +259,409 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             : SafeArea(
                 top: false,
                 child: RefreshIndicator(
-                onRefresh: _fetch,
-                child: CustomScrollView(
-                  slivers: [
-                    _DetailHeader(request: request, onClose: widget.onClose),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(color: _statusColor(request.progressStatus ?? 'Cancelled').withValues(alpha: 0.35), width: 1.2),
-                              ),
-                              child: StatusProgressBar(
-                                steps: kRequestStatusSteps,
-                                currentStep: requestProgressStep(request.progressStatus),
-                                activeColor: _statusColor(request.progressStatus ?? 'Cancelled'),
-                                terminalLabel: isRequestCancelled(request.progressStatus) ? 'Request Cancelled' : null,
-                                terminalColor: Colors.red,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            _SectionCard(
-                              title: 'Service Details',
-                              icon: Icons.build_rounded,
-                              accentColor: _brandBlue,
-                              children: [
-                                _DetailRow(
-                                    label: 'Category',
-                                    value: request.categoryName,
-                                    icon: Icons.category_rounded),
-                                _DetailRow(
-                                  label: 'Description',
-                                  value:
-                                      request.serviceDescription.trim().isEmpty
-                                          ? 'No description provided'
-                                          : request.serviceDescription,
-                                  icon: Icons.notes_rounded,
-                                  muted:
-                                      request.serviceDescription.trim().isEmpty,
-                                ),
-                                if (request.isUrgent)
-                                  _DetailRow(
-                                    label: 'Priority',
-                                    icon: Icons.priority_high_rounded,
-                                    valueWidget: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color:
-                                              Colors.red.withValues(alpha: 0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                      child: const Text('Urgent',
-                                          style: TextStyle(
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 12.5)),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            _SectionCard(
-                              title: 'Schedule & Location',
-                              icon: Icons.event_note_rounded,
-                              accentColor: Colors.teal,
-                              children: [
-                                _DetailRow(
-                                  label: 'Preferred Date',
-                                  value: request.preferredServiceDate.isEmpty
-                                      ? 'Not specified'
-                                      : request.preferredServiceDate,
-                                  icon: Icons.calendar_today_rounded,
-                                  muted: request.preferredServiceDate.isEmpty,
-                                ),
-                                _DetailRow(
-                                  label: 'Preferred Time',
-                                  value: request.preferredServiceTime.isEmpty
-                                      ? 'Not specified'
-                                      : request.preferredServiceTime,
-                                  icon: Icons.access_time_rounded,
-                                  muted: request.preferredServiceTime.isEmpty,
-                                ),
-                                _DetailRow(
-                                    label: 'Address',
-                                    value: request.addressTitle,
-                                    icon: Icons.location_on_rounded),
-                              ],
-                            ),
-                            if (request.providerUid != null) ...[
-                              const SizedBox(height: 14),
-                              _SectionCard(
-                                title: 'Provider Details',
-                                icon: Icons.engineering_rounded,
-                                accentColor: Colors.deepPurple,
+                  onRefresh: _fetch,
+                  child: CustomScrollView(
+                    slivers: [
+                      _DetailHeader(request: request, onClose: widget.onClose),
+                      SliverToBoxAdapter(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                                maxWidth: kContentMaxWidth),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (request.providerName != null)
-                                    _DetailRow(
-                                      label: 'Name',
-                                      icon: Icons.badge_rounded,
-                                      valueWidget: Row(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: request.providerProfilePhotoPath == null
-                                                ? null
-                                                : () => _showEnlargedPhoto(context, '$kApiFileBaseUrl/${request.providerProfilePhotoPath!}'),
-                                            child: CircleAvatar(
-                                              radius: 16,
-                                              backgroundColor: const Color(0xFFF6F8FC),
-                                              backgroundImage: request.providerProfilePhotoPath != null
-                                                  ? NetworkImage('$kApiFileBaseUrl/${request.providerProfilePhotoPath!}')
-                                                  : null,
-                                              child: request.providerProfilePhotoPath == null
-                                                  ? Icon(Icons.person_rounded, size: 18, color: kPrimaryColor)
-                                                  : null,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Text(
-                                              request.providerName!,
-                                              style: const TextStyle(color: Color(0xFF1A2233), fontSize: 14, fontWeight: FontWeight.w600),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  if (request.providerMobileNo != null)
-                                    _DetailRow(
-                                      label: 'Mobile No',
-                                      icon: Icons.phone_rounded,
-                                      valueWidget: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              request.providerMobileNo!,
-                                              style: const TextStyle(color: Color(0xFF1A2233), fontSize: 14, fontWeight: FontWeight.w600),
-                                            ),
-                                          ),
-                                          TextButton.icon(
-                                            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8), visualDensity: VisualDensity.compact),
-                                            onPressed: () => _callNumber(context, request.providerMobileNo!),
-                                            icon: Icon(Icons.call_rounded, size: 16, color: _brandBlue),
-                                            label: Text('Call', style: TextStyle(color: _brandBlue, fontWeight: FontWeight.w700)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  if (request.providerCnic != null)
-                                    _DetailRow(label: 'CNIC No', value: request.providerCnic!, icon: Icons.credit_card_rounded),
-                                  // Provider location intentionally omitted here until the location
-                                  // system is overhauled — there is no providerLocation field yet.
-                                  const SizedBox(height: 4),
-                                  SizedBox(
+                                  Container(
                                     width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: _brandBlue,
-                                        side: BorderSide(color: _brandBlue.withValues(alpha: 0.4)),
-                                        padding: const EdgeInsets.symmetric(vertical: 11),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      ),
-                                      onPressed: _showPasscode,
-                                      icon: const Icon(Icons.password_rounded, size: 18),
-                                      label: const Text('Show Passcode', style: TextStyle(fontWeight: FontWeight.w700)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                          color: _statusColor(
+                                                  request.progressStatus ??
+                                                      'Cancelled')
+                                              .withValues(alpha: 0.35),
+                                          width: 1.2),
+                                    ),
+                                    child: StatusProgressBar(
+                                      steps: kRequestStatusSteps,
+                                      currentStep: requestProgressStep(
+                                          request.progressStatus),
+                                      activeColor: _statusColor(
+                                          request.progressStatus ??
+                                              'Cancelled'),
+                                      terminalLabel: isRequestCancelled(
+                                              request.progressStatus)
+                                          ? 'Request Cancelled'
+                                          : null,
+                                      terminalColor: Colors.red,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 14),
+                                  _SectionCard(
+                                    title: 'Service Details',
+                                    icon: Icons.build_rounded,
+                                    accentColor: _brandBlue,
+                                    children: [
+                                      _DetailRow(
+                                          label: 'Category',
+                                          value: request.categoryName,
+                                          icon: Icons.category_rounded),
+                                      _DetailRow(
+                                        label: 'Description',
+                                        value: request.serviceDescription
+                                                .trim()
+                                                .isEmpty
+                                            ? 'No description provided'
+                                            : request.serviceDescription,
+                                        icon: Icons.notes_rounded,
+                                        muted: request.serviceDescription
+                                            .trim()
+                                            .isEmpty,
+                                      ),
+                                      if (request.isUrgent)
+                                        _DetailRow(
+                                          label: 'Priority',
+                                          icon: Icons.priority_high_rounded,
+                                          valueWidget: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                                color: Colors.red
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                            child: const Text('Urgent',
+                                                style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 12.5)),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _SectionCard(
+                                    title: 'Schedule & Location',
+                                    icon: Icons.event_note_rounded,
+                                    accentColor: Colors.teal,
+                                    children: [
+                                      _DetailRow(
+                                        label: 'Preferred Date',
+                                        value:
+                                            request.preferredServiceDate.isEmpty
+                                                ? 'Not specified'
+                                                : request.preferredServiceDate,
+                                        icon: Icons.calendar_today_rounded,
+                                        muted: request
+                                            .preferredServiceDate.isEmpty,
+                                      ),
+                                      _DetailRow(
+                                        label: 'Preferred Time',
+                                        value:
+                                            request.preferredServiceTime.isEmpty
+                                                ? 'Not specified'
+                                                : request.preferredServiceTime,
+                                        icon: Icons.access_time_rounded,
+                                        muted: request
+                                            .preferredServiceTime.isEmpty,
+                                      ),
+                                      _DetailRow(
+                                          label: 'Address',
+                                          value: request.addressTitle,
+                                          icon: Icons.location_on_rounded),
+                                    ],
+                                  ),
+                                  if (request.providerUid != null) ...[
+                                    const SizedBox(height: 14),
+                                    _SectionCard(
+                                      title: 'Provider Details',
+                                      icon: Icons.engineering_rounded,
+                                      accentColor: Colors.deepPurple,
+                                      children: [
+                                        if (request.providerName != null)
+                                          _DetailRow(
+                                            label: 'Name',
+                                            icon: Icons.badge_rounded,
+                                            valueWidget: Row(
+                                              children: [
+                                                Material(
+                                                  color: Colors.transparent,
+                                                  shape: const CircleBorder(),
+                                                  child: InkWell(
+                                                    customBorder:
+                                                        const CircleBorder(),
+                                                    onTap: request
+                                                                .providerProfilePhotoPath ==
+                                                            null
+                                                        ? null
+                                                        : () => _showEnlargedPhoto(
+                                                            context,
+                                                            '$kApiFileBaseUrl/${request.providerProfilePhotoPath!}'),
+                                                    child: CircleAvatar(
+                                                      radius: 16,
+                                                      backgroundColor:
+                                                          const Color(
+                                                              0xFFF6F8FC),
+                                                      backgroundImage: request
+                                                                  .providerProfilePhotoPath !=
+                                                              null
+                                                          ? NetworkImage(
+                                                              '$kApiFileBaseUrl/${request.providerProfilePhotoPath!}')
+                                                          : null,
+                                                      child: request
+                                                                  .providerProfilePhotoPath ==
+                                                              null
+                                                          ? Icon(
+                                                              Icons
+                                                                  .person_rounded,
+                                                              size: 18,
+                                                              color:
+                                                                  kPrimaryColor)
+                                                          : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Text(
+                                                    request.providerName!,
+                                                    style: const TextStyle(
+                                                        color:
+                                                            Color(0xFF1A2233),
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (request.providerMobileNo != null)
+                                          _DetailRow(
+                                            label: 'Mobile No',
+                                            icon: Icons.phone_rounded,
+                                            valueWidget: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    request.providerMobileNo!,
+                                                    style: const TextStyle(
+                                                        color:
+                                                            Color(0xFF1A2233),
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600),
+                                                  ),
+                                                ),
+                                                TextButton.icon(
+                                                  style: TextButton.styleFrom(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8),
+                                                      visualDensity:
+                                                          VisualDensity
+                                                              .compact),
+                                                  onPressed: () => _callNumber(
+                                                      context,
+                                                      request
+                                                          .providerMobileNo!),
+                                                  icon: Icon(Icons.call_rounded,
+                                                      size: 16,
+                                                      color: _brandBlue),
+                                                  label: Text('Call',
+                                                      style: TextStyle(
+                                                          color: _brandBlue,
+                                                          fontWeight:
+                                                              FontWeight.w700)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (request.providerCnic != null)
+                                          _DetailRow(
+                                              label: 'CNIC No',
+                                              value: request.providerCnic!,
+                                              icon: Icons.credit_card_rounded),
+                                        // Provider location intentionally omitted here until the location
+                                        // system is overhauled — there is no providerLocation field yet.
+                                        const SizedBox(height: 4),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: OutlinedButton.icon(
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: _brandBlue,
+                                              side: BorderSide(
+                                                  color: _brandBlue.withValues(
+                                                      alpha: 0.4)),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 11),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                            ),
+                                            onPressed: _showPasscode,
+                                            icon: const Icon(
+                                                Icons.password_rounded,
+                                                size: 18),
+                                            label: const Text('Show Passcode',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.w700)),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                    ),
+                                  ],
+                                  const SizedBox(height: 14),
+                                  _SectionCard(
+                                    title: 'Contact Information',
+                                    icon: Icons.person_rounded,
+                                    accentColor: Colors.orange,
+                                    subtitle: Text(
+                                      'You entered this manually when submitting the request — it may differ from your account details.',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[500],
+                                          fontStyle: FontStyle.italic,
+                                          height: 1.3),
+                                    ),
+                                    children: [
+                                      _DetailRow(
+                                          label: 'Contact Person',
+                                          value: request.contactPerson,
+                                          icon: Icons.badge_rounded),
+                                      _DetailRow(
+                                          label: 'Contact Number',
+                                          value: request.contactNo,
+                                          icon: Icons.phone_rounded),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _SectionCard(
+                                    title: 'Budget & Remarks',
+                                    icon: Icons.payments_rounded,
+                                    accentColor: Colors.green,
+                                    children: [
+                                      _DetailRow(
+                                        label: 'Estimated Budget',
+                                        value: request.estimatedBudget > 0
+                                            ? 'Rs. ${request.estimatedBudget.toStringAsFixed(0)}'
+                                            : 'Not specified',
+                                        icon: Icons
+                                            .account_balance_wallet_rounded,
+                                        muted: request.estimatedBudget <= 0,
+                                      ),
+                                      _DetailRow(
+                                        label: 'Remarks',
+                                        value: (request.remarks == null ||
+                                                request.remarks!.trim().isEmpty)
+                                            ? 'No remarks'
+                                            : request.remarks!,
+                                        icon: Icons.comment_rounded,
+                                        muted: request.remarks == null ||
+                                            request.remarks!.trim().isEmpty,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _SectionCard(
+                                    title: 'Request Info',
+                                    icon: Icons.info_outline_rounded,
+                                    accentColor: Colors.grey.shade400,
+                                    compact: true,
+                                    children: [
+                                      _DetailRow(
+                                          label: 'Request ID',
+                                          value: '#${request.uid}',
+                                          icon: Icons.tag_rounded,
+                                          compact: true),
+                                      _DetailRow(
+                                        label: 'Requested On',
+                                        value:
+                                            DateFormat('dd MMM yyyy, hh:mm a')
+                                                .format(request.createdOn),
+                                        icon: Icons.schedule_rounded,
+                                        compact: true,
+                                      ),
+                                    ],
+                                  ),
+                                  if (_canCancel(request.status) ||
+                                      _canDelete(request.status)) ...[
+                                    const SizedBox(height: 20),
+                                    if (_canCancel(request.status))
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          style: kProminentOutlinedButtonStyle(
+                                                  Colors.orange)
+                                              .copyWith(
+                                            side: WidgetStateProperty.all(
+                                                const BorderSide(
+                                                    color: Colors.orange,
+                                                    width: 2)),
+                                          ),
+                                          onPressed: cancelling
+                                              ? null
+                                              : _cancelRequest,
+                                          icon: cancelling
+                                              ? const SizedBox(
+                                                  height: 18,
+                                                  width: 18,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Colors.orange))
+                                              : const Icon(
+                                                  Icons.cancel_outlined),
+                                          label: Text(cancelling
+                                              ? 'Cancelling…'
+                                              : 'Cancel Request'),
+                                        ),
+                                      ),
+                                    if (_canCancel(request.status) &&
+                                        _canDelete(request.status))
+                                      const SizedBox(height: 12),
+                                    if (_canDelete(request.status))
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          style: kProminentFilledButtonStyle(
+                                              Colors.red),
+                                          onPressed:
+                                              deleting ? null : _deleteRequest,
+                                          icon: deleting
+                                              ? const SizedBox(
+                                                  height: 18,
+                                                  width: 18,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Colors.white))
+                                              : const Icon(
+                                                  Icons.delete_outline_rounded),
+                                          label: Text(deleting
+                                              ? 'Deleting…'
+                                              : 'Delete Request'),
+                                        ),
+                                      ),
+                                  ],
                                 ],
                               ),
-                            ],
-                            const SizedBox(height: 14),
-                            _SectionCard(
-                              title: 'Contact Information',
-                              icon: Icons.person_rounded,
-                              accentColor: Colors.orange,
-                              subtitle: Text(
-                                'You entered this manually when submitting the request — it may differ from your account details.',
-                                style: TextStyle(fontSize: 11, color: Colors.grey[500], fontStyle: FontStyle.italic, height: 1.3),
-                              ),
-                              children: [
-                                _DetailRow(
-                                    label: 'Contact Person',
-                                    value: request.contactPerson,
-                                    icon: Icons.badge_rounded),
-                                _DetailRow(
-                                    label: 'Contact Number',
-                                    value: request.contactNo,
-                                    icon: Icons.phone_rounded),
-                              ],
                             ),
-                            const SizedBox(height: 14),
-                            _SectionCard(
-                              title: 'Budget & Remarks',
-                              icon: Icons.payments_rounded,
-                              accentColor: Colors.green,
-                              children: [
-                                _DetailRow(
-                                  label: 'Estimated Budget',
-                                  value: request.estimatedBudget > 0
-                                      ? 'Rs. ${request.estimatedBudget.toStringAsFixed(0)}'
-                                      : 'Not specified',
-                                  icon: Icons.account_balance_wallet_rounded,
-                                  muted: request.estimatedBudget <= 0,
-                                ),
-                                _DetailRow(
-                                  label: 'Remarks',
-                                  value: (request.remarks == null ||
-                                          request.remarks!.trim().isEmpty)
-                                      ? 'No remarks'
-                                      : request.remarks!,
-                                  icon: Icons.comment_rounded,
-                                  muted: request.remarks == null ||
-                                      request.remarks!.trim().isEmpty,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            _SectionCard(
-                              title: 'Request Info',
-                              icon: Icons.info_outline_rounded,
-                              accentColor: Colors.grey.shade400,
-                              compact: true,
-                              children: [
-                                _DetailRow(
-                                    label: 'Request ID',
-                                    value: '#${request.uid}',
-                                    icon: Icons.tag_rounded,
-                                    compact: true),
-                                _DetailRow(
-                                  label: 'Requested On',
-                                  value: DateFormat('dd MMM yyyy, hh:mm a')
-                                      .format(request.createdOn),
-                                  icon: Icons.schedule_rounded,
-                                  compact: true,
-                                ),
-                              ],
-                            ),
-                            if (_canCancel(request.status) || _canDelete(request.status)) ...[
-                              const SizedBox(height: 20),
-                              if (_canCancel(request.status))
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    style: kProminentOutlinedButtonStyle(Colors.orange).copyWith(
-                                      side: WidgetStateProperty.all(const BorderSide(color: Colors.orange, width: 2)),
-                                    ),
-                                    onPressed: cancelling ? null : _cancelRequest,
-                                    icon: cancelling
-                                        ? const SizedBox(
-                                            height: 18,
-                                            width: 18,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange))
-                                        : const Icon(Icons.cancel_outlined),
-                                    label: Text(cancelling ? 'Cancelling…' : 'Cancel Request'),
-                                  ),
-                                ),
-                              if (_canCancel(request.status) && _canDelete(request.status)) const SizedBox(height: 12),
-                              if (_canDelete(request.status))
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    style: kProminentFilledButtonStyle(Colors.red),
-                                    onPressed: deleting ? null : _deleteRequest,
-                                    icon: deleting
-                                        ? const SizedBox(
-                                            height: 18,
-                                            width: 18,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                        : const Icon(Icons.delete_outline_rounded),
-                                    label: Text(deleting ? 'Deleting…' : 'Delete Request'),
-                                  ),
-                                ),
-                            ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 ),
               ),
       ),
@@ -629,24 +759,14 @@ class _DetailHeader extends StatelessWidget {
               Positioned(
                 top: -30,
                 right: -20,
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _brandAccent.withValues(alpha: 0.14)),
-                ),
+                child: DecorativeGlowCircle(
+                    baseSize: 110, color: _brandAccent.withValues(alpha: 0.14)),
               ),
               Positioned(
                 bottom: -40,
                 left: -16,
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.06)),
-                ),
+                child: DecorativeGlowCircle(
+                    baseSize: 90, color: Colors.white.withValues(alpha: 0.06)),
               ),
               Positioned.fill(
                 child: SafeArea(
@@ -739,9 +859,11 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accentColor.withValues(alpha: 0.55), width: 1.2),
+        border:
+            Border.all(color: accentColor.withValues(alpha: 0.55), width: 1.2),
       ),
-      padding: EdgeInsets.fromLTRB(compact ? 14 : 16, compact ? 10 : 14, compact ? 14 : 16, compact ? 4 : 6),
+      padding: EdgeInsets.fromLTRB(compact ? 14 : 16, compact ? 10 : 14,
+          compact ? 14 : 16, compact ? 4 : 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -753,7 +875,9 @@ class _SectionCard extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: compact ? 12 : 14.5,
-                      color: compact ? Colors.grey[600] : const Color(0xFF1A2233))),
+                      color: compact
+                          ? Colors.grey[600]
+                          : const Color(0xFF1A2233))),
             ],
           ),
           if (subtitle != null) ...[
@@ -852,7 +976,12 @@ class _PasscodeDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: _brandDark.withValues(alpha: 0.22), blurRadius: 28, offset: const Offset(0, 12))],
+            boxShadow: [
+              BoxShadow(
+                  color: _brandDark.withValues(alpha: 0.22),
+                  blurRadius: 28,
+                  offset: const Offset(0, 12))
+            ],
           ),
           padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
           child: Column(
@@ -862,30 +991,47 @@ class _PasscodeDialog extends StatelessWidget {
                 width: 56,
                 height: 56,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: _brandBlue.withValues(alpha: 0.12), shape: BoxShape.circle),
-                child: const Icon(Icons.password_rounded, color: _brandBlue, size: 28),
+                decoration: BoxDecoration(
+                    color: _brandBlue.withValues(alpha: 0.12),
+                    shape: BoxShape.circle),
+                child: const Icon(Icons.password_rounded,
+                    color: _brandBlue, size: 28),
               ),
               const SizedBox(height: 16),
               const Text(
                 'Completion Passcode',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2233), letterSpacing: -0.2),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A2233),
+                    letterSpacing: -0.2),
               ),
               const SizedBox(height: 8),
               Text(
                 'Share this code with your provider once the job is finished so they can mark it complete.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.5, color: Colors.grey[600], height: 1.4, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 13.5,
+                    color: Colors.grey[600],
+                    height: 1.4,
+                    fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(color: const Color(0xFFF6F8FC), borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(
+                    color: const Color(0xFFF6F8FC),
+                    borderRadius: BorderRadius.circular(14)),
                 child: Text(
                   passcode,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: _brandDark, letterSpacing: 8),
+                  style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: _brandDark,
+                      letterSpacing: 8),
                 ),
               ),
               const SizedBox(height: 20),
@@ -897,10 +1043,12 @@ class _PasscodeDialog extends StatelessWidget {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text('Close',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

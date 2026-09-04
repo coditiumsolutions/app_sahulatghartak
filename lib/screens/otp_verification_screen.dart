@@ -34,8 +34,10 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   static const _otpLength = 6;
-  final List<TextEditingController> _controllers = List.generate(_otpLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(_otpLength, (_) => FocusNode());
+  final List<TextEditingController> _controllers =
+      List.generate(_otpLength, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes =
+      List.generate(_otpLength, (_) => FocusNode());
 
   OtpVerificationArgs? _args;
   bool _initialSendTriggered = false;
@@ -50,7 +52,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     _args ??= ModalRoute.of(context)!.settings.arguments as OtpVerificationArgs;
     if (!_initialSendTriggered) {
       _initialSendTriggered = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _sendOtp(initial: true));
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _sendOtp(initial: true));
     }
   }
 
@@ -107,7 +110,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         _fillOtp(devOtp);
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(initial ? 'OTP sent to ${args.mobileNo}' : 'OTP resent to ${args.mobileNo}')),
+        SnackBar(
+            content: Text(initial
+                ? 'OTP sent to ${args.mobileNo}'
+                : 'OTP resent to ${args.mobileNo}')),
       );
     } else {
       await showMessageDialog(
@@ -122,7 +128,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Future<void> _verify() async {
     final otp = _enteredOtp;
     if (otp.length != _otpLength) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter the complete 6-digit code')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter the complete 6-digit code')));
       return;
     }
 
@@ -157,7 +164,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           type: MessageDialogType.success,
         );
         if (!mounted) return;
-        final target = authProvider.role == 'Provider' ? ProviderDashboardScreen.routeName : HomeScreen.routeName;
+        final target = authProvider.role == 'Provider'
+            ? ProviderDashboardScreen.routeName
+            : HomeScreen.routeName;
         Navigator.of(context).pushNamedAndRemoveUntil(target, (route) => false);
       } else {
         await showMessageDialog(
@@ -167,7 +176,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           type: MessageDialogType.error,
         );
         if (!mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
       }
     } else {
       setState(() => _verifying = false);
@@ -199,9 +209,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           filled: true,
           fillColor: const Color(0xFFF5F5F7),
           contentPadding: EdgeInsets.zero,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kPrimaryColor, width: 1.5)),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: kPrimaryColor, width: 1.5)),
         ),
         onChanged: (value) {
           if (value.isNotEmpty && index < _otpLength - 1) {
@@ -244,10 +260,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   Expanded(
                     child: Text.rich(
                       TextSpan(
-                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                        style: const TextStyle(
+                            fontSize: 13, color: Colors.black87),
                         children: [
                           const TextSpan(text: 'Development mode — OTP: '),
-                          TextSpan(text: devOtp, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(
+                              text: devOtp,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -260,20 +280,29 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             children: List.generate(_otpLength, _otpBox),
           ),
           const SizedBox(height: 28),
-          AuthPrimaryButton(label: 'Verify', isLoading: _verifying, onPressed: _verify),
+          AuthPrimaryButton(
+              label: 'Verify', isLoading: _verifying, onPressed: _verify),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Didn't receive the code? ", style: TextStyle(color: Colors.black54)),
+              const Text("Didn't receive the code? ",
+                  style: TextStyle(color: Colors.black54)),
               _resending
-                  ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : GestureDetector(
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : InkWell(
                       onTap: _resendCooldown > 0 ? null : () => _sendOtp(),
                       child: Text(
-                        _resendCooldown > 0 ? 'Resend in ${_resendCooldown}s' : 'Resend',
+                        _resendCooldown > 0
+                            ? 'Resend in ${_resendCooldown}s'
+                            : 'Resend',
                         style: TextStyle(
-                          color: _resendCooldown > 0 ? Colors.black38 : kPrimaryColor,
+                          color: _resendCooldown > 0
+                              ? Colors.black38
+                              : kPrimaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

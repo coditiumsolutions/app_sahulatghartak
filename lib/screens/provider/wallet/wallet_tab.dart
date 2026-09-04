@@ -69,18 +69,32 @@ class _WalletTabState extends State<WalletTab> {
                   ? const SizedBox.shrink()
                   : RefreshIndicator(
                       onRefresh: () async => _loadWallet(),
-                      child: ListView(
+                      child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          _BalanceCard(wallet: wallet),
-                          const SizedBox(height: 16),
-                          Text('Transaction History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          if (wallet.transactions.isEmpty)
-                            const _EmptyTransactions()
-                          else
-                            ...wallet.transactions.map((t) => _TransactionTile(transaction: t)),
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                            sliver: SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _BalanceCard(wallet: wallet),
+                                  const SizedBox(height: 16),
+                                  Text('Transaction History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 12),
+                                  if (wallet.transactions.isEmpty) const _EmptyTransactions(),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (wallet.transactions.isNotEmpty)
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              sliver: SliverList.builder(
+                                itemCount: wallet.transactions.length,
+                                itemBuilder: (context, index) => _TransactionTile(transaction: wallet.transactions[index]),
+                              ),
+                            ),
                         ],
                       ),
                     ),
