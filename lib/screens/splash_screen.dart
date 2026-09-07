@@ -36,7 +36,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!authProvider.isLoggedIn) {
       Navigator.of(context).pushReplacementNamed(LandingScreen.routeName);
     } else if (authProvider.role == 'Provider') {
-      Navigator.of(context).pushReplacementNamed(ProviderDashboardScreen.routeName);
+      Navigator.of(context)
+          .pushReplacementNamed(ProviderDashboardScreen.routeName);
     } else {
       Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
     }
@@ -54,17 +55,31 @@ class _SplashScreenState extends State<SplashScreen> {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(36),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 8))],
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8))
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(36),
-            child: Image.asset('assets/icon/app_icon.png', width: logoSize, height: logoSize),
+            child: Image.asset('assets/icon/app_icon.png',
+                width: logoSize, height: logoSize),
           ),
         ),
         const SizedBox(height: 24),
-        Text('Sahulat Ghar Tak', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text('Sahulat Ghar Tak',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Quality Services Delivered to Your Doorstep', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
+        Text('Quality Services Delivered to Your Doorstep',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Colors.white.withValues(alpha: 0.75))),
       ],
     );
 
@@ -77,10 +92,15 @@ class _SplashScreenState extends State<SplashScreen> {
             colors: [_brandDark, _brandBlue],
           ),
         ),
-        child: Center(
-          child: prefersReducedMotion(context)
-              ? content
-              : content.animate().fade(duration: kSlowAnimDuration, curve: kStandardCurve).scale(duration: kSlowAnimDuration, curve: kStandardCurve),
+        child: SafeArea(
+          child: Center(
+            child: prefersReducedMotion(context)
+                ? content
+                : content
+                    .animate()
+                    .fade(duration: kSlowAnimDuration, curve: kStandardCurve)
+                    .scale(duration: kSlowAnimDuration, curve: kStandardCurve),
+          ),
         ),
       ),
     );
