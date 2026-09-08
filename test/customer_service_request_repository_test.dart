@@ -29,7 +29,7 @@ CustomerServiceRequest _request(int uid, {String? passcode}) {
     contactPerson: 'Person',
     contactNo: '0300',
     estimatedBudget: 0,
-    status: 'Pending',
+    status: 'Initiated',
     createdOn: DateTime(2026, 9, 3),
     passcode: passcode,
   );

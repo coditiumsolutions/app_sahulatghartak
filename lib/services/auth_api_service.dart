@@ -32,7 +32,7 @@ class AuthApiService {
     return json['message'] as String? ?? 'Registration successful.';
   }
 
-  Future<int> registerProvider({
+  Future<({int providerUid, int? clientId})> registerProvider({
     required String fullName,
     required String mobileNo,
     required String password,
@@ -55,7 +55,8 @@ class AuthApiService {
       'categoryName': categoryName,
     });
     final data = json['data'] as Map<String, dynamic>?;
-    return (data?['providerUid'] as int?) ?? (data?['profileId'] as int?) ?? 0;
+    final providerUid = (data?['providerUid'] as int?) ?? (data?['profileId'] as int?) ?? 0;
+    return (providerUid: providerUid, clientId: data?['clientId'] as int?);
   }
 
   Future<OtpData> sendOtp(String mobileNo, {String otpType = 'Registration'}) async {

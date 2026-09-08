@@ -26,6 +26,13 @@ class AuthProvider extends ChangeNotifier {
   AuthData? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
   String? get role => _currentUser?.role;
+
+  /// The id customer-facing screens should use for `clientUid` params.
+  /// Prefers the account's `clientId` (present whenever a Clients row
+  /// exists, independent of `userType`) so upgraded provider accounts keep
+  /// working as customers; falls back to `providerUid` (the primary
+  /// profile id) for never-upgraded client accounts and stale sessions.
+  int? get clientUid => _currentUser?.clientId ?? _currentUser?.providerUid;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
@@ -165,7 +172,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final providerUid = await _apiService.registerProvider(
+      final result = await _apiService.registerProvider(
         fullName: fullName,
         mobileNo: mobileNo,
         password: password,
@@ -177,10 +184,11 @@ class AuthProvider extends ChangeNotifier {
         categoryName: categoryName,
       );
       final loggedIn = await login(mobileNo, password);
-      if (loggedIn && providerUid > 0) {
-        // register-provider's response is the authoritative source for providerUid;
-        // the provider-profile lookup inside login() is best-effort and may fail silently.
-        _currentUser = _currentUser?.copyWith(providerUid: providerUid);
+      if (loggedIn && result.providerUid > 0) {
+        // register-provider's response is the authoritative source for providerUid
+        // and clientId; the provider-profile lookup inside login() is best-effort
+        // and may fail silently, and login()'s own response may race with this.
+        _currentUser = _currentUser?.copyWith(providerUid: result.providerUid, clientId: result.clientId);
         await _sessionService.saveSession(_currentUser!);
         notifyListeners();
       }
@@ -214,7 +222,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> fetchClientDetail() async {
     _error = null;
     try {
-      _clientDetail = await _clientProfileApiService.fetchDetail(_currentUser!.providerUid!);
+      _clientDetail = await _clientProfileApiService.fetchDetail(clientUid!);
       notifyListeners();
       return true;
     } catch (e) {
@@ -228,7 +236,7 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     try {
       _clientDetail = await _clientProfileApiService.updateDetail(
-        clientUid: _currentUser!.providerUid!,
+        clientUid: clientUid!,
         fullName: fullName,
         cnic: cnic,
         gender: gender,

@@ -19,7 +19,7 @@ class CustomerServiceRequest {
   /// Computed, read-only progress-bar stage from the API — one of
   /// [kRequestStatusSteps]'s values, or `null` when the request/its booking
   /// is Cancelled. Never derive UI progress from [status] directly; the
-  /// backend keeps `status` coarse (Pending/Assigned/Completed/Cancelled)
+  /// backend keeps `status` coarse (Initiated/Assigned/Completed/Cancelled)
   /// while this field reflects the real granular booking state. See
   /// docs/status-workflow.md.
   final String? progressStatus;
@@ -80,7 +80,7 @@ class CustomerServiceRequest {
       contactPerson: json['contactPerson'] as String? ?? '',
       contactNo: json['contactNo'] as String? ?? '',
       estimatedBudget: (json['estimatedBudget'] as num?)?.toDouble() ?? 0,
-      status: json['status'] as String? ?? 'Pending',
+      status: json['status'] as String? ?? 'Initiated',
       progressStatus: json['progressStatus'] as String?,
       remarks: json['remarks'] as String?,
       cancelReason: json['cancelReason'] as String?,

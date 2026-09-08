@@ -10,6 +10,8 @@ class AuthData {
   final int? categoryId;
   final String? categoryName;
   final int? providerUid;
+  final int? clientId;
+  final int? providerId;
 
   const AuthData({
     required this.userId,
@@ -21,6 +23,8 @@ class AuthData {
     this.categoryId,
     this.categoryName,
     this.providerUid,
+    this.clientId,
+    this.providerId,
   });
 
   factory AuthData.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,8 @@ class AuthData {
       categoryId: json['categoryId'] as int?,
       categoryName: json['categoryName'] as String?,
       providerUid: json['profileId'] as int?,
+      clientId: json['clientId'] as int?,
+      providerId: json['providerId'] as int?,
     );
   }
 
@@ -51,7 +57,15 @@ class AuthData {
     }
   }
 
-  AuthData copyWith({String? username, String? mobileNo, int? categoryId, String? categoryName, int? providerUid}) {
+  AuthData copyWith({
+    String? username,
+    String? mobileNo,
+    int? categoryId,
+    String? categoryName,
+    int? providerUid,
+    int? clientId,
+    int? providerId,
+  }) {
     return AuthData(
       userId: userId,
       username: username ?? this.username,
@@ -62,6 +76,8 @@ class AuthData {
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
       providerUid: providerUid ?? this.providerUid,
+      clientId: clientId ?? this.clientId,
+      providerId: providerId ?? this.providerId,
     );
   }
 
@@ -76,6 +92,8 @@ class AuthData {
       'categoryId': categoryId?.toString() ?? '',
       'categoryName': categoryName ?? '',
       'providerUid': providerUid?.toString() ?? '',
+      'clientId': clientId?.toString() ?? '',
+      'providerId': providerId?.toString() ?? '',
     };
   }
 
@@ -90,6 +108,8 @@ class AuthData {
       categoryId: (map['categoryId']?.isNotEmpty ?? false) ? int.parse(map['categoryId']!) : null,
       categoryName: (map['categoryName']?.isNotEmpty ?? false) ? map['categoryName'] : null,
       providerUid: (map['providerUid']?.isNotEmpty ?? false) ? int.parse(map['providerUid']!) : null,
+      clientId: (map['clientId']?.isNotEmpty ?? false) ? int.parse(map['clientId']!) : null,
+      providerId: (map['providerId']?.isNotEmpty ?? false) ? int.parse(map['providerId']!) : null,
     );
   }
 }

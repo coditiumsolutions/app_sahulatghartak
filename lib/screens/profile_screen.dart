@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _loadAddresses() {
-    final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
+    final clientUid = context.read<AuthProvider>().clientUid;
     if (clientUid != null) {
       context.read<ClientAddressProvider>().loadAddresses(clientUid);
     }
@@ -246,7 +246,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ProfileStatBadge(
                       icon: Icons.verified_user_rounded,
                       label: 'ACCOUNT TYPE',
-                      value: user.role,
+                      // This screen is always the customer-facing profile —
+                      // even when reached via "Switch to Customer" on an
+                      // account whose primary userType is now "Provider" —
+                      // so it always reads "Client" here, flagged with an
+                      // "Upgraded" badge when the account also has a
+                      // provider profile (user.providerId != null).
+                      value: 'Client',
+                      badgeText: user.providerId != null ? 'Upgraded' : null,
                       color: _brandBlue,
                     ),
                   ),

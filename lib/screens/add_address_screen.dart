@@ -46,7 +46,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
+    final clientUid = context.read<AuthProvider>().clientUid;
     if (clientUid == null) return;
 
     final addressProvider = context.read<ClientAddressProvider>();

@@ -67,7 +67,7 @@ void main() {
         'contactPerson': 'Shahid',
         'contactNo': '03335191392',
         'estimatedBudget': 2500.00,
-        'status': 'Pending',
+        'status': 'Initiated',
         'remarks': 'Please call before arrival',
         'cancelReason': null,
         'createdOn': '2026-07-08T00:00:00',
@@ -83,7 +83,7 @@ void main() {
 
       expect(request.providerUid, isNull);
       expect(request.providerMobileNo, isNull);
-      // A Pending request must never surface a stale/leftover provider number.
+      // An Initiated request must never surface a stale/leftover provider number.
     });
 
     test('two different requests in the same list keep independent contact fields', () {

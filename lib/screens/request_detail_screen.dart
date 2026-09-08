@@ -53,7 +53,13 @@ IconData _statusIcon(String displayStatus) {
   }
 }
 
-bool _canCancel(String status) => status.toLowerCase() == 'pending';
+/// Accepts both the current "Initiated" value and the legacy "Pending"
+/// value (still accepted by the backend on write, and possibly present in
+/// cached/older responses) for a freshly created/un-assigned request.
+bool _canCancel(String status) {
+  final normalized = status.toLowerCase();
+  return normalized == 'initiated' || normalized == 'pending';
+}
 
 bool _canDelete(String status) {
   final normalized = status.toLowerCase();

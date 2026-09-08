@@ -5,7 +5,19 @@ import '../models/auth_data.dart';
 class SessionService {
   final _storage = const FlutterSecureStorage();
 
-  static const _keys = ['userId', 'username', 'mobileNo', 'role', 'token', 'expiresAt', 'categoryId', 'categoryName', 'providerUid'];
+  static const _keys = [
+    'userId',
+    'username',
+    'mobileNo',
+    'role',
+    'token',
+    'expiresAt',
+    'categoryId',
+    'categoryName',
+    'providerUid',
+    'clientId',
+    'providerId',
+  ];
 
   Future<void> saveSession(AuthData authData) async {
     final map = authData.toStorageMap();

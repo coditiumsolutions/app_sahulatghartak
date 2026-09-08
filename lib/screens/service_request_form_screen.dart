@@ -83,7 +83,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       if (!mounted) return;
       context.read<ServiceTitleProvider>().loadServiceTitles(_category!.id);
 
-      final clientUid = user?.providerUid;
+      final clientUid = context.read<AuthProvider>().clientUid;
       if (clientUid != null) {
         context.read<ClientAddressProvider>().loadAddresses(clientUid).then((_) {
           if (!mounted) return;
@@ -142,7 +142,7 @@ class _ServiceRequestFormScreenState extends State<ServiceRequestFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an address')));
       return;
     }
-    final clientUid = context.read<AuthProvider>().currentUser?.providerUid;
+    final clientUid = context.read<AuthProvider>().clientUid;
     if (clientUid == null) return;
 
     final requestProvider = context.read<CustomerServiceRequestProvider>();

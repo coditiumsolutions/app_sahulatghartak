@@ -90,12 +90,17 @@ class ProfileStatBadge extends StatelessWidget {
   final String value;
   final Color color;
 
+  /// Optional small pill shown next to [value] (e.g. "Upgraded" to flag a
+  /// client account that also has a provider profile). Null renders nothing.
+  final String? badgeText;
+
   const ProfileStatBadge({
     super.key,
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    this.badgeText,
   });
 
   @override
@@ -119,11 +124,29 @@ class ProfileStatBadge extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (badgeText != null) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    badgeText!,
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

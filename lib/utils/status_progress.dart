@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Step labels for a customer's [CustomerServiceRequest] journey. These are
 /// the exact literal values the API's computed `progressStatus` field uses
 /// (see docs/status-workflow.md) — not derived from [CustomerServiceRequest.status],
-/// which stays coarse (Pending/Assigned/Completed/Cancelled) on the backend.
+/// which stays coarse (Initiated/Assigned/Completed/Cancelled) on the backend.
 const List<String> kRequestStatusSteps = ['Requested', 'Assigned', 'In Progress', 'Completed'];
 
 /// Maps a [CustomerServiceRequest.progressStatus] value to its index in
