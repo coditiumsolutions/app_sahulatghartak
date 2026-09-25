@@ -2,13 +2,13 @@
 set -e
 
 # Script: export_ipa.sh
-# Purpose: Package a downloaded Runner.xcarchive into a deliverable .ipa file for Transporter.
+# Purpose: Package a downloaded Runner.xcarchive into a deliverable .ipa file for Transporter with version naming.
+# Usage: /Users/mc/develop/projects/app_sahulatghartak/scripts/export_ipa.sh [path_to_folder]
+
 # Paste in Terminal (inside 'archive' folder): 
 # /Users/mc/develop/projects/app_sahulatghartak/scripts/export_ipa.sh
 
-
 TARGET_DIR="${1:-.}"
-OUTPUT_IPA="SahulatGharTak.ipa"
 
 # 1. Locate the .xcarchive folder
 XCARCHIVE=$(find "$TARGET_DIR" -maxdepth 2 -name "*.xcarchive" | head -n 1)
@@ -30,6 +30,23 @@ if [ -z "$APP_PATH" ]; then
 fi
 
 echo "Found App Bundle: $APP_PATH"
+
+# 2b. Extract Version and Build Number from Info.plist
+INFO_PLIST="$APP_PATH/Info.plist"
+
+if [ -f "$INFO_PLIST" ]; then
+  VERSION_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INFO_PLIST" 2>/dev/null || echo "")
+  BUILD_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$INFO_PLIST" 2>/dev/null || echo "")
+fi
+
+if [ -n "$VERSION_NAME" ] && [ -n "$BUILD_NAME" ]; then
+  OUTPUT_IPA="SGT-iOSbundle-${VERSION_NAME}+${BUILD_NAME}.ipa"
+else
+  echo "Warning: Could not read version info from Info.plist. Using default filename."
+  OUTPUT_IPA="SGT-iOSbundle-release.ipa"
+fi
+
+echo "Target IPA Name: $OUTPUT_IPA"
 
 # 3. Create temporary staging area and zip into .ipa
 TEMP_STAGING=$(mktemp -d)
