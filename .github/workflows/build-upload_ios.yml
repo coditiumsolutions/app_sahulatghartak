@@ -64,6 +64,16 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
 
+          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile.plist
+          PROFILE_NAME=$(plutil -extract Name raw $RUNNER_TEMP/profile.plist)
+          TEAM_ID=$(plutil -extract TeamIdentifier.0 raw $RUNNER_TEMP/profile.plist)
+          APP_ID=$(plutil -extract Entitlements.application-identifier raw $RUNNER_TEMP/profile.plist)
+          BUNDLE_ID=$(echo "$APP_ID" | sed "s/^$TEAM_ID\.//")
+
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "TEAM_ID=$TEAM_ID" >> $GITHUB_ENV
+          echo "BUNDLE_ID=$BUNDLE_ID" >> $GITHUB_ENV
+
       - name: Install CocoaPods dependencies
         run: |
           flutter pub get
@@ -73,11 +83,20 @@ jobs:
         run: |
           cat <<EOF > ios/ExportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.plist">
           <plist version="1.0">
           <dict>
               <key>method</key>
               <string>app-store</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>teamID</key>
+              <string>${{ env.TEAM_ID }}</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>${{ env.BUNDLE_ID }}</key>
+                  <string>${{ env.PROFILE_NAME }}</string>
+              </dict>
               <key>uploadSymbols</key>
               <true/>
               <key>uploadBitcode</key>
