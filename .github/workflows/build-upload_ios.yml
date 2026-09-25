@@ -94,7 +94,7 @@ jobs:
             --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload Build to App Store Connect
-        uses: apple-actions/upload-app-store-build@v1
+        uuses: apple-actions/upload-testflight-build@v1
         with:
           app-path: build/ios/ipa/*.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
