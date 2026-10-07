@@ -1,0 +1,7 @@
+{
+  "Simulator Target Bundle": "com.coditiumsols.sahulatghartak.ios",
+  "aps": { "content-available": 1 },
+  "gcm.message_id": "test1",
+  "type": "app_unblock",
+  "sent_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+}
