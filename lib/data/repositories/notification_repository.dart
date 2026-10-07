@@ -46,6 +46,6 @@ class NotificationRepository {
   Future<void> markAllRead({required int userId, required String userType}) =>
       _apiService.markAllRead(userId: userId, userType: userType);
 
-  Future<AppConfig> fetchAppConfig(String platform) =>
-      _configService.fetchConfig(platform);
+  Future<AppConfig> fetchAppConfig(String platform, {String? deviceToken}) =>
+      _configService.fetchConfig(platform, deviceToken: deviceToken);
 }

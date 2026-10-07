@@ -57,7 +57,21 @@ class _PushHostState extends State<PushHost> with WidgetsBindingObserver {
       debugPrint('Push init failed: $e');
     }
     _sync();
+    _pullRelease();
   }
+
+  /// Pull side of the admin release: the silent push is best effort on iOS,
+  /// so a blocked app also asks app config for the latest release time.
+  Future<void> _pullRelease() => updateBlock.pullRelease(() async {
+        final token = _registeredToken ??
+            await _push
+                .getToken()
+                .timeout(const Duration(seconds: 5), onTimeout: () => null);
+        final config = await _repository
+            .fetchAppConfig(_push.platform, deviceToken: token)
+            .timeout(const Duration(seconds: 5));
+        return config.lastUnblockAt;
+      });
 
   void _onEvent(PushEvent event) {
     if (!mounted) return;
@@ -128,7 +142,7 @@ class _PushHostState extends State<PushHost> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _notifications.syncLatest();
-      updateBlock.syncFromStore();
+      updateBlock.syncFromStore().then((_) => _pullRelease());
     }
   }
 

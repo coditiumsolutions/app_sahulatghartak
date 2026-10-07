@@ -41,20 +41,34 @@ class UpdateBlockStore {
   static const _versionStorageKey = 'pending_update_version';
   static const _urlStorageKey = 'pending_update_store_url';
   static const _clearedStorageKey = 'update_block_cleared_at';
+  static const _blockedAtStorageKey = 'pending_update_blocked_at';
 
   Future<(String?, String?)> read() async => (
         await _storage.read(key: _versionStorageKey),
         await _storage.read(key: _urlStorageKey),
       );
 
-  Future<void> write(String version, String storeUrl) async {
+  /// [blockedAt] is when the block was created (server `sent_at`, else the
+  /// receive time). Omit it to keep the stored value, e.g. when only the
+  /// store url changes. Blocks written by older builds have none.
+  Future<void> write(String version, String storeUrl,
+      {DateTime? blockedAt}) async {
     await _storage.write(key: _versionStorageKey, value: version);
     await _storage.write(key: _urlStorageKey, value: storeUrl);
+    if (blockedAt != null) {
+      await _storage.write(
+          key: _blockedAtStorageKey,
+          value: blockedAt.toUtc().toIso8601String());
+    }
   }
+
+  Future<DateTime?> readBlockedAt() async =>
+      DateTime.tryParse(await _storage.read(key: _blockedAtStorageKey) ?? '');
 
   Future<void> clear() async {
     await _storage.delete(key: _versionStorageKey);
     await _storage.delete(key: _urlStorageKey);
+    await _storage.delete(key: _blockedAtStorageKey);
   }
 
   /// Latest admin release seen (server `sent_at`). Announcements sent at or
@@ -87,6 +101,8 @@ class UpdateBlock extends ChangeNotifier {
 
   String? _requiredVersion;
   String _storeUrl = '';
+  DateTime? _blockedAt;
+  Future<void>? _loading;
 
   bool get isBlocked => _requiredVersion != null;
   String? get requiredVersion => _requiredVersion;
@@ -94,13 +110,36 @@ class UpdateBlock extends ChangeNotifier {
 
   /// Restores a pending update from storage. Clears it if the app has since
   /// been updated. Never throws.
-  Future<void> load() async {
+  Future<void> load() => _loading = _load();
+
+  Future<void> _load() async {
     try {
       final (version, url) = await _store.read();
       if (version == null || version.isEmpty) return;
-      await _apply(version, url ?? '');
+      await _apply(version, url ?? '', blockedAt: await _store.readBlockedAt());
     } catch (e) {
       debugPrint('Update block load failed: $e');
+    }
+  }
+
+  /// Pulls the latest admin release time (`last_unblock_at` from app config)
+  /// and releases the block if it is older. The silent push is best effort on
+  /// iOS, so this runs on launch and resume. [fetch] returns null when there
+  /// is nothing to apply. Fails open: any error changes nothing. A block
+  /// stored by an older build has no creation time and is never released
+  /// from here.
+  Future<void> pullRelease(Future<DateTime?> Function() fetch) async {
+    try {
+      await _loading;
+      if (!isBlocked) return;
+      final releasedAt = await fetch();
+      if (releasedAt == null) return;
+      final blockedAt = _blockedAt;
+      if (blockedAt == null || !releasedAt.toUtc().isAfter(blockedAt)) return;
+      debugPrint('Update block: release pulled from app config, releasing');
+      await _release({'sent_at': releasedAt.toUtc().toIso8601String()});
+    } catch (e) {
+      debugPrint('Update block pull failed: $e');
     }
   }
 
@@ -114,11 +153,12 @@ class UpdateBlock extends ChangeNotifier {
       if (version == null || version.isEmpty) {
         if (_requiredVersion != null) {
           _requiredVersion = null;
+          _blockedAt = null;
           notifyListeners();
         }
         return;
       }
-      await _apply(version, url ?? '');
+      await _apply(version, url ?? '', blockedAt: await _store.readBlockedAt());
     } catch (e) {
       debugPrint('Update block sync failed: $e');
     }
@@ -144,7 +184,7 @@ class UpdateBlock extends ChangeNotifier {
         return;
       }
       if (parsed.force) {
-        await _apply(parsed.version, parsed.storeUrl);
+        await _apply(parsed.version, parsed.storeUrl, blockedAt: _sentAt(data));
       } else if (!isBlocked) {
         _pendingPrompt = UpdatePrompt(parsed.version, parsed.storeUrl, message);
         notifyListeners();
@@ -166,7 +206,8 @@ class UpdateBlock extends ChangeNotifier {
       }
       final parsed = _parse(data);
       if (parsed != null && parsed.force && !await _voided(data, store)) {
-        await store.write(parsed.version, parsed.storeUrl);
+        await store.write(parsed.version, parsed.storeUrl,
+            blockedAt: _sentAt(data));
       }
     } catch (e) {
       debugPrint('Update block persist failed: $e');
@@ -201,6 +242,7 @@ class UpdateBlock extends ChangeNotifier {
     _pendingPrompt = null;
     if (_requiredVersion != null) {
       _requiredVersion = null;
+      _blockedAt = null;
       notifyListeners();
     }
   }
@@ -242,13 +284,14 @@ class UpdateBlock extends ChangeNotifier {
     return prompt;
   }
 
-  Future<void> _apply(String version, String url) async {
+  Future<void> _apply(String version, String url, {DateTime? blockedAt}) async {
     final installed = await _installedVersion();
     if (compareVersions(installed, version) >= 0) {
       // Already on this version or newer: nothing to block, drop stale state.
       await _store.clear();
       if (_requiredVersion != null) {
         _requiredVersion = null;
+        _blockedAt = null;
         notifyListeners();
       }
       return;
@@ -257,8 +300,9 @@ class UpdateBlock extends ChangeNotifier {
     final current = _requiredVersion;
     if (current != null && compareVersions(current, version) > 0) return;
     _requiredVersion = version;
+    _blockedAt = blockedAt;
     _storeUrl = url.isNotEmpty ? url : _storeUrl;
-    await _store.write(version, _storeUrl);
+    await _store.write(version, _storeUrl, blockedAt: blockedAt);
     notifyListeners();
   }
 

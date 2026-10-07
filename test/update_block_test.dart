@@ -5,6 +5,7 @@ class _FakeStore extends UpdateBlockStore {
   String? version;
   String? url;
   DateTime? clearedAt;
+  DateTime? blockedAt;
 
   @override
   Future<DateTime?> readClearedAt() async => clearedAt;
@@ -16,15 +17,20 @@ class _FakeStore extends UpdateBlockStore {
   Future<(String?, String?)> read() async => (version, url);
 
   @override
-  Future<void> write(String v, String u) async {
+  Future<void> write(String v, String u, {DateTime? blockedAt}) async {
     version = v;
     url = u;
+    if (blockedAt != null) this.blockedAt = blockedAt;
   }
+
+  @override
+  Future<DateTime?> readBlockedAt() async => blockedAt;
 
   @override
   Future<void> clear() async {
     version = null;
     url = null;
+    blockedAt = null;
   }
 }
 
@@ -196,6 +202,66 @@ void main() {
     expect(store.version, isNull);
     await UpdateBlock.persistFromData(_push(), store: store);
     expect(store.version, '1.0.5');
+  });
+
+  group('release pull (last_unblock_at)', () {
+    final blockedAt = DateTime.utc(2026, 10, 7, 8);
+
+    Future<UpdateBlock> blocked() async {
+      final block = make();
+      await block.record(_push(sentAt: blockedAt.toIso8601String()));
+      expect(block.isBlocked, isTrue);
+      expect(store.blockedAt, blockedAt);
+      return block;
+    }
+
+    test('a release after the block clears it and raises cleared-at', () async {
+      final block = await blocked();
+      final at = DateTime.utc(2026, 10, 7, 9);
+      await block.pullRelease(() async => at);
+      expect(block.isBlocked, isFalse);
+      expect(store.version, isNull);
+      expect(store.clearedAt, at);
+    });
+
+    test('a release before the block, null, or equal time changes nothing',
+        () async {
+      final block = await blocked();
+      await block.pullRelease(() async => DateTime.utc(2026, 10, 7, 7));
+      await block.pullRelease(() async => null);
+      await block.pullRelease(() async => blockedAt);
+      expect(block.isBlocked, isTrue);
+    });
+
+    test('a failing fetch leaves the block alone', () async {
+      final block = await blocked();
+      await block.pullRelease(() async => throw Exception('offline'));
+      expect(block.isBlocked, isTrue);
+    });
+
+    test('a block from an older build (no created time) is not released',
+        () async {
+      store.version = '1.0.5';
+      final block = make();
+      await block.load();
+      expect(block.isBlocked, isTrue);
+      await block.pullRelease(() async => DateTime.utc(2030));
+      expect(block.isBlocked, isTrue);
+    });
+
+    test('a block created after the release blocks again', () async {
+      final block = await blocked();
+      await block.pullRelease(() async => DateTime.utc(2026, 10, 7, 9));
+      await block.record(_push(sentAt: '2026-10-07T10:00:00Z'));
+      expect(block.isBlocked, isTrue);
+    });
+
+    test('an announcement sent before a pulled release is ignored', () async {
+      final block = await blocked();
+      await block.pullRelease(() async => DateTime.utc(2026, 10, 7, 9));
+      await block.record(_push(sentAt: '2026-10-07T08:30:00Z'));
+      expect(block.isBlocked, isFalse);
+    });
   });
 
   group('admin release (app_unblock)', () {
