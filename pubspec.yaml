@@ -3,9 +3,9 @@ description: A professional home services marketplace mobile application.
 # Author: Rayder-23
 # Team: Coditum Solutions
 publish_to: 'none'
-version: 1.0.4+10 # Android builds / Play Store App Bundle / General baseline
+version: 1.0.5+11 # Android builds / Play Store App Bundle / General baseline
 
-ios_version: 1.0.6+10 # iOS builds / Apple App Store IPA
+ios_version: 1.0.7+11 # iOS builds / Apple App Store IPA
 # Custom key read automatically by iOS workflow
 # Must update the 'build version' after a version is approved, Apple locks any approved version trains.
 # If '1.0.3' has been approved, the next version must be '1.0.4' or higher, 'build number' can be the same or higher. Apple will not allow a lower version to be uploaded.
