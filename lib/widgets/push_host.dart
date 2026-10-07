@@ -10,6 +10,7 @@ import '../providers/notification_provider.dart';
 import '../services/push_notification_service.dart';
 import '../utils/active_role_tracker.dart';
 import '../utils/notification_router.dart';
+import '../utils/update_block.dart';
 
 /// Wires push notifications to the session: registers/unregisters the device
 /// token as the user (or active role) changes, keeps the unread badge fresh,
@@ -125,7 +126,10 @@ class _PushHostState extends State<PushHost> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _notifications.syncLatest();
+    if (state == AppLifecycleState.resumed) {
+      _notifications.syncLatest();
+      updateBlock.syncFromStore();
+    }
   }
 
   @override

@@ -104,6 +104,26 @@ class UpdateBlock extends ChangeNotifier {
     }
   }
 
+  /// Re-reads storage on resume. The background push handler runs in its own
+  /// isolate and can release (or set) a block while this isolate keeps its
+  /// old in-memory state, so a release delivered in the background would
+  /// otherwise leave the block showing until the next cold start.
+  Future<void> syncFromStore() async {
+    try {
+      final (version, url) = await _store.read();
+      if (version == null || version.isEmpty) {
+        if (_requiredVersion != null) {
+          _requiredVersion = null;
+          notifyListeners();
+        }
+        return;
+      }
+      await _apply(version, url ?? '');
+    } catch (e) {
+      debugPrint('Update block sync failed: $e');
+    }
+  }
+
   /// Call with every push (foreground, tap, cold start); [message] is the
   /// notification body. Ignores anything that is not an `app_update` carrying
   /// a version. `force_update` "false" queues a dismissable prompt instead of
@@ -111,6 +131,7 @@ class UpdateBlock extends ChangeNotifier {
   Future<void> record(Map<String, dynamic> data, {String? message}) async {
     try {
       if (data[_typeKey]?.toString() == _unblockType) {
+        debugPrint('Update block: app_unblock received, releasing');
         await _release(data);
         return;
       }
@@ -139,6 +160,7 @@ class UpdateBlock extends ChangeNotifier {
       {UpdateBlockStore store = const UpdateBlockStore()}) async {
     try {
       if (data[_typeKey]?.toString() == _unblockType) {
+        debugPrint('Update block: app_unblock received in background');
         await _storeRelease(data, store);
         return;
       }

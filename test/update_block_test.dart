@@ -199,6 +199,15 @@ void main() {
   });
 
   group('admin release (app_unblock)', () {
+    test('syncFromStore drops a block another isolate released', () async {
+      final block = make();
+      await block.record(_push());
+      expect(block.isBlocked, isTrue);
+      await store.clear(); // background handler cleared storage
+      await block.syncFromStore();
+      expect(block.isBlocked, isFalse);
+    });
+
     const release = {'type': 'app_unblock', 'sent_at': '2026-10-06T08:00:00Z'};
 
     test('clears a stored block and records the release time', () async {
