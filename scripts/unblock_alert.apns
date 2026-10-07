@@ -1,0 +1,7 @@
+{
+  "Simulator Target Bundle": "com.coditiumsols.sahulatghartak.ios",
+  "aps": { "alert": { "title": "test", "body": "release" } },
+  "gcm.message_id": "test2",
+  "type": "app_unblock",
+  "sent_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+}

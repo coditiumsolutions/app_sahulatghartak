@@ -1,0 +1,4 @@
+xcrun simctl list devices booted        # confirm exactly one Simulator is booted
+xcrun simctl push booted com.coditiumsols.sahulatghartak.ios ~/unblock.apns
+
+xcrun simctl push booted com.coditiumsols.sahulatghartak.ios ~/unblock_alert.apns
