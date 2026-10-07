@@ -1,6 +1,6 @@
 ---
 status: current
-version: 1.10.0
+version: 1.12.0
 ---
 
 # Flutter App Changes Tracker
@@ -17,34 +17,3 @@ Legend:
 - **TODO(remove after old app retired)** — inline code/doc comments marking legacy-fallback branches that exist ONLY to support currently-published app builds. Once the new app version is confirmed live on both stores (i.e. no meaningfully active install base still hits these code paths), these branches can be deleted — grep the codebase for this exact marker to find all of them. Do not remove any of these until that confirmation, even if it looks safe.
 
 ---
-
-## Admin release of update blocks (`app_unblock`) - app done, backend pending (api.txt v3.38)
-
-A forced-update block lives on the device, so staff need a server-side way to lift a wrong or test one. The app already
-handles a silent, data-only `app_unblock` push (`type`, `sent_at`): it deletes the stored block and any queued prompt,
-shows nothing, and remembers `sent_at` as "cleared at" (secure storage `update_block_cleared_at`). An `app_update` whose
-`sent_at` is not later than that is ignored, also in the background handler; one without `sent_at` is never ignored.
-Code: `lib/utils/update_block.dart`, `lib/services/push_notification_service.dart`, tests in `test/update_block_test.dart`.
-
-Backend to build (full spec in api.txt "Admin release of update blocks"): the silent push, and its control on the admin
-Push Broadcast page near the bottom (scope, mandatory reason, confirmation, history, audit). There is deliberately no
-mobile endpoint. Until it ships, use `docs/notification-testing.md` section 12 to get a device out. Device test cases 22
-to 27 are in that section.
-
----
-
-## Notification appearance, channels and sounds - remaining verification
-
-Still open:
-- **Sounds on iOS: statically checked, not yet heard.** The three `.wav` files in `ios/Runner/` are 16-bit PCM, 1 to 3
-  seconds (iOS requires linear PCM / IMA4 / mu-law / a-law and under 30 s), they are in the Runner group and in the
-  Resources build phase, and iOS has no resource shrinking that could strip them. Still to do on a physical iPhone:
-  open the project in Xcode once to confirm Build Phases > Copy Bundle Resources lists them, then confirm each push type
-  plays its own sound (the sound name comes from the push, e.g. `job_request.wav`; the app draws no local notifications
-  on iOS).
-- **Xcode:** open `ios/Runner.xcodeproj` once and confirm the three `.wav` files show under Build Phases > Copy Bundle
-  Resources (added by hand in `project.pbxproj`).
-- **iOS delivery** on a physical device (no app code needed: thread-id grouping and sounds are backend-side; the app
-  draws no local notifications on iOS).
-- Optional: design may want a different `ic_notification` mark (a simplified drawing of the logo today); swap the PNG in
-  the five `drawable-*` folders.

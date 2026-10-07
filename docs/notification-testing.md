@@ -1,6 +1,6 @@
 ---
 status: current
-version: 1.13.0
+version: 1.16.0
 ---
 
 # Push notification test routine
@@ -353,6 +353,17 @@ backend ships, run these on a blocked device first, and fall back to the fixes b
 | 26 | Release with an empty reason / no matching devices | rejected with a message, nothing sent or written |
 | 27 | A build without this change receives `app_unblock` | ignores it (stays blocked); fix with section 12 below |
 
+| 28 | Release pull: block a device, release it while the app is closed or the silent push is lost, then open or resume the app | the block clears on launch/resume with no push (app config `last_unblock_at` later than the block's creation time) |
+| 29 | Announcement sent before the pulled release, then reopen | stays unblocked; one sent after the release blocks again |
+| 30 | Release scopes user/device with and without the device's token in the config call | user/device releases reach only the matching device; everyone/platform releases reach all |
+| 31 | Config call fails or times out (airplane mode) | block stays, app still opens (fails open) |
+| 32 | Block stored by an older build (no creation time) | not cleared by the pull; the push or an update still clears it |
+
+The pull is in the app since 2026-10-07. **Case 28 passed on the iOS Simulator (2026-10-07):** blocked, released from the
+admin page, reopened, and the console logged `Update block: release pulled from app config, releasing` with the block
+cleared. The whole flow was exercised end to end and worked; cases 29 to 32 were not recorded one by one, so tick them
+here when run. Not yet run on a physical iPhone.
+
 Result so far: cases 22 to 27 were verified on the Android emulator (2026-10-06). On the iOS Simulator (2026-10-07) the
 release did **not** clear the block (section 13).
 
@@ -387,6 +398,9 @@ receive a real APNs push, so this round proves the app's behaviour, not APNs del
 | `app_update` with `force_update` = `"false"`: dismissable dialog | pass |
 | `app_update` with `force_update` = `"true"`: full-screen block | pass |
 | Silent `app_unblock` clears a forced block (cases 22, 25) | **fail**: several retries, the Simulator stayed blocked |
+| Silent `app_unblock` sent from the production admin page (admin: "1 delivered to FCM, 0 failed") | **fail**: nothing in the console, block stayed |
+| Local `xcrun simctl push` of a **visible** alert carrying `type: app_unblock` (payload via stdin) | **pass**: banner, console line `Update block: app_unblock received, releasing`, block cleared |
+| Local `xcrun simctl push` of the **silent** form (`content-available: 1`, no alert) | **fail**: no log line, block stayed |
 
 **What this means**
 - The notification system is verified end to end on Android (emulator and physical device) and, for in-app behaviour,
@@ -404,5 +418,18 @@ receive a real APNs push, so this round proves the app's behaviour, not APNs del
   in the foreground and background paths. **Still to confirm:** run the Simulator with the app blocked in the foreground,
   send the release, and watch the console: the log line means delivery works, no line means the push never arrived
   (check the payload has `content-available: 1` and `apns-push-type: background`, then try a physical iPhone).
+- **Conclusion 2026-10-07:** the app's release logic is correct on iOS (the visible-form test proves it). The silent form
+  does not reach Dart on the Simulator, either from production or from local `simctl`. The Simulator also delivered real
+  pushes late and in bursts (all arriving together, straight into the inbox with no banner); a Simulator restart fixed
+  that (see Simulator health below), so those failures are inconclusive. Silent iOS pushes are best effort (the admin page says so), so a pull-based backstop was built (v3.40):
+  the app checks the latest release time on launch and resume, and it **passed** (case 28). Silent delivery itself still
+  needs a physical iPhone.
+- **Simulator health (found 2026-10-07):** after a long session the Simulator delivered real pushes late and in bursts,
+  straight into the inbox with no banner. **Restarting the Simulator fixed it.** If pushes arrive delayed, bundled or
+  without banners, restart the Simulator (or erase it) before trusting any result. The silent-push failures recorded above
+  were observed in that degraded state, so they are **inconclusive**: re-run the silent `simctl` payload and a production
+  silent release on a freshly restarted Simulator before blaming iOS or the backend.
+- Testing note: `xcrun simctl push booted <bundle-id> - <<EOF ... EOF` takes the payload on stdin; stale or unsaved
+  `.apns` files caused several false results. The payload needs `gcm.message_id` or FlutterFire ignores it.
 - The stuck Simulator was freed by building with a `pubspec.yaml` version at or above the pushed `latest_version`
   (section 12), then restoring the version.
