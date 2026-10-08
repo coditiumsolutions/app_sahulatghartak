@@ -1,6 +1,6 @@
 ---
 status: current
-version: 1.12.0
+version: 1.13.0
 ---
 
 # Flutter App Changes Tracker
@@ -17,3 +17,13 @@ Legend:
 - **TODO(remove after old app retired)** — inline code/doc comments marking legacy-fallback branches that exist ONLY to support currently-published app builds. Once the new app version is confirmed live on both stores (i.e. no meaningfully active install base still hits these code paths), these branches can be deleted — grep the codebase for this exact marker to find all of them. Do not remove any of these until that confirmation, even if it looks safe.
 
 ---
+
+## TODO for the next build
+
+### Stop depending on `categoryId` for providers-detail
+`categoryId` on providers-detail is backed by the deprecated `Providers.CategoryUid` scalar, which the backend plans to retire. `categoryIds` + `primaryCategoryId` (`GET`/`PUT /api/providers/{providerUid}/categories`) are the source of truth. Today the app still:
+- reads `categoryId` / `categoryName` from `GET /api/providers-detail/{uid}` (`lib/models/provider/provider_detail.dart:59`) and shows it on the Profile tab (`lib/screens/provider/profile/profile_tab.dart:287`);
+- echoes `categoryId` back in `PUT /api/providers-detail/{uid}` (`lib/services/provider_profile_api_service.dart:32`);
+- reads `categoryUid` from `GET /api/provider-profiles/{userId}` with a hard `as int` cast (`lib/models/provider_profile_model.dart:27`), used by `AuthProvider.login` (`lib/providers/auth_provider.dart:63-66`). If the field disappears the cast throws, the catch swallows it and `providerUid` is not set either.
+
+Change: show the primary category from the categories endpoint, drop `categoryId` from the providers-detail PUT body, and make the `categoryUid` parse nullable so `providerUid` is still set. Until the build with this ships and is adopted, the backend must keep returning and accepting these fields.
