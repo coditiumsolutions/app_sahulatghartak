@@ -46,7 +46,28 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Android App Links: marketing pages and /app/... links open the
+                 app. Deliberately NOT claimed: /privacy-policy, /delete-account,
+                 /about, /adminportal, /Admin, /api, /swagger (see
+                 docs/flutter-changes.md, deep links). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="sahulatghartak.com"/>
+                <data android:path="/"/>
+                <data android:pathPrefix="/app"/>
+                <data android:pathPrefix="/home-maintenance"/>
+                <data android:pathPrefix="/specialized-services"/>
+                <data android:pathPrefix="/property-and-legal-services"/>
+                <data android:pathPrefix="/Home/DownloadApp"/>
+            </intent-filter>
         </activity>
+        <!-- Links are routed by lib/utils/deep_link_router.dart; Flutter's own
+             deep-link routing would push the URL path as an unknown route. -->
+        <meta-data
+            android:name="flutter_deeplinking_enabled"
+            android:value="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

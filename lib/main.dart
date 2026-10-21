@@ -60,6 +60,7 @@ import 'screens/provider/jobs/rejected_requests_screen.dart';
 import 'utils/active_role_tracker.dart';
 import 'utils/constants.dart';
 import 'utils/dev_http_overrides.dart';
+import 'utils/deep_link_router.dart';
 import 'utils/notification_router.dart';
 import 'data/repositories/notification_repository.dart';
 import 'firebase_options.dart';
@@ -92,6 +93,8 @@ void main() async {
     debugPrint('Firebase init failed: $e');
   }
   updateBlock.load();
+  // Not awaited: it never throws, and links are held until the splash is done.
+  DeepLinkRouter.instance.init();
   runApp(const SahulatApp());
 }
 

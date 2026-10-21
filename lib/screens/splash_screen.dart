@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../data/repositories/notification_repository.dart';
 import '../models/app_config.dart';
+import '../utils/deep_link_router.dart';
 import '../utils/notification_router.dart';
 import '../utils/update_block.dart';
 import '../utils/version_compare.dart';
@@ -73,6 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // the app, then offer an optional update.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await routeColdStartPush();
+      await routeColdStartLink();
       final ctx = navigatorKey.currentContext;
       if (update != null &&
           update.$1 == AppUpdateKind.optional &&
