@@ -1,10 +1,13 @@
+<p align="center">
+  <img src="assets/icon/app_logo_transparent.png" alt="Sahulat Ghar Tak logo" width="160">
+</p>
+
 # Sahulat Ghar Tak
 
 A Flutter home services marketplace mobile app. Customers browse service categories, submit
 service requests, and manage addresses; verified Providers get a dashboard for incoming
 requests, bookings, and their profile. The app is backed by a real ASP.NET Core REST API
-(`SahulatAppDB`) — every screen is wired to live endpoints except the Provider
-notifications page, which is still a placeholder.
+(`SahulatAppDB`) — every screen is wired to live endpoints.
 
 ## Features
 
@@ -17,6 +20,7 @@ notifications page, which is still a placeholder.
   - Manage saved addresses and edit profile details
   - Track submitted service requests
   - Delete account permanently, in-app (password-confirmed) or via a web page
+  - Push notifications (FCM) and a shared in-app notification inbox with an unread badge
 - **Provider**
   - Register/upgrade a customer account to a Provider account (with Terms & Conditions
     acceptance)
@@ -28,7 +32,14 @@ notifications page, which is still a placeholder.
     reject, close, cancel), wallet balance/transactions, profile editing, and
     document re-upload/verification status
   - Delete account permanently, in-app (password-confirmed) or via a web page
-  - Notifications is the one remaining placeholder screen, pending a backend endpoint
+  - Push notifications for new jobs and booking updates, with the same shared inbox
+
+- **Both**
+  - Tapping a push opens the matching request, booking or inbox screen
+  - `https://sahulatghartak.com/...` links open the installed app (Android App Links and
+    iOS Universal Links; see [docs/deep-linking.md](docs/deep-linking.md))
+  - Forced/optional update gate: from `GET /api/v1/app/config` and from admin `app_update` /
+    `app_unblock` pushes
 
 See [AGENTS.md](AGENTS.md) for architecture notes, the feature-by-feature breakdown,
 and conventions for extending the app.
@@ -68,7 +79,7 @@ See `lib/utils/constants.dart` to change the local backend URL.
 | `flutter build appbundle --release` (or `scripts\build_signed_bundle.bat`) | Build a signed release App Bundle for Play Console (needs `android/key.properties`, gitignored — see [AGENTS.md](AGENTS.md#quick-start)) |
 | `dart format lib/` | Format code |
 | `flutter analyze lib test` | Static analysis — run after every change (13 pre-existing `info` lints are the baseline) |
-| `flutter test` | Runs the test suite (17 tests across 5 files) |
+| `flutter test` | Runs the test suite (71 tests across 11 files) |
 
 ## Project structure
 
@@ -80,7 +91,7 @@ lib/
 ├── data/
 │   └── repositories/  # One repository per provider — the single data source each ViewModel talks to
 ├── domain/        # Reserved for domain models / use cases (currently empty)
-├── services/      # HTTP API clients, one per backend resource, plus secure-storage/session helpers
+├── services/      # HTTP API clients, one per backend resource, plus secure-storage/session helpers and FCM (push_notification_service.dart)
 ├── screens/       # Top-level customer screens; screens/provider/<feature>/ for the Provider Dashboard
 ├── widgets/       # Reusable UI components
 ├── utils/         # Constants, routing helpers, theming and icon/image matching helpers
@@ -91,6 +102,10 @@ lib/
 
 - [AGENTS.md](AGENTS.md) — architecture, conventions, and guidance for making changes to this repo
 - [api.txt](api.txt) — source of truth for every backend request/response contract
+- [docs/flutter-changes.md](docs/flutter-changes.md) — pending app work and backend changes not yet adopted
+- [docs/deep-linking.md](docs/deep-linking.md) — Android App Links / iOS Universal Links
+- [docs/notification-testing.md](docs/notification-testing.md) — how to test push notifications
+- [docs/android-build-notes.md](docs/android-build-notes.md) — Android/Kotlin build caveats
 - [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) — what the app collects, shares, and deletes
 - [docs/APP_STORE_AUDIT_REPORT.md](docs/APP_STORE_AUDIT_REPORT.md) — Play Store / App Store compliance status
 
