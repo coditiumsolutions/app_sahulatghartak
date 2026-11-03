@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -118,37 +119,29 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
           child: Image.asset('assets/icon/app_logo_transparent.png',
               fit: BoxFit.contain),
         ),
-        trailing: Material(
-          color: dashboard.isOnline
-              ? Colors.green.withValues(alpha: 0.25)
-              : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            onTap: () =>
-                toggleProviderOnlineStatus(context, !dashboard.isOnline),
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                      dashboard.isOnline
-                          ? Icons.wifi_tethering
-                          : Icons.wifi_tethering_off,
-                      color: Colors.white,
-                      size: 16),
-                  const SizedBox(height: 2),
-                  Text(
-                    dashboard.isOnline ? 'Online' : 'Offline',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11),
-                  ),
-                ],
+        trailing: FrostedSurface(
+          tint: dashboard.isOnline ? Colors.green : Colors.white,
+          tintOpacity: dashboard.isOnline ? 0.35 : 0.2,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          onTap: () => toggleProviderOnlineStatus(context, !dashboard.isOnline),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                  dashboard.isOnline
+                      ? Icons.wifi_tethering
+                      : Icons.wifi_tethering_off,
+                  color: Colors.white,
+                  size: 16),
+              const SizedBox(height: 2),
+              Text(
+                dashboard.isOnline ? 'Online' : 'Offline',
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11),
               ),
-            ),
+            ],
           ),
         ),
       ),

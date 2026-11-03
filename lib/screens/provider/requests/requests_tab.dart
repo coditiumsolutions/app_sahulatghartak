@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/provider/service_booking.dart';
@@ -95,7 +96,8 @@ class _RequestsTabState extends State<RequestsTab> {
         subtitle: requests.isEmpty
             ? 'No requests right now'
             : '${requests.length} request${requests.length == 1 ? '' : 's'} waiting',
-        trailing: IconButton(
+        trailing: FrostedIconButton(
+          margin: EdgeInsets.zero,
           icon: Badge(
             isLabelVisible: unviewedRejectedCount > 0,
             label: Text('$unviewedRejectedCount'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -589,9 +590,7 @@ class _DetailHeader extends StatelessWidget {
       expandedHeight: 104,
       backgroundColor: _brandDark,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: onClose ?? () => Navigator.of(context).maybePop(),
+      leading: FrostedBackButton(onPressed: onClose ?? () => Navigator.of(context).maybePop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(

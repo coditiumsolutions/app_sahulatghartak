@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../screens/notifications_screen.dart';
+import 'frosted_icon_button.dart';
 
 /// Header bell with an unread badge that opens the inbox. Renders nothing for
 /// guests (no session, so no inbox).
@@ -18,7 +19,7 @@ class NotificationBell extends StatelessWidget {
     final unread =
         context.select<NotificationProvider, int>((n) => n.unreadCount);
 
-    return IconButton(
+    return FrostedIconButton(
       tooltip: 'Notifications',
       onPressed: () =>
           Navigator.of(context).pushNamed(NotificationsScreen.routeName),
@@ -26,7 +27,7 @@ class NotificationBell extends StatelessWidget {
         isLabelVisible: unread > 0,
         label: Text(unread > 99 ? '99+' : '$unread'),
         child: const Icon(Icons.notifications_none_rounded,
-            color: Colors.white, size: 26),
+            color: Colors.white, size: 23),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/frosted_icon_button.dart';
 
 import '../models/category.dart';
 import '../models/service_catalog.dart';
@@ -115,10 +116,7 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
               bottom: false,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed:
-                      widget.onClose ?? () => Navigator.of(context).maybePop(),
+                child: FrostedBackButton(onPressed: widget.onClose ?? () => Navigator.of(context).maybePop(),
                 ),
               ),
             ),

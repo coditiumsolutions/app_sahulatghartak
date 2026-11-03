@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'frosted_icon_button.dart';
 
 const _brandDark = Color(0xFF0A4FA8);
 const _brandBlue = Color(0xFF016EE3);
@@ -63,9 +64,7 @@ class CompactAppHeader extends StatelessWidget implements PreferredSizeWidget {
             height: height,
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                FrostedBackButton(onPressed: onBack ?? () => Navigator.of(context).maybePop(),
                 ),
                 Expanded(
                   child: Text(

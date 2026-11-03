@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/frosted_icon_button.dart';
 
 import '../data/repositories/service_title_repository.dart';
 import '../models/service_title.dart';
@@ -242,10 +243,7 @@ class _PickerHeader extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        IconButton(
-                          icon:
-                              const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.of(context).maybePop(),
+                        FrostedBackButton(onPressed: () => Navigator.of(context).maybePop(),
                         ),
                         const Expanded(
                           child: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/category.dart';
@@ -177,9 +178,7 @@ class _CategoriesAndTitlesScreenState extends State<CategoriesAndTitlesScreen> {
       appBar: ProviderTabHeader(
         title: 'Categories & Services',
         subtitle: 'Manage what you offer',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: FrostedBackButton(onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
       body: SingleChildScrollView(

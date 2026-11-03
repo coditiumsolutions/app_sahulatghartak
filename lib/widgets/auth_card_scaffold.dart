@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'frosted_icon_button.dart';
 
 import '../utils/constants.dart';
 import '../utils/motion.dart';
@@ -51,9 +52,7 @@ class AuthCardScaffold extends StatelessWidget {
             bottom: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).maybePop(),
+              child: FrostedBackButton(onPressed: () => Navigator.of(context).maybePop(),
               ),
             ),
           ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../frosted_icon_button.dart';
 
 /// A tappable image preview box used for picking/replacing a provider
 /// verification document (profile photo, CNIC front/back). Shows, in order
@@ -56,18 +57,13 @@ class DocumentImageSlot extends StatelessWidget {
                     Positioned(
                       top: 6,
                       right: 6,
-                      child: Material(
-                        color: Colors.black54,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          onTap: onRemove,
-                          customBorder: const CircleBorder(),
-                          child: const Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(Icons.close,
-                                color: Colors.white, size: 18),
-                          ),
-                        ),
+                      child: FrostedIconButton(
+                        size: 30,
+                        margin: EdgeInsets.zero,
+                        tooltip: 'Remove',
+                        onPressed: onRemove,
+                        icon: const Icon(Icons.close,
+                            color: Colors.white, size: 17),
                       ),
                     ),
                 ],

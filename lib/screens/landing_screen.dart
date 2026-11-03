@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/frosted_icon_button.dart';
 
 import '../utils/breakpoints.dart';
 import '../widgets/decorative_glow_circle.dart';
@@ -113,20 +114,19 @@ class LandingScreen extends StatelessWidget {
                         Expanded(
                           child: SizedBox(
                             height: 52,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: const BorderSide(color: Colors.white),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14)),
-                              ),
-                              onPressed: () => Navigator.of(context)
+                            child: FrostedSurface(
+                              radius: 14,
+                              padding: EdgeInsets.zero,
+                              onTap: () => Navigator.of(context)
                                   .pushNamed(LoginScreen.routeName),
-                              child: const Text('Login',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
+                              child: const Center(
+                                child: Text('Login',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600)),
+                              ),
                             ),
                           ),
                         ),

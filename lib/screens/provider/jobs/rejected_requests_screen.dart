@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/provider/service_booking.dart';
@@ -47,9 +48,7 @@ class _RejectedRequestsScreenState extends State<RejectedRequestsScreen> {
         subtitle: rejected.isEmpty
             ? 'No rejected requests'
             : '${rejected.length} request${rejected.length == 1 ? '' : 's'}',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: FrostedBackButton(onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
       body: rejected.isEmpty

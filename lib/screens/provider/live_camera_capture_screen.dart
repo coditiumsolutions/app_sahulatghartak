@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/frosted_icon_button.dart';
 
 import '../../providers/provider_document_provider.dart';
 import '../../services/camera_permission_service.dart';
@@ -348,10 +349,8 @@ class _LiveCameraCaptureScreenState extends State<LiveCameraCaptureScreen>
             Positioned(
               top: 12,
               left: 4,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+              child: FrostedBackButton(
+                  onPressed: () => Navigator.of(context).pop()),
             ),
           ],
         ),

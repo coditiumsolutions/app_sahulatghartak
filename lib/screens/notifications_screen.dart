@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../models/app_notification.dart';
@@ -67,16 +68,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         subtitle: provider.unreadCount > 0
             ? '${provider.unreadCount} unread'
             : 'You are all caught up',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        leading: FrostedBackButton(onPressed: () => Navigator.of(context).pop(),
         ),
         trailing: provider.unreadCount > 0
-            ? TextButton(
-                onPressed: provider.markAllRead,
+            ? FrostedSurface(
+                onTap: provider.markAllRead,
                 child: const Text('Mark all read',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700)),
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700)),
               )
             : null,
       ),
