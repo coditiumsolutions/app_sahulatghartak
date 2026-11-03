@@ -1,3 +1,8 @@
+---
+status: current
+version: 1.0
+---
+
 # Sahulat Ghar Tak: web parity spec
 
 **Audience:** the developer building the ASP.NET Core 8 MVC website (Razor, Bootstrap, cookie login), who can't see the Flutter repo.

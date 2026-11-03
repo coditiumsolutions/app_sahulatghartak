@@ -1,3 +1,8 @@
+---
+status: current
+version: 1.0
+---
+
 # Sahulat Ghar Tak: web parity UI reference
 
 **Audience:** the website developer restyling the client and provider dashboards to look like the Flutter app on a phone. Structure, copy, API and business rules are in `web-parity-spec.md`; this file only adds what the app looks like, the measurements, and the reusable image assets.
