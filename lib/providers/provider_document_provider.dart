@@ -46,6 +46,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
   String? _cnicBackUrl;
   String? _policeVerificationUrl;
   bool _isVerified = false;
+  DateTime? _verifiedOn;
   String? _verificationRemarks;
 
   bool _isLoadingExisting = false;
@@ -65,6 +66,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
   String? get cnicBackUrl => _cnicBackUrl;
   String? get policeVerificationUrl => _policeVerificationUrl;
   bool get isVerified => _isVerified;
+  DateTime? get verifiedOn => _verifiedOn;
   String? get verificationRemarks => _verificationRemarks;
   bool get isLoadingExisting => _isLoadingExisting;
   String? get loadError => _loadError;
@@ -108,6 +110,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
       _policeVerificationUrl = _repository
           .resolveUrl(docs?.policeVerificationPath, version: version);
       _isVerified = docs?.isVerified ?? false;
+      _verifiedOn = docs?.verifiedOn;
       _verificationRemarks = docs?.verificationRemarks;
     } catch (e) {
       _loadError = friendlyErrorMessage(e);
@@ -278,6 +281,7 @@ class ProviderDocumentProvider extends ChangeNotifier {
           _uploadedDocuments?.policeVerificationPath,
           version: version);
       _isVerified = _uploadedDocuments?.isVerified ?? false;
+      _verifiedOn = _uploadedDocuments?.verifiedOn;
       _verificationRemarks = _uploadedDocuments?.verificationRemarks;
       return true;
     } catch (e) {

@@ -14,6 +14,7 @@ import '../widgets/confirm_dialog.dart';
 import '../widgets/curved_profile_header.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/message_dialog.dart';
+import '../widgets/profile_kit.dart';
 import 'add_address_screen.dart';
 import 'contact_us_screen.dart';
 import 'customer_registration_screen.dart';
@@ -41,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   static const _brandDark = Color(0xFF0A4FA8);
   static const _brandBlue = Color(0xFF016EE3);
-  static const _brandAccent = Color(0xFF4FC3F7);
 
   @override
   void initState() {
@@ -232,13 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontSize: 20,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.2),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
-            onPressed: () => _logout(context),
-          ),
-        ],
+        actions: [ProfileLogoutButton(onPressed: () => _logout(context))],
       ),
       bottomNavigationBar:
           widget.embedded ? null : const AppBottomNavigation(currentIndex: 2),
@@ -248,6 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         headerHeight: _headerHeight,
         avatarRadius: _avatarRadius,
         onRefresh: () async => _loadAddresses(),
+        bodyColor: kProfileBody,
         avatar: CircleAvatar(
           backgroundColor: _brandBlue,
           child: Text(
@@ -261,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.fromLTRB(24, _avatarRadius + 20, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+            children: staggerProfile(context, [
               Text(
                 user.username,
                 textAlign: TextAlign.center,
@@ -279,58 +274,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.black.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500),
               ),
+              if (user.providerId != null) ...[
+                const SizedBox(height: 8),
+                Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _brandBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text('Upgraded',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: _brandBlue)),
+                  ),
+                ),
+              ],
               const SizedBox(height: 22),
-              Row(
+              ProfileCard(
                 children: [
-                  Expanded(
-                    child: ProfileStatBadge(
-                      icon: Icons.verified_user_rounded,
-                      label: 'ACCOUNT TYPE',
-                      // This screen is always the customer-facing profile —
-                      // even when reached via "Switch to Customer" on an
-                      // account whose primary userType is now "Provider" —
-                      // so it always reads "Client" here, flagged with an
-                      // "Upgraded" badge when the account also has a
-                      // provider profile (user.providerId != null).
-                      value: 'Client',
-                      badgeText: user.providerId != null ? 'Upgraded' : null,
-                      color: _brandBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ProfileStatBadge(
-                      icon: Icons.tag_rounded,
-                      label: 'USER ID',
-                      value: '${user.userId}',
-                      color: _brandAccent,
-                    ),
-                  ),
+                  ProfileDetailRow(
+                      icon: Icons.phone_rounded,
+                      label: 'Mobile number',
+                      value: user.mobileNo,
+                      copyable: true,
+                      color: kProfileTeal),
+                  if (user.categoryName != null)
+                    ProfileDetailRow(
+                        icon: Icons.category_rounded,
+                        label: 'Category',
+                        value: user.categoryName!,
+                        color: kProfileAmber),
                 ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                        color: _brandDark.withValues(alpha: 0.06),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6))
-                  ],
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Column(
-                  children: [
-                    _InfoTile(label: 'Mobile Number', value: user.mobileNo),
-                    if (user.categoryName != null) ...[
-                      const Divider(height: 1),
-                      _InfoTile(label: 'Category', value: user.categoryName!),
-                    ],
-                  ],
-                ),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -341,35 +318,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: const Text('Edit Profile'),
               ),
               const SizedBox(height: 28),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Addresses',
-                      style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF14213D),
-                          letterSpacing: -0.2)),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _brandBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 3,
-                      shadowColor: _brandBlue.withValues(alpha: 0.4),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed(AddAddressScreen.routeName),
-                    icon: const Icon(Icons.add_location_alt_rounded, size: 18),
-                    label: const Text('Add',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                ],
+              ProfileSectionTitle(
+                'My addresses',
+                trailing: TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: _brandBlue),
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed(AddAddressScreen.routeName),
+                  icon: const Icon(Icons.add_location_alt_rounded, size: 18),
+                  label: const Text('Add new',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
               ),
-              const SizedBox(height: 8),
               if (addressState.loading)
                 const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -451,107 +410,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 )
               else
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                          color: _brandDark.withValues(alpha: 0.06),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6))
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      for (final address in addressState.addresses) ...[
-                        ListTile(
-                          leading: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                                color: _brandBlue.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(11)),
-                            child: Icon(Icons.location_on_rounded,
-                                color: _brandBlue, size: 20),
-                          ),
-                          title: Row(
-                            children: [
-                              Flexible(
-                                  child: Text(address.addressTitle,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700))),
-                              const SizedBox(width: 6),
-                              if (address.hasLocation)
-                                const Icon(Icons.location_on_rounded,
-                                    size: 15, color: _brandBlue)
-                              else
-                                GestureDetector(
-                                  onTap: () => _editAddress(address),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.orange.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Text('Set location',
-                                        style: TextStyle(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.orange)),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          subtitle: Text(
-                              '${address.fullAddress}, ${address.area}, ${address.city}'),
-                          trailing: addressState.deletingUid == address.uid
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2))
-                              : PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'edit') _editAddress(address);
-                                    if (value == 'delete')
-                                      _deleteAddress(address);
-                                  },
-                                  itemBuilder: (context) => const [
-                                    PopupMenuItem(
-                                        value: 'edit',
-                                        child: ListTile(
-                                            leading: Icon(Icons.edit),
-                                            title: Text('Edit'),
-                                            contentPadding: EdgeInsets.zero)),
-                                    PopupMenuItem(
-                                        value: 'delete',
-                                        child: ListTile(
-                                            leading: Icon(Icons.delete,
-                                                color: Colors.red),
-                                            title: Text('Delete',
-                                                style: TextStyle(
-                                                    color: Colors.red)),
-                                            contentPadding: EdgeInsets.zero)),
-                                  ],
-                                ),
+                Column(
+                  children: [
+                    for (final address in addressState.addresses)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _AddressCard(
+                          address: address,
+                          deleting: addressState.deletingUid == address.uid,
+                          onEdit: () => _editAddress(address),
+                          onDelete: () => _deleteAddress(address),
                         ),
-                        if (address != addressState.addresses.last)
-                          const Divider(height: 1),
-                      ],
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               const SizedBox(height: 28),
-              const Text('Preferences',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF14213D),
-                      letterSpacing: -0.2)),
-              const SizedBox(height: 8),
+              const ProfileSectionTitle('Preferences'),
               Consumer<TimeFormatProvider>(
                 builder: (context, timeFormat, _) {
                   return Container(
@@ -566,8 +440,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     child: SwitchListTile(
-                      secondary:
-                          const Icon(Icons.schedule_rounded, color: _brandBlue),
+                      secondary: const Icon(Icons.schedule_rounded,
+                          color: kProfileCoral),
                       title: const Text('24-hour time'),
                       subtitle: Text(
                           timeFormat.use24Hour ? 'e.g. 14:30' : 'e.g. 2:30 PM'),
@@ -578,7 +452,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              ProfileIdsDrawer(
+                color: const Color(0xFF64748B),
+                entries: {
+                  'Account type': 'Client',
+                  'User ID': '${user.userId}',
+                },
+              ),
+              const SizedBox(height: 28),
               if (user.role == 'Provider')
                 ElevatedButton.icon(
                   style: kProminentFilledButtonStyle(_brandBlue),
@@ -605,13 +487,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
-                style: kProminentOutlinedButtonStyle(Colors.red),
-                icon: const Icon(Icons.delete_forever_rounded),
-                onPressed: () => _deleteAccount(context),
-                label: const Text('Delete Account'),
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
                 style: kProminentOutlinedButtonStyle(_brandBlue),
                 icon: const Icon(Icons.support_agent_rounded),
                 onPressed: () =>
@@ -628,7 +503,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(color: Colors.grey[600])),
                 ),
               ),
-            ],
+              Center(
+                child: TextButton.icon(
+                  icon: const Icon(Icons.delete_forever_rounded,
+                      color: Colors.red, size: 20),
+                  onPressed: () => _deleteAccount(context),
+                  label: const Text('Delete Account',
+                      style: TextStyle(color: Colors.red)),
+                ),
+              ),
+            ]),
           ),
         ),
       ),
@@ -636,27 +520,154 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _InfoTile extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoTile({required this.label, required this.value});
+/// One saved address: a coloured label chip (Home / Office / other), the full
+/// address, and either a "Pinned" tag or a "Pin on map" action.
+class _AddressCard extends StatelessWidget {
+  final ClientAddress address;
+  final bool deleting;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  const _AddressCard({
+    required this.address,
+    required this.deleting,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  (Color, IconData) get _style {
+    final title = address.addressTitle.toLowerCase();
+    if (title.contains('home') || title.contains('house')) {
+      return (const Color(0xFF016EE3), Icons.home_rounded);
+    }
+    if (title.contains('office') || title.contains('work')) {
+      return (kProfileViolet, Icons.business_center_rounded);
+    }
+    return (kProfileAmber, Icons.place_rounded);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    final (color, icon) = _style;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF0A4FA8).withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 6))
+        ],
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 21),
+          ),
+          const SizedBox(width: 12),
           Expanded(
-              child: Text(label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.grey[600]))),
-          Expanded(
-              child: Text(value,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.right)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(address.addressTitle,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF14213D))),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                    '${address.fullAddress}, ${address.area}, ${address.city}',
+                    style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: Colors.black.withValues(alpha: 0.55))),
+                const SizedBox(height: 8),
+                if (address.hasLocation)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded,
+                          size: 15, color: kProfileTeal),
+                      const SizedBox(width: 4),
+                      Text('Pinned on map',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: kProfileTeal.withValues(alpha: 0.95))),
+                    ],
+                  )
+                else
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: onEdit,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: kProfileTeal.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: kProfileTeal.withValues(alpha: 0.35)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_location_alt_rounded,
+                              size: 14, color: kProfileTeal),
+                          SizedBox(width: 5),
+                          Text('Pin on map',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: kProfileTeal)),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (deleting)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2)),
+            )
+          else
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert_rounded,
+                  color: Colors.black.withValues(alpha: 0.4)),
+              onSelected: (value) {
+                if (value == 'edit') onEdit();
+                if (value == 'delete') onDelete();
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                        leading: Icon(Icons.edit),
+                        title: Text('Edit'),
+                        contentPadding: EdgeInsets.zero)),
+                PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                        leading: Icon(Icons.delete, color: Colors.red),
+                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        contentPadding: EdgeInsets.zero)),
+              ],
+            ),
         ],
       ),
     );

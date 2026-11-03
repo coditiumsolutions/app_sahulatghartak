@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/frosted_icon_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/city_provider.dart';
@@ -22,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _cnicController;
+  late TextEditingController _descriptionController;
   int _experienceYears = 0;
   String? _selectedCity;
   String? _selectedGender;
@@ -34,6 +36,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: profile?.fullName ?? '');
     _cnicController =
         TextEditingController(text: formatCnicForDisplay(profile?.cnic ?? ''));
+    _descriptionController =
+        TextEditingController(text: profile?.description ?? '');
     _experienceYears = profile?.experienceYears ?? 0;
     _selectedCity = profile?.city;
     _selectedGender =
@@ -45,6 +49,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _cnicController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -58,6 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       fullName: _nameController.text.trim(),
       cnic: _cnicController.text.trim(),
       experienceYears: _experienceYears,
+      description: _descriptionController.text.trim(),
       city: _selectedCity,
       gender: _selectedGender,
     );
@@ -84,9 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: ProviderTabHeader(
         title: 'Edit Profile',
         subtitle: 'Update your personal details',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: FrostedBackButton(onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
       body: Padding(
@@ -178,6 +182,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onChanged: (v) => setState(() => _selectedCity = v),
                   );
                 },
+              ),
+              const SizedBox(height: 20),
+              authFieldLabel('About you'),
+              TextFormField(
+                controller: _descriptionController,
+                minLines: 3,
+                maxLines: 6,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: authFieldDecoration(
+                    hint: 'Briefly describe your services and experience'),
               ),
               const SizedBox(height: 28),
               AuthPrimaryButton(

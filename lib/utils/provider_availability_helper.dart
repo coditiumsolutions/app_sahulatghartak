@@ -250,6 +250,27 @@ class _TimingRow extends StatelessWidget {
   }
 }
 
+/// Lets an online provider change their available timing without toggling
+/// offline and back on. Re-posts the current online state with the new
+/// timing; does nothing if the dialog is dismissed.
+Future<void> editProviderAvailableTiming(BuildContext context) async {
+  final dashboard = context.read<ProviderDashboardProvider>();
+  final providerUid = context.read<AuthProvider>().currentUser?.providerUid;
+  if (providerUid == null || !dashboard.isOnline) return;
+
+  final timing = await _promptAvailabilityTiming(context, dashboard);
+  if (timing == null || !context.mounted) return;
+
+  final success = await dashboard.setOnline(providerUid, true,
+      availableFrom: timing[0], availableTo: timing[1]);
+  if (!context.mounted) return;
+  if (!success) {
+    showAppToast(
+        context, dashboard.availabilityError ?? 'Failed to update timing.',
+        type: AppToastType.error);
+  }
+}
+
 /// Toggles the current provider's Online/Offline status, prompting for
 /// optional available-timing when going online, then calls the availability
 /// API and surfaces a snackbar on failure.

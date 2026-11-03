@@ -14,16 +14,14 @@ import '../../../widgets/confirm_dialog.dart';
 import '../../../widgets/curved_profile_header.dart';
 import '../../../widgets/delete_account_dialog.dart';
 import '../../../widgets/message_dialog.dart';
+import '../../../widgets/profile_kit.dart';
 import '../../../widgets/provider/provider_tab_header.dart'
-    show providerBrandDark, providerBrandBlue, providerBrandAccent;
-import '../../../widgets/provider/section_header_and_info_card.dart';
+    show providerBrandDark, providerBrandBlue;
 import '../../../widgets/provider/tab_state_placeholder.dart';
 import '../../contact_us_screen.dart';
 import '../../home_screen.dart';
 import '../../landing_screen.dart';
 import 'categories_and_titles_screen.dart';
-
-const _verifiedGreen = Color(0xFF16A34A);
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -98,6 +96,84 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
+  /// Skeleton of the final layout so the page doesn't jump when data lands.
+  Widget _loadingScaffold() {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Provider Profile'),
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2),
+        automaticallyImplyLeading: false,
+      ),
+      body: const CurvedProfileHeader(
+        color: providerBrandBlue,
+        headerColors: [providerBrandDark, providerBrandBlue],
+        headerHeight: _headerHeight,
+        avatarRadius: _avatarRadius,
+        bodyColor: kProfileBody,
+        avatar: CircleAvatar(backgroundColor: Color(0xFFE3E9F2)),
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(20, _avatarRadius + 20, 20, 24),
+          child: ProfileSkeleton(),
+        ),
+      ),
+    );
+  }
+
+  void _showVerifiedSheet(DateTime? verifiedOn) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                    color: providerBrandBlue.withValues(alpha: 0.12),
+                    shape: BoxShape.circle),
+                child: const Icon(Icons.verified_rounded,
+                    color: providerBrandBlue, size: 30),
+              ),
+              const SizedBox(height: 14),
+              const Text('Verified provider',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF14213D))),
+              const SizedBox(height: 8),
+              Text(
+                verifiedOn != null
+                    ? 'Your CNIC and documents were checked and approved on ${formatLocalDateTime(verifiedOn, kDatePattern)}. Customers see this badge next to your name.'
+                    : 'Your CNIC and documents were checked and approved. Customers see this badge next to your name.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14,
+                    height: 1.45,
+                    color: Colors.black.withValues(alpha: 0.6)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = context.watch<AuthProvider>().currentUser;
@@ -107,7 +183,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final profilePhotoUrl = documents.profilePhotoUrl;
 
     if (dashboard.profileLoading && detail == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _loadingScaffold();
     }
 
     if (dashboard.profileError != null && detail == null) {
@@ -147,13 +223,7 @@ class _ProfileTabState extends State<ProfileTab> {
             fontWeight: FontWeight.w800,
             letterSpacing: -0.2),
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
-            onPressed: () => _logout(context),
-          ),
-        ],
+        actions: [ProfileLogoutButton(onPressed: () => _logout(context))],
       ),
       body: CurvedProfileHeader(
         color: providerBrandBlue,
@@ -161,6 +231,7 @@ class _ProfileTabState extends State<ProfileTab> {
         headerHeight: _headerHeight,
         avatarRadius: _avatarRadius,
         onRefresh: () async => _loadProfile(),
+        bodyColor: kProfileBody,
         avatar: CircleAvatar(
           backgroundColor: providerBrandBlue,
           backgroundImage:
@@ -173,7 +244,8 @@ class _ProfileTabState extends State<ProfileTab> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(20, _avatarRadius + 20, 20, 24),
           child: Column(
-            children: [
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: staggerProfile(context, [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -189,154 +261,194 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                   if (documents.isVerified)
-                    const Padding(
-                        padding: EdgeInsets.only(left: 6),
-                        child: Icon(Icons.verified_rounded,
-                            color: providerBrandBlue, size: 20)),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        tooltip: 'Verified provider',
+                        onPressed: () => _showVerifiedSheet(documents.verifiedOn),
+                        icon: const Icon(Icons.verified_rounded,
+                            color: providerBrandBlue, size: 22),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 4),
               Text(detail.categoryName,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                       color: Colors.black.withValues(alpha: 0.45),
                       fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
-                  const SizedBox(width: 4),
-                  Text(
-                      '${detail.averageRating.toStringAsFixed(1)} (${detail.totalReviews} reviews)',
-                      style: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500)),
+              const SizedBox(height: 20),
+              ProfileStatStrip(
+                accent: providerBrandBlue,
+                stats: [
+                  ProfileStat(
+                      icon: Icons.star_rounded,
+                      color: Colors.amber,
+                      value: detail.totalReviews > 0
+                          ? detail.averageRating.toStringAsFixed(1)
+                          : 'New',
+                      label: '${detail.totalReviews} reviews'),
+                  ProfileStat(
+                      icon: Icons.task_alt_rounded,
+                      color: kProfileTeal,
+                      value: '${detail.totalJobsCompleted}',
+                      label: 'Jobs done'),
+                  ProfileStat(
+                      icon: Icons.work_history_rounded,
+                      color: kProfileViolet,
+                      value: '${detail.experienceYears} yrs',
+                      label: 'Experience'),
                 ],
               ),
-              if (currentUser != null) ...[
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ProfileStatBadge(
-                        icon: Icons.verified_user_rounded,
-                        label: 'ACCOUNT TYPE',
-                        value: currentUser.role,
-                        color: providerBrandBlue,
-                      ),
+              if (!documents.isVerified) ...[
+                const SizedBox(height: 14),
+                _VerificationBanner(remarks: documents.verificationRemarks),
+              ],
+              const SizedBox(height: 22),
+              const ProfileSectionTitle('Availability'),
+              ProfileCard(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                        dashboard.isOnline
+                            ? Icons.wifi_tethering_rounded
+                            : Icons.wifi_tethering_off_rounded,
+                        color: dashboard.isOnline ? Colors.green : Colors.grey),
+                    title: Text(dashboard.isOnline ? 'Online' : 'Offline',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text(dashboard.isOnline
+                        ? 'Receiving new requests'
+                        : 'Not receiving requests'),
+                    trailing: dashboard.availabilityLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : Switch(
+                            value: dashboard.isOnline,
+                            activeThumbColor: Colors.green,
+                            onChanged: (v) =>
+                                toggleProviderOnlineStatus(context, v),
+                          ),
+                  ),
+                  ProfileDetailRow(
+                    icon: Icons.schedule_rounded,
+                    label: dashboard.isOnline
+                        ? 'Available timing (tap to change)'
+                        : 'Available timing',
+                    color: kProfileCoral,
+                    onTap: dashboard.isOnline
+                        ? () => editProviderAvailableTiming(context)
+                        : null,
+                    value: dashboard.availableTiming ??
+                        detail.availableTiming ??
+                        'Not set',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: ProfileActionTile(
+                      icon: Icons.edit_rounded,
+                      label: 'Edit Profile',
+                      color: providerBrandBlue,
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(ProviderRoutes.editProfile),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ProfileStatBadge(
-                        icon: Icons.tag_rounded,
-                        label: 'USER ID',
-                        value: '${currentUser.userId}',
-                        color: providerBrandAccent,
-                      ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ProfileActionTile(
+                      icon: Icons.badge_outlined,
+                      label: 'My Documents',
+                      color: kProfileTeal,
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(ProviderRoutes.verificationDocuments),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ProfileActionTile(
+                      icon: Icons.category_rounded,
+                      label: 'Categories',
+                      color: kProfileViolet,
+                      onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const CategoriesAndTitlesScreen())),
+                    ),
+                  ),
+                ],
+              ),
+              if (detail.description.isNotEmpty) ...[
+                const SizedBox(height: 22),
+                const ProfileSectionTitle('About'),
+                ProfileCard(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(detail.description,
+                          style: const TextStyle(
+                              fontSize: 14.5,
+                              height: 1.45,
+                              color: Color(0xFF14213D))),
                     ),
                   ],
                 ),
               ],
-              const SizedBox(height: 20),
-              const SectionHeader('Provider Details'),
-              InfoCard(
+              const SizedBox(height: 22),
+              const ProfileSectionTitle('Personal details'),
+              ProfileCard(
                 children: [
-                  ListTile(
-                      leading: const Icon(Icons.badge_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Provider ID'),
-                      subtitle: Text('${detail.uid}')),
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.phone_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Mobile Number'),
-                      subtitle: Text(detail.mobileNo)),
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.credit_card_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('CNIC'),
-                      subtitle: Text(detail.cnic)),
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.wc_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Gender'),
-                      subtitle: Text(detail.gender)),
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.work_history_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Experience'),
-                      subtitle: Text('${detail.experienceYears} years')),
-                  if (detail.city != null && detail.city!.isNotEmpty) ...[
-                    const Divider(height: 1),
-                    ListTile(
-                        leading: const Icon(Icons.location_city_rounded,
-                            color: providerBrandBlue),
-                        title: const Text('City'),
-                        subtitle: Text(detail.city!)),
-                  ],
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.category_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Category'),
-                      subtitle: Text(
-                          '${detail.categoryName} (ID: ${detail.categoryId})')),
-                  if (detail.description.isNotEmpty) ...[
-                    const Divider(height: 1),
-                    ListTile(
-                        leading: const Icon(Icons.description_rounded,
-                            color: providerBrandBlue),
-                        title: const Text('Description'),
-                        subtitle: Text(detail.description)),
-                  ],
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.task_alt_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Jobs Completed'),
-                      subtitle: Text('${detail.totalJobsCompleted}')),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Icon(Icons.verified_user_rounded,
-                        color: documents.isVerified
-                            ? _verifiedGreen
-                            : Colors.orange),
-                    title: const Text('Verification Status'),
-                    subtitle: !documents.isVerified &&
-                            documents.verificationRemarks != null &&
-                            documents.verificationRemarks!.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(documents.verificationRemarks!,
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.black54)),
-                          )
-                        : null,
-                    trailing:
-                        _VerificationBadge(isVerified: documents.isVerified),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                      leading: const Icon(Icons.event_rounded,
-                          color: providerBrandBlue),
-                      title: const Text('Member Since'),
-                      subtitle: Text(
-                          formatLocalDateTime(detail.createdOn, kDatePattern))),
+                  ProfileDetailRow(
+                      icon: Icons.phone_rounded,
+                      label: 'Mobile number',
+                      value: detail.mobileNo,
+                      copyable: true,
+                      color: kProfileTeal),
+                  if (detail.city != null && detail.city!.isNotEmpty)
+                    ProfileDetailRow(
+                        icon: Icons.location_city_rounded,
+                        label: 'City',
+                        value: detail.city!,
+                        color: kProfileTeal),
+                  ProfileDetailRow(
+                      icon: Icons.wc_rounded,
+                      label: 'Gender',
+                      value: detail.gender,
+                      color: kProfileViolet),
+                  ProfileSecretRow(
+                      icon: Icons.credit_card_rounded,
+                      label: 'CNIC',
+                      value: detail.cnic,
+                      maskedValue: maskCnic(detail.cnic),
+                      color: kProfileViolet),
+                  ProfileDetailRow(
+                      icon: Icons.category_rounded,
+                      label: 'Main category',
+                      value: detail.categoryName,
+                      color: kProfileAmber),
+                  ProfileDetailRow(
+                      icon: Icons.event_rounded,
+                      label: 'Member since',
+                      value:
+                          formatLocalDateTime(detail.createdOn, kDatePattern),
+                      color: kProfileCoral),
                 ],
               ),
-              const SizedBox(height: 16),
-              const SectionHeader('Preferences'),
+              const SizedBox(height: 22),
+              const ProfileSectionTitle('Preferences'),
               Consumer<TimeFormatProvider>(
                 builder: (context, timeFormat, _) {
-                  return InfoCard(
+                  return ProfileCard(
                     children: [
                       SwitchListTile(
                         secondary: const Icon(Icons.schedule_rounded,
-                            color: providerBrandBlue),
+                            color: kProfileCoral),
                         title: const Text('24-hour time'),
                         subtitle: Text(timeFormat.use24Hour
                             ? 'e.g. 14:30'
@@ -350,116 +462,38 @@ class _ProfileTabState extends State<ProfileTab> {
                 },
               ),
               const SizedBox(height: 16),
-              const SectionHeader('Availability'),
-              InfoCard(
-                children: [
-                  ListTile(
-                    leading: Icon(
-                        dashboard.isOnline
-                            ? Icons.wifi_tethering_rounded
-                            : Icons.wifi_tethering_off_rounded,
-                        color: dashboard.isOnline ? Colors.green : Colors.grey),
-                    title: const Text('Status'),
-                    subtitle: Text(dashboard.isOnline
-                        ? 'Online — receiving new requests'
-                        : 'Offline'),
-                    trailing: dashboard.availabilityLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : Switch(
-                            value: dashboard.isOnline,
-                            activeThumbColor: Colors.green,
-                            onChanged: (v) =>
-                                toggleProviderOnlineStatus(context, v),
-                          ),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.schedule_rounded,
-                        color: providerBrandBlue),
-                    title: const Text('Available Timing'),
-                    subtitle: Text(dashboard.availableTiming ??
-                        detail.availableTiming ??
-                        'Not set'),
-                  ),
-                ],
+              ProfileIdsDrawer(
+                color: const Color(0xFF64748B),
+                entries: {
+                  if (currentUser != null) ...{
+                    'Account type': currentUser.role,
+                    'User ID': '${currentUser.userId}',
+                  },
+                  'Provider ID': '${detail.uid}',
+                  'Category ID': '${detail.categoryId}',
+                },
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  style: kProminentOutlinedButtonStyle(providerBrandBlue),
-                  icon: const Icon(Icons.edit_rounded),
-                  label: const Text('Edit Profile'),
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(ProviderRoutes.editProfile),
-                ),
+              ElevatedButton.icon(
+                style: kProminentFilledButtonStyle(providerBrandBlue),
+                icon: const Icon(Icons.swap_horiz_rounded),
+                label: const Text('Switch to Customer'),
+                // pushReplacementNamed: don't leave the provider dashboard
+                // on the stack to pop back into with stale data — switching
+                // back the other way uses the mirrored "Switch to Provider"
+                // button, which rebuilds it fresh.
+                onPressed: () => Navigator.of(context)
+                    .pushReplacementNamed(HomeScreen.routeName),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: kProminentOutlinedButtonStyle(providerBrandBlue),
-                      icon: const Icon(Icons.badge_outlined),
-                      label: const Text('My Documents'),
-                      onPressed: () => Navigator.of(context)
-                          .pushNamed(ProviderRoutes.verificationDocuments),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: kProminentOutlinedButtonStyle(providerBrandBlue),
-                      icon: const Icon(Icons.category_rounded),
-                      label: const Text('Categories'),
-                      onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const CategoriesAndTitlesScreen())),
-                    ),
-                  ),
-                ],
+              OutlinedButton.icon(
+                style: kProminentOutlinedButtonStyle(providerBrandBlue),
+                icon: const Icon(Icons.support_agent_rounded),
+                label: const Text('Contact Us'),
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(ContactUsScreen.routeName),
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: kProminentFilledButtonStyle(providerBrandBlue),
-                  icon: const Icon(Icons.swap_horiz_rounded),
-                  label: const Text('Switch to Customer'),
-                  // pushReplacementNamed: don't leave the provider dashboard
-                  // on the stack to pop back into with stale data — switching
-                  // back the other way uses the mirrored "Switch to Provider"
-                  // button, which rebuilds it fresh.
-                  onPressed: () => Navigator.of(context)
-                      .pushReplacementNamed(HomeScreen.routeName),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  style: kProminentOutlinedButtonStyle(Colors.red),
-                  icon: const Icon(Icons.delete_forever_rounded),
-                  label: const Text('Delete Account'),
-                  onPressed: () => _deleteAccount(context),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  style: kProminentOutlinedButtonStyle(providerBrandBlue),
-                  icon: const Icon(Icons.support_agent_rounded),
-                  label: const Text('Contact Us'),
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(ContactUsScreen.routeName),
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Center(
                 child: TextButton.icon(
                   icon:
@@ -469,7 +503,16 @@ class _ProfileTabState extends State<ProfileTab> {
                       style: TextStyle(color: Colors.grey[600])),
                 ),
               ),
-            ],
+              Center(
+                child: TextButton.icon(
+                  icon: const Icon(Icons.delete_forever_rounded,
+                      color: Colors.red, size: 20),
+                  onPressed: () => _deleteAccount(context),
+                  label: const Text('Delete Account',
+                      style: TextStyle(color: Colors.red)),
+                ),
+              ),
+            ]),
           ),
         ),
       ),
@@ -477,34 +520,40 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 }
 
-/// Small pill badge for the Verification Status row - green with a check
-/// for a verified provider, amber/orange with an hourglass while pending.
-class _VerificationBadge extends StatelessWidget {
-  final bool isVerified;
-  const _VerificationBadge({required this.isVerified});
+/// Shown only while the provider is unverified: says what is happening and
+/// surfaces any admin remarks, instead of burying it in a details row.
+class _VerificationBanner extends StatelessWidget {
+  final String? remarks;
+  const _VerificationBanner({this.remarks});
 
   @override
   Widget build(BuildContext context) {
-    final color = isVerified ? _verifiedGreen : Colors.orange;
+    final hasRemarks = remarks != null && remarks!.isNotEmpty;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20)),
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-              isVerified
-                  ? Icons.check_circle_rounded
-                  : Icons.hourglass_top_rounded,
-              size: 14,
-              color: color),
-          const SizedBox(width: 4),
-          Text(
-            isVerified ? 'Verified' : 'Pending',
-            style: TextStyle(
-                color: color, fontWeight: FontWeight.w700, fontSize: 11.5),
+          const Icon(Icons.hourglass_top_rounded, color: Colors.orange),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Verification pending',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800, color: Color(0xFF14213D))),
+                const SizedBox(height: 2),
+                Text(hasRemarks ? remarks! : 'We are reviewing your documents.',
+                    style: const TextStyle(
+                        fontSize: 13, height: 1.35, color: Colors.black54)),
+              ],
+            ),
           ),
         ],
       ),

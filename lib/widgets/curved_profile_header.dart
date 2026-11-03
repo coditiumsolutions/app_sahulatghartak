@@ -13,6 +13,10 @@ class CurvedProfileHeader extends StatelessWidget {
   final double avatarRadius;
   final Future<void> Function()? onRefresh;
 
+  /// Page colour behind the content. White by default; profile pages pass a
+  /// soft tint so their white cards stand out.
+  final Color bodyColor;
+
   const CurvedProfileHeader({
     super.key,
     required this.avatar,
@@ -22,6 +26,7 @@ class CurvedProfileHeader extends StatelessWidget {
     this.headerHeight = 150,
     this.avatarRadius = 48,
     this.onRefresh,
+    this.bodyColor = Colors.white,
   });
 
   Widget _blob(double size) => Container(
@@ -57,7 +62,7 @@ class CurvedProfileHeader extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(36)),
-                  child: Container(color: Colors.white, child: child),
+                  child: Container(color: bodyColor, child: child),
                 ),
               ),
             ],
