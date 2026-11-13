@@ -214,7 +214,7 @@ class _BookingCard extends StatelessWidget {
                               const SizedBox(width: 3),
                               Expanded(
                                 child: Text(
-                                  booking.clientName,
+                                  booking.onsiteName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -284,7 +284,7 @@ class _BookingCard extends StatelessWidget {
                             terminalColor: Colors.red,
                             compact: true,
                           ),
-                          if (booking.clientMobileNo != null) ...[
+                          if (booking.onsiteMobile != null) ...[
                             const SizedBox(height: 10),
                             Row(
                               children: [
@@ -297,7 +297,7 @@ class _BookingCard extends StatelessWidget {
                                         MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   onPressed: () => callNumber(
-                                      context, booking.clientMobileNo!),
+                                      context, booking.onsiteMobile!),
                                   icon: const Icon(Icons.call_rounded,
                                       size: 16, color: kAccentColor),
                                   label: const Text('Call',
@@ -314,7 +314,7 @@ class _BookingCard extends StatelessWidget {
                                         MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   onPressed: () => openWhatsApp(
-                                      context, booking.clientMobileNo!),
+                                      context, booking.onsiteMobile!),
                                   icon: const Icon(Icons.chat,
                                       size: 16, color: Color(0xFF25D366)),
                                   label: const Text('WhatsApp',

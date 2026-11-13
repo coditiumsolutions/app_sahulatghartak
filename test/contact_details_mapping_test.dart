@@ -212,4 +212,41 @@ void main() {
       expect(roundTripped.providerMobileNo, '03011234567');
     });
   });
+
+  group('ServiceBooking on-site contact (api.txt v3.45)', () {
+    Map<String, dynamic> base() => {
+          'uid': 1,
+          'requestUid': 2,
+          'clientUid': 1,
+          'clientName': 'sgt admin',
+          'providerUid': 7,
+          'status': 'Accepted',
+          'createdOn': '2026-07-09T00:00:00',
+          'clientMobileNo': '03001112222',
+        };
+
+    test('prefers the on-site contact over the account holder', () {
+      final b = ServiceBooking.fromJson(
+          {...base(), 'contactPerson': 'Bilal', 'contactNo': '03331234567'});
+      expect(b.onsiteName, 'Bilal');
+      expect(b.onsiteMobile, '03331234567');
+      expect(b.hasDistinctOnsiteContact, isTrue);
+      expect(b.clientName, 'sgt admin');
+    });
+
+    test('falls back to the account holder when contact fields are null/blank',
+        () {
+      final b = ServiceBooking.fromJson(
+          {...base(), 'contactPerson': ' ', 'contactNo': null});
+      expect(b.onsiteName, 'sgt admin');
+      expect(b.onsiteMobile, '03001112222');
+      expect(b.hasDistinctOnsiteContact, isFalse);
+    });
+
+    test('same person as the account holder is not flagged as distinct', () {
+      final b = ServiceBooking.fromJson(
+          {...base(), 'contactPerson': 'sgt admin', 'contactNo': '03001112222'});
+      expect(b.hasDistinctOnsiteContact, isFalse);
+    });
+  });
 }

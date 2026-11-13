@@ -32,6 +32,11 @@ class ServiceBooking {
   final String? providerProfilePhotoPath;
   final String? providerCnic;
   final String? clientMobileNo;
+
+  /// The request's on-site contact (api.txt v3.45). Free text from the request
+  /// form / admin portal, NOT the account holder. Null while Pending or blank.
+  final String? contactPerson;
+  final String? contactNo;
   final String? clientAddressTitle;
   final String? clientFullAddress;
   final String? clientArea;
@@ -78,6 +83,8 @@ class ServiceBooking {
     this.providerProfilePhotoPath,
     this.providerCnic,
     this.clientMobileNo,
+    this.contactPerson,
+    this.contactNo,
     this.clientAddressTitle,
     this.clientFullAddress,
     this.clientArea,
@@ -85,6 +92,23 @@ class ServiceBooking {
     this.clientLatitude,
     this.clientLongitude,
   });
+
+  static String? _nonBlank(String? v) =>
+      (v == null || v.trim().isEmpty) ? null : v.trim();
+
+  /// Who the provider should ask for on site: the request's on-site contact,
+  /// falling back to the account holder for older bookings.
+  String get onsiteName => _nonBlank(contactPerson) ?? clientName;
+
+  /// Number to call / WhatsApp: the on-site contact's, else the account
+  /// holder's. Null until the booking is accepted.
+  String? get onsiteMobile => _nonBlank(contactNo) ?? clientMobileNo;
+
+  /// True when the on-site contact is a different person from the account
+  /// holder (e.g. an admin booked on someone's behalf).
+  bool get hasDistinctOnsiteContact =>
+      _nonBlank(contactPerson) != null &&
+      _nonBlank(contactPerson) != clientName.trim();
 
   /// True when the client dropped a pin for this address, so the map icon
   /// can be shown. Both fields are always null-together (see api.txt).
@@ -132,6 +156,8 @@ class ServiceBooking {
       'providerProfilePhotoPath': providerProfilePhotoPath,
       'providerCnic': providerCnic,
       'clientMobileNo': clientMobileNo,
+      'contactPerson': contactPerson,
+      'contactNo': contactNo,
       'clientAddressTitle': clientAddressTitle,
       'clientFullAddress': clientFullAddress,
       'clientArea': clientArea,
@@ -182,6 +208,8 @@ class ServiceBooking {
       providerProfilePhotoPath: json['providerProfilePhotoPath'] as String?,
       providerCnic: json['providerCnic'] as String?,
       clientMobileNo: json['clientMobileNo'] as String?,
+      contactPerson: json['contactPerson'] as String?,
+      contactNo: json['contactNo'] as String?,
       clientAddressTitle: json['clientAddressTitle'] as String?,
       clientFullAddress: json['clientFullAddress'] as String?,
       clientArea: json['clientArea'] as String?,

@@ -220,8 +220,8 @@ class _IncomingRequestCard extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            booking.clientName.isNotEmpty
-                                ? booking.clientName[0].toUpperCase()
+                            booking.onsiteName.isNotEmpty
+                                ? booking.onsiteName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
                                 color: Colors.white,
@@ -234,7 +234,7 @@ class _IncomingRequestCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(booking.clientName,
+                              Text(booking.onsiteName,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,

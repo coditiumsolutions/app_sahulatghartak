@@ -284,10 +284,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       icon: Icons.person_rounded,
                       children: [
                         _DetailRow(
-                            label: 'Name',
-                            value: booking.clientName,
+                            label: booking.hasDistinctOnsiteContact
+                                ? 'On-site Contact'
+                                : 'Name',
+                            value: booking.onsiteName,
                             icon: Icons.badge_rounded),
-                        if (booking.clientMobileNo != null)
+                        if (booking.onsiteMobile != null)
                           _DetailRow(
                             label: 'Contact Number',
                             icon: Icons.phone_rounded,
@@ -295,7 +297,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  booking.clientMobileNo!,
+                                  booking.onsiteMobile!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -313,7 +315,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                               horizontal: 8),
                                           visualDensity: VisualDensity.compact),
                                       onPressed: () => _callNumber(
-                                          context, booking.clientMobileNo!),
+                                          context, booking.onsiteMobile!),
                                       icon: const Icon(Icons.call_rounded,
                                           size: 16, color: kAccentColor),
                                       label: const Text('Call',
@@ -327,7 +329,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                               horizontal: 8),
                                           visualDensity: VisualDensity.compact),
                                       onPressed: () => openWhatsApp(
-                                          context, booking.clientMobileNo!),
+                                          context, booking.onsiteMobile!),
                                       icon: const Icon(Icons.chat,
                                           size: 16, color: Color(0xFF25D366)),
                                       label: const Text('WhatsApp',
